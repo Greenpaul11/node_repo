@@ -1,0 +1,32 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": [
+        "src/repository/repository.ts",
+        "src/ormManager/ormMenagerBase.ts",
+        "src/formaters/output/outputFormaterBase.ts",
+        "src/formaters/output/buildConverters.ts",
+        "src/formaters/output/convertRow.ts",
+        "src/formaters/output/mapSelects.ts",
+        "src/formaters/query/queryFormaterBase.ts",
+        "src/metadata/entityMetadataMenager.ts",
+        "src/tree/treeBuilders.ts",
+        "src/types/entity/Root.ts",
+        "src/types/entity/Query.ts",
+        "src/types/entity/Metadata.ts",
+        "src/types/entity/Converters.ts",
+        "src/types/entity/Creation.ts"
+    ],
+    "out": "docs/api",
+    "tsconfig": "tsconfig.json",
+    "exclude": [
+        "**/node_modules/**",
+        "**/tests/**",
+        "**/layers/**",
+        "**/*Ai.ts"
+    ],
+    "readme": "none",
+    "categorizeByGroup": true,
+    "navigationLinks": {
+        "GitHub": "https://github.com/your-username/your-repo"
+    }
+}

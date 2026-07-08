@@ -1,0 +1,45 @@
+import type { Model, InferAttributes, InferCreationAttributes, ModelStatic } from 'sequelize'
+import type { EntityBase } from '../../../types/entity/Root'
+import type { CreationOptional, EntityCreationAttributes } from '../../../types/entity/Creation'
+import { OrmManagerBase } from '../../../ormManager/ormMenagerBase'
+import { DialectOptions } from '../../../types/Config'
+import { EntityQueryable } from '../../../types/entity/Query'
+
+
+export class OrmManager<
+    E extends EntityBase,
+    T extends Model<InferAttributes<T>, InferCreationAttributes<T>> & EntityCreationAttributes<E, CreationOptional<E>>
+> extends OrmManagerBase<E, T, ModelStatic<T>> {
+
+    constructor(
+        manager: ModelStatic<T>,
+        dialect: DialectOptions
+    ) {
+        super(manager, dialect)
+    }
+
+    async createOne(data: EntityCreationAttributes<E, CreationOptional<E>>): Promise<T> {
+        const created = await this.manager.create(data as any)
+        return created
+    }
+
+    async deleteOne(id: number): Promise<boolean> {
+        const record = await this.manager.findByPk(id) as T | null
+        if (record) {
+            await record.destroy()
+            return true
+        }
+        return false
+    }
+
+    async destroyAll(where?: EntityQueryable<E>): Promise<number> {
+        const options: { where?: any; truncate?: boolean } = {}
+        if (where === undefined) {
+            options.truncate = true
+        } else {
+            options.where = where as any
+        }
+        const count = await this.manager.destroy(options)
+        return count
+    }
+}
