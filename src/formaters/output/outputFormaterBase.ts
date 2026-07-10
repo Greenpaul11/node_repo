@@ -108,7 +108,7 @@ export abstract class OutputFormaterBase<
         public metadata: EntityMetadata<E>,
         public relationTree: EntityRelationTree<E>,
         public dialect: keyof C
-    ) { }
+    ) {}
 
 
     /**

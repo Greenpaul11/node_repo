@@ -86,6 +86,68 @@ export type EntityQueryable<E extends EntityBase> = {
 export type QueryBaseSelect<E extends EntityBase> =
     Omit<Query<E>, 'search_in' | 'order' | 'group' | 'aggregate'>
 
+
+export type QueryFormaterBaseConfig = {
+    validation: {
+        baseAttributes: {
+            string: boolean
+            number: boolean
+            date: boolean
+            boolean: boolean
+        }
+    }
+}
+
+export type QueryEntityAttributeTypes = {
+    string: string
+    number: number
+    date: Date
+    boolean: boolean
+}
+
+export type QueryConvertObject<E extends EntityBase, F> =
+    QueryEntityAttributeTransform<E, F> //&
+    //QueryRangeFieldTransform<E> &
+    //QueryRelationTransform<E, F> &
+    //QueryAttributeTransform<E>
+
+export type QueryEntityAttributeTransform<E extends EntityBase, F> = 
+    QueryEntityAttributeTypeTransform<E, 'string', F>
+
+export type QueryEntityAttributeTypeTransform<E extends EntityBase, K extends keyof QueryEntityAttributeTypes, F> = {
+    [Key in keyof PickByType<E, QueryEntityAttributeTypes[K]>]?: {
+        convert: ConvertersBuild<E, F>['baseAttributes'][K]
+    }
+}
+
+export type QueryEntityAttributeValidator<E extends EntityBase> = 
+    <K extends keyof EntityQueryable<E>>(value: Query<E>[K], attribute: K) => EntityQueryable<E>[K]
+
+export type QueryRangeFieldTransform<E extends EntityBase, Q extends Query<E> = Query<E>> = {
+    [K in keyof EntityQueryExtendedAttributes<E>]?: {
+        validate: (value: Q[K]) => Q[K]
+        transform: (value: Q[K]) => any
+    }
+}
+
+export type QueryRelationTransform<E extends EntityBase, F> = {
+    [K in keyof ExternalReferences<E>]?: QueryConvertObject<ExternalReferences<E>[K], F>
+}
+
+export type QueryAttributeTransform<E extends EntityBase, Q extends Query<E> = Query<E>> = {
+    [K in keyof QueryAttributes<E>]: {
+        validate: (value: Q[K]) => Q[K] 
+        transform: (value: Q[K]) => any
+    }
+}
+
+export type ConvertersBuild<E extends EntityBase, F> = {
+    baseAttributes: {
+        [Key in keyof QueryEntityAttributeTypes]: 
+            <K extends keyof EntityQueryable<E>>(value: Query<E>[K], attribute: K, converted: F, validate?: QueryEntityAttributeValidator<E>) => F
+    }
+}
+
 /**
  * Additional query attributes for pagination, sorting, and filtering.
  * These are not part of the entity but control how query results are processed.
