@@ -6,7 +6,7 @@ import { OutputFormaterBase } from "../formaters/output/outputFormaterBase";
 import { OrmOptions, DialectOptions } from "../types/Config";
 import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation";
 import { OrmManagerBase } from "../ormManager/ormMenagerBase";
-import { EntityQueryable } from "../types/entity/Query";
+import { Query, EntityQueryable } from "../types/entity/Query";
 import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
 
 
@@ -175,16 +175,22 @@ export class Repository<
         const dialect = repository._resolveDialectName(connection);
 
         // place for implementation of queryFormater
-
-        // ...
+        const ormQueryModule = await import(`../layers/${orm}/query/formater`);
+        const QueryFormater = ormQueryModule.QueryFormater as new (
+            ormEntity: ModelStatic<T>,
+            dialect: DialectOptions
+        ) => QueryFormaterBase<E, T>
+        repository.queryFormater = new QueryFormater(ormEntity, dialect)
 
         // load proper OrmOperations class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
         const OrmManager = ormManagerModule.OrmManager as new (
             ormEntity: ModelStatic<T>,
-            dialect: DialectOptions
+            dialect: DialectOptions,
+            convertQuery: <Q extends Query<E>>(query: Q) => unknown
         ) => OrmManagerBase<E, T>
-        repository.menager = new OrmManager(ormEntity, dialect)
+        const convertQuery = repository.queryFormater.format.bind(repository.queryFormater)
+        repository.menager = new OrmManager(ormEntity, dialect, convertQuery)
 
         // load proper OutputFormater class for specific ORM
         const formaterModule = await import(`../layers/${orm}/output/formater`);

@@ -8,10 +8,11 @@ import defaultConfig from './config'
 export abstract class QueryFormaterBase<
     E extends EntityBase,
     T, // model class
-    F // object with formated query suitable for orm specific query processing
+    F = unknown // object with formated query suitable for orm specific query processing
 > {
     
     public convertersBuild!: ConvertersBuild<E, F>;
+    public queryConvertObject!: QueryConvertObject<E, F>
     public config: QueryFormaterBaseConfig;
     
     
@@ -23,9 +24,7 @@ export abstract class QueryFormaterBase<
         this.config = config ?? defaultConfig 
     }
 
-
-
-    public queryTransformFactory(): QueryConvertObject<E, F>  {
+    public queryConvertObjectFactory(): QueryConvertObject<E, F>  {
 
         const attributeTransform: QueryEntityAttributeTransform<E, F> = {
             ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.stringAttributesList, 'string'),

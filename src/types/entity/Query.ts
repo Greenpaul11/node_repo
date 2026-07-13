@@ -2,6 +2,8 @@ import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType
 } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
 import { EntityMetadata } from './Metadata'
+import { EntityTransform } from './Converters'
+import { ConfigTypes } from '../Config'
 import Decimal from 'decimal.js'
 
 
@@ -12,15 +14,10 @@ import Decimal from 'decimal.js'
 export type Queryable<T> = NonUndefined<T> | NonUndefined<T>[] | string | string[]
 
 /**
- * Transform entity attributes type to the one that is accepted in quering process
+ * Transform attributes type to the one that is accepted in query process.
  */
-export type EntityAsQuery<E extends EntityBase> = {
-    [Key in keyof E]: NonUndefined<E[Key]> extends Decimal 
-        ? number 
-        : NonUndefined<E[Key]> extends Decimal | null
-            ? number | null
-            : E[Key]
-}
+export type EntityAsQuery<E extends EntityBase> = 
+    EntityTransform<E, ConfigTypes['entityQueryTransform']>
 
 /**
  * Generates range query attributes for Date fields.
@@ -115,13 +112,13 @@ export type QueryEntityAttributeTransform<E extends EntityBase, F> =
     QueryEntityAttributeTypeTransform<E, 'string', F>
 
 export type QueryEntityAttributeTypeTransform<E extends EntityBase, K extends keyof QueryEntityAttributeTypes, F> = {
-    [Key in keyof PickByType<E, QueryEntityAttributeTypes[K]>]?: {
+    [Key in keyof PickByType<E, QueryEntityAttributeTypes[K]>]: {
         convert: ConvertersBuild<E, F>['baseAttributes'][K]
     }
 }
 
 export type QueryEntityAttributeValidator<E extends EntityBase> = 
-    <K extends keyof EntityQueryable<E>>(value: Query<E>[K], attribute: K) => EntityQueryable<E>[K]
+    <K extends keyof EntityQueryable<E>>(value: EntityQueryable<E>[K], attribute: K) =>  EntityQueryable<E>[K] 
 
 export type QueryRangeFieldTransform<E extends EntityBase, Q extends Query<E> = Query<E>> = {
     [K in keyof EntityQueryExtendedAttributes<E>]?: {
@@ -144,7 +141,7 @@ export type QueryAttributeTransform<E extends EntityBase, Q extends Query<E> = Q
 export type ConvertersBuild<E extends EntityBase, F> = {
     baseAttributes: {
         [Key in keyof QueryEntityAttributeTypes]: 
-            <K extends keyof EntityQueryable<E>>(value: Query<E>[K], attribute: K, converted: F, validate?: QueryEntityAttributeValidator<E>) => F
+            <K extends keyof EntityQueryable<E>>(value: EntityQueryable<E>[K], attribute: K, converted: F, validate?: QueryEntityAttributeValidator<E>) => F
     }
 }
 

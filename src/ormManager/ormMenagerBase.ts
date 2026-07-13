@@ -1,7 +1,7 @@
 import type { EntityBase } from '../types/entity/Root'
 import type { CreationOptional, EntityCreationAttributes } from '../types/entity/Creation'
 import type { DialectOptions } from '../types/Config'
-import type { EntityQueryable } from '../types/entity/Query'
+import type { EntityQueryable, Query } from '../types/entity/Query'
 
 
 /**
@@ -53,7 +53,8 @@ import type { EntityQueryable } from '../types/entity/Query'
 export abstract class OrmManagerBase<
     E extends EntityBase,
     T,
-    M = unknown
+    M = unknown,
+    F = unknown
 > {
     /**
      * @param manager The ORM-specific database manager instance (e.g.
@@ -65,7 +66,8 @@ export abstract class OrmManagerBase<
      */
     constructor(
         public manager: M,
-        public dialect: DialectOptions
+        public dialect: DialectOptions,
+        public convertQuery: <Q extends Query<E>>(query: Q) => F
     ) {}
 
     /**
@@ -101,4 +103,10 @@ export abstract class OrmManagerBase<
      * @returns The number of records deleted.
      */
     public abstract destroyAll(where?: EntityQueryable<E>): Promise<number>;
+
+    /**
+     * 
+     * @param query 
+     */
+    public abstract getAll<Q extends Query<E>>(query: Q): Promise<T[]>
 }

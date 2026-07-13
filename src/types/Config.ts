@@ -18,6 +18,11 @@ export type ConfigTypes = {
             decimal: TransformRule<Decimal, number>
         }
     }
+    entityQueryTransform: {
+        baseAttributes: {
+            decimal: TransformRule<Decimal, number>
+        }
+    }
     aggregateBase: {
         $count: number
         $sum: Decimal

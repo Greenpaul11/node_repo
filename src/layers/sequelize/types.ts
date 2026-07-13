@@ -1,7 +1,8 @@
 import { EntityBase, ExternalReferences } from "../../types/entity/Root";
 import { EntityTransform, TransformNoExternal, FunctionsToTransformRules } from "../../types/entity/Converters";
-
+import { FindOptions, Model, InferAttributes, InferCreationAttributes, WhereAttributeHash } from "sequelize"
 import { converterDialectsBuild } from "./output/formater";
+import { EntityQueryable } from "../../types/entity/Query";
 
 
 /**
@@ -42,3 +43,13 @@ export type SequelizeRawEntityNotGrouped<E extends EntityBase> =
  */
 
 export type SequelizeRawEntity<E extends EntityBase> = EntityTransform<E, SequelizeRawTransformRules>
+
+
+export type EntityFindOptions<E extends EntityBase, T extends Model<InferAttributes<T>, InferCreationAttributes<T>>> =
+    Omit<FindOptions<InferAttributes<T>>, 'where'> & {
+        where?: { [K in keyof EntityQueryable<E>]?: EntityQueryable<E>[K] }
+    }
+
+
+export type WhereValue = string | number | boolean | Date | null | undefined | object | WhereValue[] | WhereAttributeHash<any>
+

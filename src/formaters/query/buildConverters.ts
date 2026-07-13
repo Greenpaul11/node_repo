@@ -3,7 +3,7 @@ import { Query, EntityQueryable, QueryEntityAttributeTypes,
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
     QueryFormaterBaseConfig } from '../../types/entity/Query'
 import { PickByType } from '../../types/Global'
-import { validateString } from './validators'
+import { validateString, validateNumber, validateDate, validateBoolean } from './validators'
 
 
 /**
@@ -65,17 +65,38 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
     type: K,
 ): QueryEntityAttributeTypeTransform<E, K, F> {
     const transform = {} as QueryEntityAttributeTypeTransform<E, K, F>
-    const converter = convertersBuild['baseAttributes'][type]!
+    const converter = convertersBuild['baseAttributes'][type]
     const validationOn = config.validation.baseAttributes[type]
     
     for (const attribute of attributes) {
         transform[attribute] = {
             convert: <K extends keyof EntityQueryable<E>>(
-                value: Query<E>[K], attribute: K, converted: F
+                value: EntityQueryable<E>[K], attribute: K, converted: F
             ) => validationOn 
-                ? converter(value, attribute, converted, validateString)
+                ? converter(value, attribute, converted, assignValidator(type))
                 : converter(value, attribute, converted)
         } 
     }
     return transform
+}
+
+/**
+ * Assign proper validation function to converter.
+ * @param type keyof {@link QueryEntityAttributeTypes}
+ * @returns validation function
+ */
+function assignValidator<K extends keyof QueryEntityAttributeTypes>(type: K) {
+    switch (type) {
+        case 'string': 
+            return validateString
+        case 'number':
+            return validateNumber
+        case 'date':
+            return validateDate
+        case 'boolean':
+            return validateBoolean
+        default: 
+            throw new Error('Type value is not assignable!')
+    }   
+    
 }
