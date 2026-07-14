@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
 import { ProductImporter, Product, Price, Shop, Comment, Category, ProductCategory,
     SpecificationTree, User, Rate  } from '../../../../testSkeleton/models'
+import connection from '../../../../../config/connection';
 
 
 describe('test sequelize models', () => {
@@ -16,7 +17,7 @@ describe('test sequelize models', () => {
     let testUserId: number;
     let testSpecificationTreeId: number;
     let testRateId: number;
-
+    
 
     describe('Shop model', () => {
         it('should create a shop', async () => {

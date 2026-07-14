@@ -22,9 +22,10 @@ export class QueryFormater<
         super(metadata, relationTree)
 
         this.convertersBuild = sequelizeConvertersBuild<E, T, F>()
+        this.queryConvertObject = this.queryConvertObjectFactory()
     }
 
-    public format<Q extends Query<E>>(query: Q): F {
+    public formatQuery<Q extends Query<E>>(query: Q): F {
         // create orm query object
         const formated = {} as F
 

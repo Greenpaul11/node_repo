@@ -2,7 +2,7 @@ import Decimal from "decimal.js"
 export default {
     native: {
         baseAttributes: {
-            decimal: (value: number) => new Decimal(value) 
+            decimal: (value: number | null) => value === null ? null : new Decimal(value)
         },
         fns: {
             $count: (value: string) => Number(value),
@@ -14,8 +14,8 @@ export default {
     },
     raw: {
         baseAttributes: {
-            decimal: (value: string ) => new Decimal(value) ,
-            boolean: (value: number ) => Boolean(value) 
+            decimal: (value: string | null) => value === null ? null : new Decimal(value),
+            boolean: (value: number | null) => value === null ? null : Boolean(value) 
         }, 
         fns: {
             $count: (value: string) => new Decimal(value),

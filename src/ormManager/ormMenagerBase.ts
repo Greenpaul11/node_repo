@@ -105,8 +105,16 @@ export abstract class OrmManagerBase<
     public abstract destroyAll(where?: EntityQueryable<E>): Promise<number>;
 
     /**
-     * 
-     * @param query 
+     * Get single record of entity by specfic query.
+     *
+     * @param query  
      */
-    public abstract getAll<Q extends Query<E>>(query: Q): Promise<T[]>
+    public abstract getOneBy<Q extends Query<E>>(query: Q): Promise<T | null>
+
+    /**
+     * Get records of entity by specfic query.
+     *
+     * @param query  
+     */
+    public abstract getManyBy<Q extends Query<E>>(query: Q): Promise<T[]>
 }

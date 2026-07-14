@@ -2,8 +2,8 @@ import Decimal from "decimal.js"
 export default {
     native: {
         baseAttributes: {
-            decimal: (value: number) => new Decimal(value),
-            date: (value: string) => new Date(value)
+            decimal: (value: number | null) => value === null ? null : new Decimal(value),
+            date: (value: string | null) => value === null ? null : new Date(value)
         },
         fns: {
             $count: (value: string) => Number(value),
@@ -15,9 +15,9 @@ export default {
     },
     raw: {
         baseAttributes: {
-            decimal: (value: string ) => new Decimal(value),
-            date: (value: string) => new Date(value),
-            boolean: (value: number ) => Boolean(value) 
+            decimal: (value: string | null ) => value === null ? null : new Decimal(value),
+            date: (value: string | null) => value === null ? null : new Date(value),
+            boolean: (value: number | null) => value === null ? null : Boolean(value) 
         }, 
         fns: {
             $count: (value: string) => new Decimal(value),

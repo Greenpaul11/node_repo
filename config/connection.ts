@@ -8,6 +8,7 @@ dotenv.config({path: `src/config/${mode}`})
 const orm = process.env.ORM
 const dialect = process.env.DIALECT
 
+
 // store orm connection like 'Sequelize'
 let connection: Sequelize | undefined
 
@@ -18,12 +19,13 @@ let connection: Sequelize | undefined
             switch (dialect) {
                 case 'mysql':
                     connection = new Sequelize(
-                        `${process.env.DATABASE_SP}`,
-                        `${process.env.USERNAME_SP}`,
+                        ``,
+                        ``,
                         `${process.env.PASSWORD_SP}`,  
                         {
                             host: `${process.env.HOST_SP}`,
                             dialect: dialect as Dialect,
+                            pool: {max: 1, min: 1},
                             logging: false
                         }
                     ) 
@@ -38,13 +40,7 @@ let connection: Sequelize | undefined
 
 
             if (!connection) throw new Error(`Connection for selected dialect: "${dialect}" does not exist!`)
-            
-            try {
-                await connection.authenticate();
-                console.log(`Connected to database by Sequelize using dialect: ${dialect}`);
-            } catch (error) {
-              throw new Error(`Could not connect to database by Sequelize: ${error}`);
-            }
+        
         break;
 
         default:

@@ -1,6 +1,6 @@
 import { EntityQueryable, ConvertersBuild, QueryEntityAttributeValidator } from "../../../types/entity/Query"
 import { EntityBase } from "../../../types/entity/Root"
-import { FindOptions, Model, InferAttributes, InferCreationAttributes, WhereAttributeHash, } from "sequelize"
+import { FindOptions, Model, InferAttributes, InferCreationAttributes } from "sequelize"
 import { WhereValue } from "../types"
 
 
@@ -11,22 +11,23 @@ export default function sequelizeConvertersBuild<
 >(): ConvertersBuild<E, F> {
     return {
         baseAttributes: {
-            string: buildConverter<E, F>(),
-            number: buildConverter<E, F>(),
-            date: buildConverter<E, F>(),
-            boolean: buildConverter<E, F>(),
+            string: buildAttributeConverter<E, F>(),
+            number: buildAttributeConverter<E, F>(),
+            date: buildAttributeConverter<E, F>(),
+            boolean: buildAttributeConverter<E, F>(),
         }
     }
 }
 
-function buildConverter<E extends EntityBase, F extends FindOptions<InferAttributes<any>>>() {
+function buildAttributeConverter<E extends EntityBase, F extends FindOptions<InferAttributes<any>>>() {
     return <K extends keyof EntityQueryable<E>>(
         value: EntityQueryable<E>[K],
         attribute: K,
         converted: F,
         validate?: QueryEntityAttributeValidator<E>
     ): F => {
-        const where = (converted.where ?? {}) as Record<string, WhereValue>
+        (converted as Record<string, any>).where ??= {}
+        const where = (converted as any).where as Record<string, WhereValue>
 
         if (Array.isArray(value)) {
             const validated = []
@@ -39,9 +40,10 @@ function buildConverter<E extends EntityBase, F extends FindOptions<InferAttribu
                 where[attribute as string] = value
             }
         } else {
-            where[attribute as string] = validate
-                ? validate(value, attribute)
-                : value
+            const validated = validate ? validate(value, attribute) : value
+            if (validated !== undefined) {
+                where[attribute as string] = validated
+            }
         }
         return converted
     }

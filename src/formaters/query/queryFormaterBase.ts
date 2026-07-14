@@ -37,7 +37,7 @@ export abstract class QueryFormaterBase<
         }
     }
 
-    public abstract format<Q extends Query<E>>(query: Q): F
+    public abstract formatQuery<Q extends Query<E>>(query: Q): F
 }
 
 

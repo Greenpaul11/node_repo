@@ -19,6 +19,7 @@ export const validateNumber = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
 >(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asNumber = value === null ? null : Number(value)
     if (asNumber === null) {
         return asNumber as EntityQueryable<E>[K]
@@ -34,6 +35,7 @@ export const validateDate = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
 >(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asDate = value === null ? null : new Date(value as any) 
     if (asDate === null) {
         return asDate as EntityQueryable<E>[K]
@@ -49,6 +51,7 @@ export const validateBoolean = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
 >(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asBoolean = value === null ? null : (() => {
         if (typeof value === 'boolean') return value;
         // if value as number

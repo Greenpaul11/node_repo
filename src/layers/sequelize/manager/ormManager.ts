@@ -35,18 +35,18 @@ export class OrmManager<
         return false
     }
 
-    async destroyAll(where?: EntityQueryable<E>): Promise<number> {
-        const options: { where?: any; truncate?: boolean } = {}
-        if (where === undefined) {
-            options.truncate = true
-        } else {
-            options.where = where 
-        }
+    async destroyAll(where: EntityQueryable<E> = {}): Promise<number> {
+        const options = { where: where as any,  truncate: false } 
         const count = await this.manager.destroy(options)
         return count
     }
 
-    async getAll<Q extends Query<E>>(query: Q): Promise<T[]> {
+    async getOneBy<Q extends Query<E>>(query: Q): Promise<T | null> {
+        const ormQuery = this.convertQuery(query) 
+        return await this.manager.findOne(ormQuery)
+    }
+
+    async getManyBy<Q extends Query<E>>(query: Q): Promise<T[]> {
         const ormQuery = this.convertQuery(query) 
         return await this.manager.findAll(ormQuery)
     }

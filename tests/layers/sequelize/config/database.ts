@@ -7,21 +7,18 @@ export async function createDatabase(connection: Sequelize) {
     switch (dialect) {
         case 'mysql':
             try {
-                console.log('>>> createDatabase: Before query, connection config database:', connection.config.database);
+                console.log('>>> createDatabase: Before query, connection config database:', process.env.USERNAME_SP);
                 await connection.query(
-                  `CREATE DATABASE IF NOT EXISTS ${connection.config.database}`
+                  `CREATE DATABASE IF NOT EXISTS \`${process.env.USERNAME_SP}\``
                 );
-                console.log(`>>> createDatabase: Database ${connection.config.database} created successfully`);
+                console.log(`>>> createDatabase: Database ${process.env.USERNAME_SP} created successfully`);
                 console.log('>>> createDatabase: Executing USE command to select the database...');
-                await connection.query(`USE ${connection.config.database}`);
+                await connection.query(`USE ${process.env.USERNAME_SP}`);
                 console.log('>>> createDatabase: USE command succeeded');
             } catch (error) {
                 console.error(error);
             } 
-            await connection.sync({
-                force: true,
-                logging: false
-            })
+            await connection.sync({ force: true, logging: false})
             break
         case 'sqlite':
             const storagePath = ((connection as unknown as { options: Options }).options).storage as string | undefined
@@ -48,7 +45,7 @@ export async function createDatabase(connection: Sequelize) {
 
 
 export async function dropDatabase(connection: Sequelize) {
-    const databaseName = connection.config.database; 
+    const databaseName = process.env.USERNAME_SP
     const dialect = connection.getDialect()
     switch(dialect) {
         case 'mysql': 
@@ -56,7 +53,7 @@ export async function dropDatabase(connection: Sequelize) {
                 throw new Error("Database name not found");
             }   
             await connection.query(
-                `DROP DATABASE IF EXISTS \`${databaseName}\``
+                `DROP DATABASE IF EXISTS \`${process.env.USERNAME_SP}\``
             );
             break
         

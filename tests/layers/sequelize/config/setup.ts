@@ -9,7 +9,6 @@ if (!(connection instanceof Sequelize)) {
 }
 
 const sequelize: Sequelize = connection
-const dialect = connection.getDialect()
 
 before(async () => {
     console.log('>>> SETUP before hook: Starting');

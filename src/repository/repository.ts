@@ -6,7 +6,7 @@ import { OutputFormaterBase } from "../formaters/output/outputFormaterBase";
 import { OrmOptions, DialectOptions } from "../types/Config";
 import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation";
 import { OrmManagerBase } from "../ormManager/ormMenagerBase";
-import { Query, EntityQueryable } from "../types/entity/Query";
+import { Query, EntityQueryable, EntityProjection } from "../types/entity/Query";
 import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
 
 
@@ -177,10 +177,10 @@ export class Repository<
         // place for implementation of queryFormater
         const ormQueryModule = await import(`../layers/${orm}/query/formater`);
         const QueryFormater = ormQueryModule.QueryFormater as new (
-            ormEntity: ModelStatic<T>,
-            dialect: DialectOptions
+            metadata: EntityMetadata<E>,
+            relationTree: EntityRelationTree<E>,
         ) => QueryFormaterBase<E, T>
-        repository.queryFormater = new QueryFormater(ormEntity, dialect)
+        repository.queryFormater = new QueryFormater(repository.metadata, repository.relationTree)
 
         // load proper OrmOperations class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
@@ -189,7 +189,7 @@ export class Repository<
             dialect: DialectOptions,
             convertQuery: <Q extends Query<E>>(query: Q) => unknown
         ) => OrmManagerBase<E, T>
-        const convertQuery = repository.queryFormater.format.bind(repository.queryFormater)
+        const convertQuery = repository.queryFormater.formatQuery.bind(repository.queryFormater)
         repository.menager = new OrmManager(ormEntity, dialect, convertQuery)
 
         // load proper OutputFormater class for specific ORM
@@ -296,6 +296,77 @@ export class Repository<
      */
     async destroyAll(where?: EntityQueryable<E>): Promise<number> {
         return this.menager.destroyAll(where)
+    }
+    
+    /**
+     * Find a single record matching the query and return it as a typed entity.
+     *
+     * The return type is selected by the `raw` flag:
+     *  - `raw` omitted or `false` (default) → typed entity `E`;
+     *  - `raw: true` → raw ORM model `T`.
+     *
+     * @typeParam Q - Query type, inferred from `query`. Controls which
+     *                fields are selected and which relations are included.
+     * @param query Declarative query with filters, selects, and nested
+     *               relation queries. See {@link Query}.
+     * @param raw   When `true`, returns the raw ORM model instead of
+     *              the typed entity (or `null` when not found).
+     * @returns The matching row projected to `Q`, or `null` when no
+     *          record matches the query.
+     *
+     * @example
+     * ```ts
+     * const product = await repo.getOneBy({ id: 1, select: ['id', 'brand'] })
+     * // => { id: 1, brand: 'Samsung' }
+     *
+     * const raw = await repo.getOneBy({ id: 1 }, true)
+     * // => ProductModel instance
+     * ```
+     */
+    async getOneBy<Q extends Query<E>>(query: Q): Promise<EntityProjection<E, Q> | null>
+    async getOneBy<Q extends Query<E>>(query: Q, raw: false): Promise<EntityProjection<E, Q> | null>
+    async getOneBy<Q extends Query<E>>(query: Q, raw: true): Promise<T | null>
+    async getOneBy<Q extends Query<E>>(query: Q, raw: boolean = false): Promise<EntityProjection<E, Q> | T | null> {
+        const entityRaw = await this.menager.getOneBy(query)
+        if (raw) return entityRaw
+        return this.outputFormater.asEntity(entityRaw, query)
+    }
+
+    /**
+     * Find all records matching the query and return them as typed entities.
+     *
+     * The return type is selected by the `raw` flag:
+     *  - `raw` omitted or `false` (default) → typed entity array `E[]`;
+     *  - `raw: true` → raw ORM model array `T[]`.
+     *
+     * @typeParam Q - Query type, inferred from `query`. Controls which
+     *                fields are selected and which relations are included.
+     * @param query Declarative query with filters, selects, and nested
+     *               relation queries. See {@link Query}.
+     * @param raw   When `true`, returns raw ORM models instead of
+     *              typed entities.
+     * @returns An array of matching rows projected to `Q`, or an empty
+     *          array when no records match the query.
+     *
+     * @example
+     * ```ts
+     * const products = await repo.getManyBy({
+     *     brand: 'Samsung',
+     *     select: ['id', 'model']
+     * })
+     * // => [{ id: 1, model: 'Galaxy S23' }, ...]
+     *
+     * const raw = await repo.getManyBy({ active: true }, true)
+     * // => ProductModel[]
+     * ```
+     */
+    async getManyBy<Q extends Query<E>>(query: Q): Promise<EntityProjection<E, Q>[]>
+    async getManyBy<Q extends Query<E>>(query: Q, raw: false): Promise<EntityProjection<E, Q>[]>
+    async getManyBy<Q extends Query<E>>(query: Q, raw: true): Promise<T[]>
+    async getManyBy<Q extends Query<E>>(query: Q, raw: boolean = false): Promise<EntityProjection<E, Q>[] | T[]> {
+        const entityRaw = await this.menager.getManyBy(query)
+        if (raw) return entityRaw
+        return this.outputFormater.asEntities(entityRaw)
     }
 
 }
