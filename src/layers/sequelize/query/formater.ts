@@ -6,9 +6,6 @@ import sequelizeConvertersBuild from "./build"
 import { Query, QueryConvertObject } from "../../../types/entity/Query";
 
 
-
-
-
 export class QueryFormater< 
     E extends EntityBase,
     T extends Model<InferAttributes<T>, InferCreationAttributes<T>>,
@@ -31,8 +28,8 @@ export class QueryFormater<
 
         for (const [key, value] of Object.entries(query)) {
             const queryKey = key as keyof QueryConvertObject<E, F>
-            if (this.queryConvertObject.hasOwnProperty(queryKey)) {
-                this.queryConvertObject[queryKey].convert(value, queryKey, formated)
+            if (this.queryConvertObject.hasOwnProperty(key)) {
+                this.queryConvertObject[queryKey].convert(value, formated)
             }
         }
 

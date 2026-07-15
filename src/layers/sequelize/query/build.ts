@@ -1,6 +1,11 @@
-import { EntityQueryable, ConvertersBuild, QueryEntityAttributeValidator } from "../../../types/entity/Query"
+import { EntityQueryable, EntityQueryRangeAttributes, ConvertersBuild, 
+    QueryEntityAttributeValidator, QueryRangeValidator, QueryRangeAttributeTypes } from "../../../types/entity/Query"
 import { EntityBase } from "../../../types/entity/Root"
-import { FindOptions, Model, InferAttributes, InferCreationAttributes } from "sequelize"
+import { PickByType } from "../../../types/Global"
+import { 
+    FindOptions, Model, InferAttributes, InferCreationAttributes, 
+    Op 
+} from "sequelize"
 import { WhereValue } from "../types"
 
 
@@ -15,19 +20,26 @@ export default function sequelizeConvertersBuild<
             number: buildAttributeConverter<E, F>(),
             date: buildAttributeConverter<E, F>(),
             boolean: buildAttributeConverter<E, F>(),
+        },
+        rangeAttributes: {
+            number: buildRangeConverter<E, F, 'number'>(),
+            date: buildRangeConverter<E, F, 'date'>()
         }
     }
 }
 
-function buildAttributeConverter<E extends EntityBase, F extends FindOptions<InferAttributes<any>>>() {
+function buildAttributeConverter<
+    E extends EntityBase, 
+    F extends FindOptions<InferAttributes<any>>
+>() {
     return <K extends keyof EntityQueryable<E>>(
-        value: EntityQueryable<E>[K],
-        attribute: K,
+        value: unknown,
         converted: F,
+        attribute: K,
         validate?: QueryEntityAttributeValidator<E>
     ): F => {
-        (converted as Record<string, any>).where ??= {}
-        const where = (converted as any).where as Record<string, WhereValue>
+        converted.where ??= {}
+        const where = converted.where as Record<string, WhereValue>
 
         if (Array.isArray(value)) {
             const validated = []
@@ -45,6 +57,29 @@ function buildAttributeConverter<E extends EntityBase, F extends FindOptions<Inf
                 where[attribute as string] = validated
             }
         }
+        return converted
+    }
+}
+
+function buildRangeConverter<
+    E extends EntityBase, 
+    F extends FindOptions<InferAttributes<any>>, 
+    R extends keyof QueryRangeAttributeTypes
+>() {
+    return <K extends keyof PickByType<E, QueryRangeAttributeTypes[R]>>(
+        value: unknown,
+        converted: F,
+        suffix: '_from' | '_to',
+        attribute: K,
+        validate?: QueryRangeValidator<E>
+    ): F => {
+        converted.where ??= {}
+        const where = converted.where as Record<string, WhereValue>
+        const op = suffix === '_from' ? Op.gte : Op.lt
+        const validated = validate ? validate(value, `${String(attribute)}${suffix}` as any) : value
+        
+        where[attribute as string] = { [op]: validated } 
+        
         return converted
     }
 }

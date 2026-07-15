@@ -1,11 +1,11 @@
 import { EntityBase } from "../../types/entity/Root"
-import { EntityQueryable } from "../../types/entity/Query"
+import { EntityQueryable, EntityQueryRangeAttributes } from "../../types/entity/Query"
 
 
 export const validateString = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
->(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+>(value: unknown, attribute: K): EntityQueryable<E>[K] => {
     if (typeof value === 'string' || value === null) {
         return value as EntityQueryable<E>[K]
     } else {
@@ -18,7 +18,7 @@ export const validateString = <
 export const validateNumber = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
->(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+>(value: unknown, attribute: K): EntityQueryable<E>[K] => {
     if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asNumber = value === null ? null : Number(value)
     if (asNumber === null) {
@@ -34,7 +34,7 @@ export const validateNumber = <
 export const validateDate = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
->(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+>(value: unknown, attribute: K): EntityQueryable<E>[K] => {
     if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asDate = value === null ? null : new Date(value as any) 
     if (asDate === null) {
@@ -50,7 +50,7 @@ export const validateDate = <
 export const validateBoolean = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
->(value: EntityQueryable<E>[K], attribute: K): EntityQueryable<E>[K] => {
+>(value: unknown, attribute: K): EntityQueryable<E>[K] => {
     if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     const asBoolean = value === null ? null : (() => {
         if (typeof value === 'boolean') return value;
@@ -72,3 +72,37 @@ export const validateBoolean = <
     } 
     return asBoolean as EntityQueryable<E>[K]
 }
+
+export const validateRangeNumber = <
+    E extends EntityBase,
+    K extends keyof EntityQueryRangeAttributes<E>
+>(value: unknown, attribute: K): EntityQueryRangeAttributes<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryRangeAttributes<E>[K]
+    if (value) {
+        const num = Number(value);
+        if (!Number.isNaN(num)) return num as EntityQueryRangeAttributes<E>[K]
+    }
+    throw new Error(
+        `Value type for ${String(attribute)} is not valid. 
+        Type ${typeof value} can not be used where accepted is "number".`
+    )
+}
+
+export const validateRangeDate = <
+    E extends EntityBase,
+    K extends keyof EntityQueryRangeAttributes<E>
+>(value: unknown, attribute: K): EntityQueryRangeAttributes<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryRangeAttributes<E>[K]
+    if (value) {
+        if (value instanceof Date) {
+            if (!isNaN(value.getTime())) return value as EntityQueryRangeAttributes<E>[K]
+        } else if (typeof value === 'string') {
+            const date = new Date(value)
+            if (!isNaN(date.getTime())) return value as EntityQueryRangeAttributes<E>[K]
+        }
+}
+throw new Error(
+    `Value type for ${String(attribute)} is not valid. 
+    Type ${typeof value} can not be used where accepted is "date".`
+)
+ }

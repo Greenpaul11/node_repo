@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import { NullableFromObject, PickByType } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AttributeTypes } from './Root'
 
@@ -40,7 +41,7 @@ export interface EntityMetadata<E extends EntityBase> {
     /**
      * Attributes of type number.
      */
-    numberAttributesList: Array<keyof PickByType<E, number>>
+    numberAttributesList: Array<keyof PickByType<E, number | Decimal>>
     /**
      * Attributes of type date.
      */

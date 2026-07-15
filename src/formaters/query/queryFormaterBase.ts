@@ -1,8 +1,9 @@
 import { EntityBase } from '../../types/entity/Root'
 import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
 import { Query, QueryEntityAttributeTransform, ConvertersBuild,  
-    QueryConvertObject, QueryFormaterBaseConfig } from '../../types/entity/Query'
-import { buildEntityAttributeConverters } from './buildConverters'
+    QueryConvertObject, QueryFormaterBaseConfig, 
+    QueryRangeAttributeTransform} from '../../types/entity/Query'
+import { buildEntityAttributeConverters, buildRangeAttributeConverters } from './buildConverters'
 import defaultConfig from './config'
 
 export abstract class QueryFormaterBase<
@@ -26,14 +27,19 @@ export abstract class QueryFormaterBase<
 
     public queryConvertObjectFactory(): QueryConvertObject<E, F>  {
 
-        const attributeTransform: QueryEntityAttributeTransform<E, F> = {
+        const baseAttributes: QueryEntityAttributeTransform<E, F> = {
             ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.stringAttributesList, 'string'),
             ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.numberAttributesList, 'number'),
             ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date'),
             ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.booleanAttributesList, 'boolean'),
         }
+        const rangeAttributes: QueryRangeAttributeTransform<E, F> = {
+            ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.numberAttributesList, 'number'),
+            ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date')
+        }
         return {
-            ...attributeTransform
+            ...baseAttributes,
+            ...rangeAttributes
         }
     }
 

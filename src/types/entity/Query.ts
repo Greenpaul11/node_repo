@@ -27,7 +27,7 @@ export type EntityAsQuery<E extends EntityBase> =
 export type EntityQueryDateRangeAttributes<E extends EntityBase> = {
     [Key in keyof PickByType<EntityNoExternal<E>, Date> as `${Key & string}_from` 
             | `${Key & string}_to`]? 
-        : Date | string;
+        : Date | string
 } 
 
 /**
@@ -41,12 +41,18 @@ export type EntityQueryNumberRangeAttributes<E extends EntityBase> = {
     : number | string;
 } 
 
+export type EntityRangeAttributes<E extends EntityBase, T extends number | Date | Decimal> = {
+    [Key in keyof PickByType<EntityNoExternal<E>, T> as `${Key & string}_from` 
+        | `${Key & string}_to`] 
+    : T | string
+}
+
 /**
  * Combines date and number range attributes into a single type.
  * Provides extended query capabilities for filtering entities by ranges.
  */
-export type EntityQueryExtendedAttributes<E extends EntityBase> = 
-    EntityQueryDateRangeAttributes<E> & EntityQueryNumberRangeAttributes<E>
+export type EntityQueryRangeAttributes<E extends EntityBase> = 
+    EntityRangeAttributes<E, number | Date | Decimal>  
 
 /**
  * Query attributes for an entity.
@@ -62,7 +68,7 @@ export type EntityQueryable<E extends EntityBase> = {
  * All possible attributes of this type are related to entity by itself.
  */
  export type EntityQuery<E extends EntityBase> = 
-    EntityQueryable<E> & EntityQueryExtendedAttributes<E>  
+    EntityQueryable<E> & Partial<EntityQueryRangeAttributes<E>>  
 
 /**
   * Complete query type combining entity attributes, extended attributes, and query controls.
@@ -92,40 +98,65 @@ export type QueryFormaterBaseConfig = {
             date: boolean
             boolean: boolean
         }
+        rangeAttributes: {
+            number: boolean
+            date: boolean
+        }
     }
 }
 
 export type QueryEntityAttributeTypes = {
     string: string
-    number: number
+    number: number | Decimal
     date: Date
     boolean: boolean
 }
 
+export type QueryRangeAttributeTypes = {
+    number: number | Decimal
+    date: Date
+}
+
 export type QueryConvertObject<E extends EntityBase, F> =
-    QueryEntityAttributeTransform<E, F> //&
-    //QueryRangeFieldTransform<E> &
+    QueryEntityAttributeTransform<E, F> &
+    QueryRangeAttributeTransform<E, F> 
     //QueryRelationTransform<E, F> &
     //QueryAttributeTransform<E>
 
+
 export type QueryEntityAttributeTransform<E extends EntityBase, F> = 
-    QueryEntityAttributeTypeTransform<E, 'string', F>
+    QueryEntityAttributeTypeTransform<E, 'string', F> &
+    QueryEntityAttributeTypeTransform<E, 'number', F> &
+    QueryEntityAttributeTypeTransform<E, 'date', F> &
+    QueryEntityAttributeTypeTransform<E, 'boolean', F>
 
 export type QueryEntityAttributeTypeTransform<E extends EntityBase, K extends keyof QueryEntityAttributeTypes, F> = {
     [Key in keyof PickByType<E, QueryEntityAttributeTypes[K]>]: {
-        convert: ConvertersBuild<E, F>['baseAttributes'][K]
+        convert: (value: unknown, converted: F) => F
     }
 }
+
+
+export type QueryRangeAttributeTransform<E extends EntityBase, F> =
+    QueryRangeAttributeTypeTransform<E, 'number', F> &
+    QueryRangeAttributeTypeTransform<E, 'date', F>
+
+export type QueryRangeAttributeTypeTransform<E extends EntityBase, K extends keyof QueryRangeAttributeTypes, F> = {
+    [Key in keyof EntityRangeAttributes<E, QueryRangeAttributeTypes[K]>]: {
+        convert: (value: unknown, converted: F) => F
+    }
+}
+
 
 export type QueryEntityAttributeValidator<E extends EntityBase> = 
-    <K extends keyof EntityQueryable<E>>(value: EntityQueryable<E>[K], attribute: K) =>  EntityQueryable<E>[K] 
+    <K extends keyof EntityQueryable<E>>(value: unknown, attribute: K) => EntityQueryable<E>[K] 
 
-export type QueryRangeFieldTransform<E extends EntityBase, Q extends Query<E> = Query<E>> = {
-    [K in keyof EntityQueryExtendedAttributes<E>]?: {
-        validate: (value: Q[K]) => Q[K]
-        transform: (value: Q[K]) => any
-    }
-}
+export type QueryRangeValidator<E extends EntityBase> = 
+    <K extends keyof EntityQueryRangeAttributes<E>>(value: unknown, attribute: K) => EntityQueryRangeAttributes<E>[K] 
+
+
+
+
 
 export type QueryRelationTransform<E extends EntityBase, F> = {
     [K in keyof ExternalReferences<E>]?: QueryConvertObject<ExternalReferences<E>[K], F>
@@ -141,7 +172,22 @@ export type QueryAttributeTransform<E extends EntityBase, Q extends Query<E> = Q
 export type ConvertersBuild<E extends EntityBase, F> = {
     baseAttributes: {
         [Key in keyof QueryEntityAttributeTypes]: 
-            <K extends keyof EntityQueryable<E>>(value: EntityQueryable<E>[K], attribute: K, converted: F, validate?: QueryEntityAttributeValidator<E>) => F
+            <K extends keyof EntityQueryable<E>>(
+                value: unknown, 
+                converted: F, 
+                attribute: K, 
+                validate?: QueryEntityAttributeValidator<E>
+            ) => F
+    }
+    rangeAttributes: {
+        [Key in keyof QueryRangeAttributeTypes]:
+            <K extends keyof PickByType<E, QueryRangeAttributeTypes[Key]>>(
+                value: unknown, 
+                converted: F, 
+                suffix: '_from' | '_to',  
+                attribute: K, 
+                validate?: QueryRangeValidator<E>
+            ) => F
     }
 }
 

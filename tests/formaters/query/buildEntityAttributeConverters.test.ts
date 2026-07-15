@@ -1,73 +1,75 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
 import { buildEntityAttributeConverters } from '../../../src/formaters/query/buildConverters'
-import { ConvertersBuild } from '../../../src/types/entity/Query'
+import { ConvertersBuild, QueryFormaterBaseConfig, EntityQueryable } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
-import { EntityBase, EntityNoExternal } from '../../../src/types/entity/Root'
+import { EntityBase } from '../../../src/types/entity/Root'
 import { validateString, validateNumber, validateDate, validateBoolean } from '../../../src/formaters/query/validators'
 
 type OrmQuery<E extends EntityBase> = {
-    where: OrmQueryWhere<E>
+    where: Record<string, unknown>
 }
-type OrmQueryWhere<E extends EntityBase> = {
-    [Key in keyof EntityNoExternal<E>]: E[Key]
+
+const configOff: QueryFormaterBaseConfig = {
+    validation: {
+        baseAttributes: { string: false, number: false, date: false, boolean: false },
+        rangeAttributes: { number: false, date: false }
+    }
 }
 
 const convertersBuild: ConvertersBuild<Product, OrmQuery<Product>> = {
     baseAttributes: {
-        string: <K extends keyof EntityNoExternal<Product>>(
-                value: any, 
-                attribute: K, 
-                converted: OrmQuery<Product>, 
-                validate?: (value: any, attribute: K) => any) => {
-            if (!converted.where) converted.where = {} as OrmQueryWhere<Product>
+        string: <K extends keyof EntityQueryable<Product>>(
+                value: unknown,
+                converted: OrmQuery<Product>,
+                attribute: K,
+                validate?: (value: unknown, attribute: K) => EntityQueryable<Product>[K]) => {
+            if (!converted.where) converted.where = {} as Record<string, unknown>
             const validatedValue = validate ? validate(value, attribute) : value
-            converted.where[attribute] = validatedValue
+            converted.where[attribute as string] = validatedValue
             return converted
         },
-        number: <K extends keyof EntityNoExternal<Product>>(
-                value: any, 
-                attribute: K, 
-                converted: OrmQuery<Product>, 
-                validate?: (value: any, attribute: K) => any) => {
-            if (!converted.where) converted.where = {} as OrmQueryWhere<Product>
+        number: <K extends keyof EntityQueryable<Product>>(
+                value: unknown,
+                converted: OrmQuery<Product>,
+                attribute: K,
+                validate?: (value: unknown, attribute: K) => EntityQueryable<Product>[K]) => {
+            if (!converted.where) converted.where = {} as Record<string, unknown>
             const validatedValue = validate ? validate(value, attribute) : value
-            converted.where[attribute] = validatedValue
+            converted.where[attribute as string] = validatedValue
             return converted
         },
-        date: <K extends keyof EntityNoExternal<Product>>(
-                value: any, 
-                attribute: K, 
-                converted: OrmQuery<Product>, 
-                validate?: (value: any, attribute: K) => any) => {
-            if (!converted.where) converted.where = {} as OrmQueryWhere<Product>
+        date: <K extends keyof EntityQueryable<Product>>(
+                value: unknown,
+                converted: OrmQuery<Product>,
+                attribute: K,
+                validate?: (value: unknown, attribute: K) => EntityQueryable<Product>[K]) => {
+            if (!converted.where) converted.where = {} as Record<string, unknown>
             const validatedValue = validate ? validate(value, attribute) : value
-            converted.where[attribute] = validatedValue
+            converted.where[attribute as string] = validatedValue
             return converted
         },
-        boolean: <K extends keyof EntityNoExternal<Product>>(
-                value: any, 
-                attribute: K, 
-                converted: OrmQuery<Product>, 
-                validate?: (value: any, attribute: K) => any) => {
-            if (!converted.where) converted.where = {} as OrmQueryWhere<Product>
+        boolean: <K extends keyof EntityQueryable<Product>>(
+                value: unknown,
+                converted: OrmQuery<Product>,
+                attribute: K,
+                validate?: (value: unknown, attribute: K) => EntityQueryable<Product>[K]) => {
+            if (!converted.where) converted.where = {} as Record<string, unknown>
             const validatedValue = validate ? validate(value, attribute) : value
-            converted.where[attribute] = validatedValue
+            converted.where[attribute as string] = validatedValue
             return converted
         }
-    }
+    },
+    rangeAttributes: {} as never
 }
 
 describe('buildEntityAttributeConverters', () => {
     describe('string attributes', () => {
         it('creates converters for all string attributes in metadata', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.stringAttributesList,
                 'string'
             )
@@ -77,67 +79,73 @@ describe('buildEntityAttributeConverters', () => {
         })
 
         it('validate=false => type must be correct (passes string as-is, no coercion)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
-            const converted = result.brand.convert('TestBrand', 'brand', {} as OrmQuery<Product>)
+            const converted = result.brand.convert('TestBrand', {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted, { where: { brand: 'TestBrand' } })
             assert.strictEqual(typeof converted.where.brand, 'string')
         })
 
         it('validate=true => type can be switched (validator runs and validates string)', () => {
-            const config = {
-                validation: { baseAttributes: { string: true, number: false, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: true, number: false, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
-            const converted = result.brand.convert('ValidBrand', 'brand', {} as OrmQuery<Product>)
+            const converted = result.brand.convert('ValidBrand', {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted, { where: { brand: 'ValidBrand' } })
             assert.strictEqual(typeof converted.where.brand, 'string')
         })
 
         it('validate=true => throws Error when type not valid (object passed instead of string)', () => {
-            const config = {
-                validation: { baseAttributes: { string: true, number: false, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: true, number: false, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
             assert.throws(
-                () => result.brand.convert({ invalid: 'object' } as any, 'brand', {} as OrmQuery<Product>),
+                () => result.brand.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
                 /Value type for brand is not valid[\s\S]*Type object can not be used where accepted is "string"\/"null"/
             )
         })
 
         it('validate=true => throws Error when type not valid (number passed instead of string)', () => {
-            const config = {
-                validation: { baseAttributes: { string: true, number: false, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: true, number: false, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
             assert.throws(
-                () => result.brand.convert(123 as any, 'brand', {} as OrmQuery<Product>),
+                () => result.brand.convert(123 as any, {} as OrmQuery<Product>),
                 /Value type for brand is not valid[\s\S]*Type number can not be used where accepted is "string"\/"null"/
             )
         })
@@ -145,12 +153,9 @@ describe('buildEntityAttributeConverters', () => {
 
     describe('number attributes', () => {
         it('creates converters for all number attributes in metadata', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.numberAttributesList,
                 'number'
             )
@@ -160,67 +165,73 @@ describe('buildEntityAttributeConverters', () => {
         })
 
         it('validate=false => type must be correct (passes number as-is, no coercion)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.numberAttributesList,
                 'number'
             )
 
-            const converted = result.importer_id.convert(42, 'importer_id', {} as OrmQuery<Product>)
+            const converted = result.importer_id.convert(42, {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted, { where: { importer_id: 42 } })
             assert.strictEqual(typeof converted.where.importer_id, 'number')
         })
 
         it('validate=true => type can be switched (validator coerces string to number)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: true, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: true, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.numberAttributesList,
                 'number'
             )
 
-            const converted = result.id.convert('100', 'id', {} as OrmQuery<Product>)
+            const converted = result.id.convert('100', {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted, { where: { id: 100 } })
             assert.strictEqual(typeof converted.where.id, 'number')
         })
 
         it('validate=true => throws Error when type not valid (object passed instead of number)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: true, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: true, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.numberAttributesList,
                 'number'
             )
 
             assert.throws(
-                () => result.id.convert({ invalid: 'object' } as any, 'id', {} as OrmQuery<Product>),
+                () => result.id.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
                 /Value type for id is not valid[\s\S]*Type object can not be used where accepted is "number"\/"null"/
             )
         })
 
         it('validate=true => throws Error when type not valid (array passed instead of number)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: true, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: true, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.numberAttributesList,
                 'number'
             )
 
             assert.throws(
-                () => result.id.convert([1, 2, 3], 'id', {} as OrmQuery<Product>),
+                () => result.id.convert([1, 2, 3] as any, {} as OrmQuery<Product>),
                 /Value type for id is not valid[\s\S]*Type object can not be used where accepted is "number"\/"null"/
             )
         })
@@ -228,12 +239,9 @@ describe('buildEntityAttributeConverters', () => {
 
     describe('date attributes', () => {
         it('creates converters for all date attributes in metadata', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.dateAttributesList,
                 'date'
             )
@@ -243,68 +251,74 @@ describe('buildEntityAttributeConverters', () => {
         })
 
         it('validate=false => type must be correct (passes Date as-is, no coercion)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.dateAttributesList,
                 'date'
             )
 
             const dateObj = new Date('2024-01-15T10:30:00Z')
-            const converted = result.created.convert(dateObj, 'created', {} as OrmQuery<Product>)
+            const converted = result.created.convert(dateObj, {} as OrmQuery<Product>)
             assert.ok(converted.where.created instanceof Date)
             assert.strictEqual(converted.where.created.toISOString(), '2024-01-15T10:30:00.000Z')
         })
 
         it('validate=true => type can be switched (validator coerces string to Date)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: true, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: true, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.dateAttributesList,
                 'date'
             )
 
-            const converted = result.updated.convert('2024-12-31T23:59:59Z', 'updated', {} as OrmQuery<Product>)
+            const converted = result.updated.convert('2024-12-31T23:59:59Z', {} as OrmQuery<Product>)
             assert.ok(converted.where.updated instanceof Date)
             assert.strictEqual(converted.where.updated.toISOString(), '2024-12-31T23:59:59.000Z')
         })
 
         it('validate=true => throws Error when type not valid (object passed instead of Date)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: true, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: true, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.dateAttributesList,
                 'date'
             )
 
             assert.throws(
-                () => result.created.convert({ invalid: 'object' } as any, 'created', {} as OrmQuery<Product>),
+                () => result.created.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
                 /Value type for created is not valid\.\s*Type object can not be used where accepted is "date"\/"null"/
             )
         })
 
         it('validate=true => throws Error when type not valid (number passed instead of Date)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: true, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: true, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.dateAttributesList,
                 'date'
             )
 
             assert.throws(
-                () => result.created.convert(123456789 as any, 'created', {} as OrmQuery<Product>),
+                () => result.created.convert(123456789 as any, {} as OrmQuery<Product>),
                 /Value type for created is not valid\.\s*Type number can not be used where accepted is "date"\/"null"/
             )
         })
@@ -312,12 +326,9 @@ describe('buildEntityAttributeConverters', () => {
 
     describe('boolean attributes', () => {
         it('creates converters for all boolean attributes in metadata', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
@@ -327,88 +338,97 @@ describe('buildEntityAttributeConverters', () => {
         })
 
         it('validate=false => type must be correct (passes boolean as-is, no coercion)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
 
-            const converted = result.active.convert(true, 'active', {} as OrmQuery<Product>)
+            const converted = result.active.convert(true, {} as OrmQuery<Product>)
             assert.strictEqual(converted.where.active, true)
             assert.strictEqual(typeof converted.where.active, 'boolean')
         })
 
         it('validate=true => type can be switched (validator coerces string to boolean)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: true } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: false, boolean: true },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
 
-            const converted = result.active.convert('true', 'active', {} as OrmQuery<Product>)
+            const converted = result.active.convert('true', {} as OrmQuery<Product>)
             assert.strictEqual(converted.where.active, true)
             assert.strictEqual(typeof converted.where.active, 'boolean')
 
-            const converted2 = result.active.convert('false', 'active', {} as OrmQuery<Product>)
+            const converted2 = result.active.convert('false', {} as OrmQuery<Product>)
             assert.strictEqual(converted2.where.active, false)
             assert.strictEqual(typeof converted2.where.active, 'boolean')
         })
 
         it('validate=true => throws Error when type not valid (object passed instead of boolean)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: true } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: false, boolean: true },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
 
             assert.throws(
-                () => result.active.convert({ invalid: 'object' } as any , 'active', {} as OrmQuery<Product>),
+                () => result.active.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
                 /Value type for active is not valid[\s\S]*Type object can not be used where accepted is "boolean"\/"null"/
             )
         })
 
         it('validate=true => throws Error when type not valid (number passed instead of boolean)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: true } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: false, boolean: true },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
 
             assert.throws(
-                () => result.active.convert(42 as any, 'active', {} as OrmQuery<Product>),
+                () => result.active.convert(42 as any, {} as OrmQuery<Product>),
                 /Value type for active is not valid[\s\S]*Type number can not be used where accepted is "boolean"\/"null"/
             )
         })
 
         it('validate=true => throws Error when type not valid (invalid string passed instead of boolean)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: true } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: false, boolean: true },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild,
-                config,
+                configOn,
                 productMetadata.booleanAttributesList,
                 'boolean'
             )
 
             assert.throws(
-                () => result.active.convert('notabool', 'active', {} as OrmQuery<Product>),
+                () => result.active.convert('notabool', {} as OrmQuery<Product>),
                 /Value type for active is not valid[\s\S]*Type string can not be used where accepted is "boolean"\/"null"/
             )
         })
@@ -416,60 +436,51 @@ describe('buildEntityAttributeConverters', () => {
 
     describe('converter function behavior', () => {
         it('returns the converted object to allow chaining', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
-            const first = result.brand.convert('Brand1', 'brand', {} as OrmQuery<Product>)
-            const second = result.model.convert('Model1', 'model', first)
+            const first = result.brand.convert('Brand1', {} as OrmQuery<Product>)
+            const second = result.model.convert('Model1', first)
             
             assert.deepStrictEqual(second.where, { brand: 'Brand1', model: 'Model1' })
         })
 
         it('handles array values for string attributes', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.stringAttributesList,
                 'string'
             )
 
-            const converted = result.variant.convert(['v1', 'v2', 'v3'], 'variant', {} as OrmQuery<Product>)
+            const converted = result.variant.convert(['v1', 'v2', 'v3'], {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted.where.variant, ['v1', 'v2', 'v3'])
         })
 
         it('handles array values for number attributes', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
-                config,
+                configOff,
                 productMetadata.numberAttributesList,
                 'number'
             )
 
-            const converted = result.id.convert([1, 2, 3], 'id', {} as OrmQuery<Product>)
+            const converted = result.id.convert([1, 2, 3], {} as OrmQuery<Product>)
             assert.deepStrictEqual(converted.where.id, [1, 2, 3])
         })
     })
 
     describe('Rule: validate(type)=true => type CAN be switched (coerced); validate(type)=false => type MUST be correct (no coercion)', () => {
         it('number: validate=false => type MUST be correct (string stays string); validate=true => type CAN be switched (string coerced to number)', () => {
-            const configOff = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
-            const configOn = {
-                validation: { baseAttributes: { string: false, number: true, date: false, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: true, date: false, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, configOff, productMetadata.numberAttributesList, 'number'
@@ -478,21 +489,21 @@ describe('buildEntityAttributeConverters', () => {
                 convertersBuild, configOn, productMetadata.numberAttributesList, 'number'
             )
 
-            const off = resultOff.id.convert('42', 'id', {} as OrmQuery<Product>)
+            const off = resultOff.id.convert('42', {} as OrmQuery<Product>)
             assert.strictEqual(off.where.id, '42')
             assert.strictEqual(typeof off.where.id, 'string')
 
-            const on = resultOn.id.convert('42', 'id', {} as OrmQuery<Product>)
+            const on = resultOn.id.convert('42', {} as OrmQuery<Product>)
             assert.strictEqual(on.where.id, 42)
             assert.strictEqual(typeof on.where.id, 'number')
         })
 
         it('date: validate=false => type MUST be correct (string stays string); validate=true => type CAN be switched (string coerced to Date)', () => {
-            const configOff = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
-            const configOn = {
-                validation: { baseAttributes: { string: false, number: false, date: true, boolean: false } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: true, boolean: false },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, configOff, productMetadata.dateAttributesList, 'date'
@@ -501,20 +512,20 @@ describe('buildEntityAttributeConverters', () => {
                 convertersBuild, configOn, productMetadata.dateAttributesList, 'date'
             )
 
-            const off = resultOff.created.convert('2024-01-01', 'created', {} as OrmQuery<Product>)
+            const off = resultOff.created.convert('2024-01-01', {} as OrmQuery<Product>)
             assert.strictEqual(off.where.created, '2024-01-01')
             assert.strictEqual(typeof off.where.created, 'string')
 
-            const on = resultOn.created.convert('2024-01-01', 'created', {} as OrmQuery<Product>)
+            const on = resultOn.created.convert('2024-01-01', {} as OrmQuery<Product>)
             assert.ok(on.where.created instanceof Date)
         })
 
         it('boolean: validate=false => type MUST be correct (string stays string); validate=true => type CAN be switched (string coerced to boolean)', () => {
-            const configOff = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
-            const configOn = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: true } }
+            const configOn: QueryFormaterBaseConfig = {
+                validation: {
+                    baseAttributes: { string: false, number: false, date: false, boolean: true },
+                    rangeAttributes: { number: false, date: false }
+                }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
                 convertersBuild, configOff, productMetadata.booleanAttributesList, 'boolean'
@@ -523,11 +534,11 @@ describe('buildEntityAttributeConverters', () => {
                 convertersBuild, configOn, productMetadata.booleanAttributesList, 'boolean'
             )
 
-            const off = resultOff.active.convert('true', 'active', {} as OrmQuery<Product>)
+            const off = resultOff.active.convert('true', {} as OrmQuery<Product>)
             assert.strictEqual(off.where.active, 'true')
             assert.strictEqual(typeof off.where.active, 'string')
 
-            const on = resultOn.active.convert('true', 'active', {} as OrmQuery<Product>)
+            const on = resultOn.active.convert('true', {} as OrmQuery<Product>)
             assert.strictEqual(on.where.active, true)
             assert.strictEqual(typeof on.where.active, 'boolean')
         })
@@ -561,21 +572,17 @@ describe('buildEntityAttributeConverters', () => {
 
     describe('all types combined', () => {
         it('produces distinct converters per attribute type', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false } }
-            }
-
             const stringResult = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
-                convertersBuild, config, productMetadata.stringAttributesList, 'string'
+                convertersBuild, configOff, productMetadata.stringAttributesList, 'string'
             )
             const numberResult = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+                convertersBuild, configOff, productMetadata.numberAttributesList, 'number'
             )
             const dateResult = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+                convertersBuild, configOff, productMetadata.dateAttributesList, 'date'
             )
             const booleanResult = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
-                convertersBuild, config, productMetadata.booleanAttributesList, 'boolean'
+                convertersBuild, configOff, productMetadata.booleanAttributesList, 'boolean'
             )
 
             assert.ok(stringResult.brand)
@@ -583,10 +590,10 @@ describe('buildEntityAttributeConverters', () => {
             assert.ok(dateResult.created)
             assert.ok(booleanResult.active)
 
-            const stringConverted = stringResult.brand.convert('Test', 'brand', {} as OrmQuery<Product>)
-            const numberConverted = numberResult.id.convert(123, 'id', {} as OrmQuery<Product>)
-            const dateConverted = dateResult.created.convert(new Date('2024-01-01'), 'created', {} as OrmQuery<Product>)
-            const booleanConverted = booleanResult.active.convert(true, 'active', {} as OrmQuery<Product>)
+            const stringConverted = stringResult.brand.convert('Test', {} as OrmQuery<Product>)
+            const numberConverted = numberResult.id.convert(123, {} as OrmQuery<Product>)
+            const dateConverted = dateResult.created.convert(new Date('2024-01-01'), {} as OrmQuery<Product>)
+            const booleanConverted = booleanResult.active.convert(true, {} as OrmQuery<Product>)
 
             assert.strictEqual(stringConverted.where.brand, 'Test')
             assert.strictEqual(numberConverted.where.id, 123)

@@ -5,6 +5,10 @@ export default {
             number: true,
             date: true,
             boolean: true
+        },
+        rangeAttributes: {
+            number: true,
+            date: true
         }
     }
 }

@@ -8,6 +8,7 @@ import {
     SortOptions
 } from '../types/entity/Metadata'
 import { NullableFromObject, PickByType } from '../types/Global'
+import Decimal from 'decimal.js';
 
 
 /**
@@ -74,7 +75,7 @@ export class EntityMetadataManager<E extends EntityBase>
     public readonly baseAttributesListNullable: Array<keyof NullableFromObject<EntityNoExternal<E>>>;
 
     /** Base attributes whose type is `'number'` or `'decimal'`. */
-    public readonly numberAttributesList: Array<keyof PickByType<E, number>>;
+    public readonly numberAttributesList: Array<keyof PickByType<E, number | Decimal>>;
 
     /** Base attributes whose type is `'date'`. */
     public readonly dateAttributesList: Array<keyof PickByType<E, Date>>;
@@ -141,7 +142,7 @@ export class EntityMetadataManager<E extends EntityBase>
             .map(([key]) => key);
 
         this.numberAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Decimal>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
                 e[1].type === 'number' || e[1].type === 'decimal')
             .map(([key]) => key);
 
@@ -157,7 +158,7 @@ export class EntityMetadataManager<E extends EntityBase>
 
         this.rangeAttributesList = attributesList
             .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Date>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
-                ['number', 'date'].includes(e[1].type) && e[1].associated !== 'outside'
+                ['number', 'date', 'decimal'].includes(e[1].type) && e[1].associated !== 'outside'
             )
             .map(([key]) => key);
         this.fullTextSearchAttributes = attributesList

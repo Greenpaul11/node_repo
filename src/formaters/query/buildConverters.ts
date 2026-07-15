@@ -1,9 +1,10 @@
 import { EntityBase } from '../../types/entity/Root'
 import { Query, EntityQueryable, QueryEntityAttributeTypes, 
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
-    QueryFormaterBaseConfig } from '../../types/entity/Query'
+    QueryFormaterBaseConfig, QueryRangeAttributeTypeTransform,
+    QueryRangeAttributeTypes, EntityQueryRangeAttributes} from '../../types/entity/Query'
 import { PickByType } from '../../types/Global'
-import { validateString, validateNumber, validateDate, validateBoolean } from './validators'
+import { validateString, validateNumber, validateDate, validateBoolean, validateRangeDate, validateRangeNumber } from './validators'
 
 
 /**
@@ -70,22 +71,44 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
     
     for (const attribute of attributes) {
         transform[attribute] = {
-            convert: <K extends keyof EntityQueryable<E>>(
-                value: EntityQueryable<E>[K], attribute: K, converted: F
-            ) => validationOn 
-                ? converter(value, attribute, converted, assignValidator(type))
-                : converter(value, attribute, converted)
+            convert: <K extends keyof EntityQueryable<E>>(value: unknown, converted: F) => validationOn 
+                ? converter(value, converted, attribute as K, assignFieldValidator(type))
+                : converter(value, converted, attribute as K)
         } 
     }
     return transform
 }
 
+
+export function buildRangeAttributeConverters<E extends EntityBase, F, K extends keyof QueryRangeAttributeTypes>(
+    convertersBuild: ConvertersBuild<E, F>,
+    config: QueryFormaterBaseConfig,
+    attributes: Array<keyof PickByType<E, QueryRangeAttributeTypes[K]>>,
+    type: K,
+): QueryRangeAttributeTypeTransform<E, K, F> {
+    const transform = {} as QueryRangeAttributeTypeTransform<E, K, F>
+    const converter = convertersBuild['rangeAttributes'][type]
+    const validationOn = config.validation.rangeAttributes[type]
+    
+    for (const attribute of attributes) {
+        for (const suffix of ['_from', '_to'] as const) {
+            const key = `${String(attribute)}${suffix}` as keyof QueryRangeAttributeTypeTransform<E, K, F>
+            transform[key] = {
+                convert: ( value: unknown, converted: F) => validationOn 
+                    ? converter(value, converted, suffix, attribute, assignRangeValidator(type))
+                    : converter(value, converted, suffix, attribute )
+            } 
+        }
+    }
+    return transform
+}
+
 /**
- * Assign proper validation function to converter.
+ * Assign proper validation function to baseAttributes converter.
  * @param type keyof {@link QueryEntityAttributeTypes}
  * @returns validation function
  */
-function assignValidator<K extends keyof QueryEntityAttributeTypes>(type: K) {
+function assignFieldValidator<K extends keyof QueryEntityAttributeTypes>(type: K) {
     switch (type) {
         case 'string': 
             return validateString
@@ -97,6 +120,21 @@ function assignValidator<K extends keyof QueryEntityAttributeTypes>(type: K) {
             return validateBoolean
         default: 
             throw new Error('Type value is not assignable!')
-    }   
-    
+    }    
+}
+
+/**
+ * Assign proper validation function to range converter.
+ * @param type keyof {@link QueryRangeAttributeTypes}
+ * @returns validation function
+ */
+function assignRangeValidator<K extends keyof QueryRangeAttributeTypes>(type: K) {
+    switch (type) {
+        case 'number':
+            return validateRangeNumber
+        case 'date':
+            return validateRangeDate
+        default: 
+            throw new Error('Type value is not assignable!')
+    }    
 }
