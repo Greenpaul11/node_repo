@@ -3,7 +3,7 @@ import { EntityBase } from "../../../types/entity/Root";
 import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata";
 import { Model, InferAttributes, InferCreationAttributes, FindOptions } from "sequelize"
 import sequelizeConvertersBuild from "./build"
-import { Query, QueryConvertObject } from "../../../types/entity/Query";
+import { Query, QueryConvertObject, QueryFormaterBaseConfig } from "../../../types/entity/Query";
 
 
 export class QueryFormater< 
@@ -14,9 +14,10 @@ export class QueryFormater<
     
     constructor(
         metadata: EntityMetadata<E>, 
-        relationTree: EntityRelationTree<E>, 
+        relationTree: EntityRelationTree<E>,
+        config?: QueryFormaterBaseConfig 
     ) {
-        super(metadata, relationTree)
+        super(metadata, relationTree, config)
 
         this.convertersBuild = sequelizeConvertersBuild<E, T, F>()
         this.queryConvertObject = this.queryConvertObjectFactory()

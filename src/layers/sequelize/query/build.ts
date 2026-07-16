@@ -78,7 +78,9 @@ function buildRangeConverter<
         const op = suffix === '_from' ? Op.gte : Op.lt
         const validated = validate ? validate(value, `${String(attribute)}${suffix}` as any) : value
         
-        where[attribute as string] = { [op]: validated } 
+        if (validated !== undefined) {
+            where[attribute as string] = { ...where[attribute as string], [op]: validated }
+        }
         
         return converted
     }

@@ -165,7 +165,7 @@ describe('buildRangeAttributeConverters', () => {
             assert.strictEqual(converted.where.created_gte.toISOString(), '2024-01-15T10:30:00.000Z')
         })
 
-        it('validate=true => validates string as valid date format (no coercion)', () => {
+        it('validate=true => validates string as valid date format', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
                     rangeAttributes: { number: false, date: true } }
@@ -175,8 +175,8 @@ describe('buildRangeAttributeConverters', () => {
             )
 
             const converted = converters.updated_from.convert('2024-12-31T23:59:59Z', {} as OrmQuery<Product>)
-            assert.strictEqual(converted.where.updated_gte, '2024-12-31T23:59:59Z')
-            assert.strictEqual(typeof converted.where.updated_gte, 'string')
+            assert.strictEqual((converted.where.updated_gte as any).toISOString(), '2024-12-31T23:59:59.000Z')
+            assert.strictEqual(typeof converted.where.updated_gte, 'object')
         })
 
         it('validate=true => throws Error for invalid date range value', () => {
@@ -297,7 +297,7 @@ describe('buildRangeAttributeConverters', () => {
             assert.strictEqual(typeof converted.where.id_gte, 'number')
         })
 
-        it('validate=true for date => validates string date format (returns string, no coercion)', () => {
+        it('validate=true for date => validates string date format (returns date)', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
                     rangeAttributes: { number: false, date: true } }
@@ -307,8 +307,8 @@ describe('buildRangeAttributeConverters', () => {
             )
 
             const converted = converters.created_from.convert('2024-01-01', {} as OrmQuery<Product>)
-            assert.strictEqual(converted.where.created_gte, '2024-01-01')
-            assert.strictEqual(typeof converted.where.created_gte, 'string')
+            assert.strictEqual((converted.where.created_gte as any).toISOString(), '2024-01-01T00:00:00.000Z')
+            assert.strictEqual(typeof converted.where.created_gte, 'object')
         })
 
         it('validate=false for date => passes string as-is, no coercion', () => {
@@ -338,10 +338,10 @@ describe('buildRangeAttributeConverters', () => {
             assert.strictEqual(result, undefined)
         })
 
-        it('validateRangeDate validates string date format (returns original string)', () => {
+        it('validateRangeDate validates string date format (returns date)', () => {
             const result = validateRangeDate('2024-01-01', 'test_from' as any)
-            assert.strictEqual(result, '2024-01-01')
-            assert.strictEqual(typeof result, 'string')
+            assert.strictEqual(result.toISOString(), '2024-01-01T00:00:00.000Z')
+            assert.strictEqual(typeof result, 'object')
         })
 
         it('validateRangeDate accepts Date object and returns it as-is', () => {

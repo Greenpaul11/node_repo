@@ -80,6 +80,62 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
 }
 
 
+/**
+ * Build a per-attribute range query converter set for a single range type.
+ *
+ * For every range-capable attribute, produces two entries — `{attr}_from`
+ * and `{attr}_to` — each with a converter bound to it. When validation is
+ * enabled, the converter receives the range-specific validator (e.g.
+ * {@link validateRangeNumber} or {@link validateRangeDate}) as its last
+ * argument.
+ *
+ * Build steps:
+ *  1. **Look up** the converter registered for `type` in
+ *     `convertersBuild.rangeAttributes`.
+ *  2. **Iterate** over `attributes` — every entity field of this type
+ *     that is marked as `asRange: true`.
+ *  3. **For each attribute**, generate two keys (`{field}_from`,
+ *     `{field}_to`) and assign a `convert` function.
+ *  4. **Check** `config.validation.rangeAttributes[type]` to decide whether
+ *     to inject a range validator as the converter's extra argument.
+ *  5. **Bind** each key to a `convert` function that calls the converter
+ *     with (`value`, `converted`, ... ) and, when
+ *     validation is on, passes the range validator as the extra argument.
+ *
+ * @typeParam E - Entity whose attributes are being converted.
+ * @typeParam F - The ORM-specific query output type (e.g. Sequelize
+ *                `FindOptions`).
+ * @typeParam K - The range attribute-type key being processed (one of
+ *                `'number'`, `'date'`).
+ *
+ * @param convertersBuild Type-keyed converter definitions produced by
+ *                        the ORM layer {@link ConvertersBuild}.
+ * @param config          Configuration object with a `validation` section
+ *                        that controls whether the validator is forwarded.
+ * @param attributes      List of entity attribute names that support range
+ *                        queries for the given `type` (e.g. metadata.numberAttributesList).
+ * @param type            The range attribute-type key used to index into
+ *                        `convertersBuild.rangeAttributes` (e.g 'number', 'date').
+ *
+ * @returns A {@link QueryRangeAttributeTypeTransform}`<E, K, F>` with a
+ *          `convert` function for each `{field}_from` / `{field}_to` key.
+ *          Each convert accepts (`value`, `converted`) and optionally
+ *          applies range validation before delegating to the layer's
+ *          converter.
+ *
+ * @example
+ * ```ts
+ * const numberRangeConverters = buildRangeAttributeConverters(
+ *     sequelizeConvertersBuild,
+ *     { validation: { rangeAttributes: { number: true } } },
+ *     metadata.numberAttributesList,
+ *     'number'
+ * )
+ *
+ * numberRangeConverters.price_from.convert(100, findOptions)
+ * numberRangeConverters.price_to.convert(500, findOptions)
+ * ```
+ */
 export function buildRangeAttributeConverters<E extends EntityBase, F, K extends keyof QueryRangeAttributeTypes>(
     convertersBuild: ConvertersBuild<E, F>,
     config: QueryFormaterBaseConfig,

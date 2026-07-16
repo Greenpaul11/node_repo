@@ -6,6 +6,7 @@ export const validateString = <
     E extends EntityBase,
     K extends keyof EntityQueryable<E>
 >(value: unknown, attribute: K): EntityQueryable<E>[K] => {
+    if (value === '') return undefined as unknown as EntityQueryable<E>[K]
     if (typeof value === 'string' || value === null) {
         return value as EntityQueryable<E>[K]
     } else {
@@ -98,7 +99,7 @@ export const validateRangeDate = <
             if (!isNaN(value.getTime())) return value as EntityQueryRangeAttributes<E>[K]
         } else if (typeof value === 'string') {
             const date = new Date(value)
-            if (!isNaN(date.getTime())) return value as EntityQueryRangeAttributes<E>[K]
+            if (!isNaN(date.getTime())) return date as EntityQueryRangeAttributes<E>[K]
         }
 }
 throw new Error(
