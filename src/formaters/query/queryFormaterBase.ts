@@ -2,8 +2,11 @@ import { EntityBase } from '../../types/entity/Root'
 import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
 import { Query, QueryEntityAttributeTransform, ConvertersBuild,  
     QueryConvertObject, QueryFormaterBaseConfig, 
-    QueryRangeAttributeTransform} from '../../types/entity/Query'
-import { buildEntityAttributeConverters, buildRangeAttributeConverters } from './buildConverters'
+    QueryRangeAttributeTransform,
+    QueryAttributeTransform} from '../../types/entity/Query'
+import { buildEntityAttributeConverters, buildRangeAttributeConverters,
+    buildQueryAttributeConverters
+ } from './buildConverters'
 import defaultConfig from './config'
 
 export abstract class QueryFormaterBase<
@@ -37,9 +40,13 @@ export abstract class QueryFormaterBase<
             ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.numberAttributesList, 'number'),
             ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date')
         }
+        const queryAttributes: QueryAttributeTransform<E, F> = {
+            ...buildQueryAttributeConverters(this.convertersBuild, this.config, this.metadata.baseAttributesList)
+        }
         return {
             ...baseAttributes,
-            ...rangeAttributes
+            ...rangeAttributes,
+            ...queryAttributes
         }
     }
 

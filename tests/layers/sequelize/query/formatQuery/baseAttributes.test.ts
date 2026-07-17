@@ -17,6 +17,9 @@ const configWithoutValidation: QueryFormaterBaseConfig = {
         rangeAttributes: {
             number: false,
             date: false
+        },
+        queryAttributes: {
+            select: true
         }
     }
 }
@@ -32,6 +35,9 @@ const configWithValidation: QueryFormaterBaseConfig = {
         rangeAttributes: {
             number: true,
             date: true
+        },
+        queryAttributes: {
+            select: true
         }
     }
 }

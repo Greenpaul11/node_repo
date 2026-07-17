@@ -102,6 +102,9 @@ export type QueryFormaterBaseConfig = {
             number: boolean
             date: boolean
         }
+        queryAttributes: {
+            select: boolean
+        }
     }
 }
 
@@ -119,9 +122,10 @@ export type QueryRangeAttributeTypes = {
 
 export type QueryConvertObject<E extends EntityBase, F> =
     QueryEntityAttributeTransform<E, F> &
-    QueryRangeAttributeTransform<E, F> 
+    QueryRangeAttributeTransform<E, F> &
+    QueryAttributeTransform<E, F>
     //QueryRelationTransform<E, F> &
-    //QueryAttributeTransform<E>
+    
 
 
 export type QueryEntityAttributeTransform<E extends EntityBase, F> = 
@@ -147,12 +151,21 @@ export type QueryRangeAttributeTypeTransform<E extends EntityBase, K extends key
     }
 }
 
+export type QueryAttributeTransform<E extends EntityBase, F> = {
+    select: {
+        convert: (value: unknown, converted: F) => F
+    }
+}
+
 
 export type QueryEntityAttributeValidator<E extends EntityBase> = 
     <K extends keyof EntityQueryable<E>>(value: unknown, attribute: K) => EntityQueryable<E>[K] 
 
 export type QueryRangeValidator<E extends EntityBase> = 
     <K extends keyof EntityQueryRangeAttributes<E>>(value: unknown, attribute: K) => EntityQueryRangeAttributes<E>[K] 
+
+export type QuerySelectValidator<E extends EntityBase> = 
+    (value: unknown, attributes: Array<keyof EntityNoExternal<E>>) => void 
 
 
 
@@ -162,12 +175,6 @@ export type QueryRelationTransform<E extends EntityBase, F> = {
     [K in keyof ExternalReferences<E>]?: QueryConvertObject<ExternalReferences<E>[K], F>
 }
 
-export type QueryAttributeTransform<E extends EntityBase, Q extends Query<E> = Query<E>> = {
-    [K in keyof QueryAttributes<E>]: {
-        validate: (value: Q[K]) => Q[K] 
-        transform: (value: Q[K]) => any
-    }
-}
 
 export type ConvertersBuild<E extends EntityBase, F> = {
     baseAttributes: {
@@ -188,6 +195,14 @@ export type ConvertersBuild<E extends EntityBase, F> = {
                 attribute: K, 
                 validate?: QueryRangeValidator<E>
             ) => F
+    }
+    queryAttributes: {
+        select: (
+            value: unknown, 
+            converted: F, 
+            attributes: Array<keyof EntityNoExternal<E>>,
+            validate?: QuerySelectValidator<E>
+        ) => F
     }
 }
 
@@ -217,7 +232,7 @@ export type QueryAttributes<E extends EntityBase> = {
  * { exclude: ['password'] }
  */
 export type QuerySelect<E extends EntityBase> = 
-    (keyof E | QueryFunctions<E>)[] | { exclude: (keyof EntityNoExternal<E>)[]}
+    (keyof EntityNoExternal<E> | QueryFunctions<E>)[] | { exclude: (keyof EntityNoExternal<E>)[]}
 
 /**
  * Maps aggregate functions into a tuple form.

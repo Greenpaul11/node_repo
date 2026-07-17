@@ -14,6 +14,7 @@ type OrmQuery<E extends EntityBase> = {
 
 const convertersBuild: ConvertersBuild<Product, OrmQuery<Product>> = {
     baseAttributes: {} as never,
+    queryAttributes: {} as never,
     rangeAttributes: {
         number: <
             K extends keyof PickByType<Product, number>
@@ -54,7 +55,8 @@ describe('buildRangeAttributeConverters', () => {
         it('creates converters for all number range attributes with _from and _to keys', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild,
@@ -74,7 +76,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false => passes number value as-is for _from (Op.gte equivalent)', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -88,7 +91,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false => passes number value as-is for _to (Op.lt equivalent)', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -102,7 +106,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => coerces string to number for range', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false } }
+                    rangeAttributes: { number: true, date: false },
+                    queryAttributes: { select: false } 
+                },
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -116,7 +122,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => throws Error for invalid number range value', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false } }
+                    rangeAttributes: { number: true, date: false },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -133,7 +141,8 @@ describe('buildRangeAttributeConverters', () => {
         it('creates converters for all date range attributes with _from and _to keys', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild,
@@ -153,7 +162,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false => passes Date as-is for _from', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -168,7 +178,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => validates string as valid date format', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true } }
+                    rangeAttributes: { number: false, date: true },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -182,7 +194,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => throws Error for invalid date range value', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true } }
+                    rangeAttributes: { number: false, date: true },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -197,7 +211,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => throws Error for number passed as date range', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true } }
+                    rangeAttributes: { number: false, date: true },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -212,7 +228,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false => passes Date as-is for _to', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -229,7 +246,8 @@ describe('buildRangeAttributeConverters', () => {
         it('accumulates multiple range conditions on the same converted object', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -244,7 +262,8 @@ describe('buildRangeAttributeConverters', () => {
         it('chaining number and date ranges', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const numConverters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -272,7 +291,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false => passes value without coercion (number stays number)', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -286,7 +306,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true => coerces string to number', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false } }
+                    rangeAttributes: { number: true, date: false },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
                 convertersBuild, config, productMetadata.numberAttributesList, 'number'
@@ -300,7 +322,9 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=true for date => validates string date format (returns date)', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true } }
+                    rangeAttributes: { number: false, date: true },
+                    queryAttributes: { select: false }
+                }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'
@@ -314,7 +338,8 @@ describe('buildRangeAttributeConverters', () => {
         it('validate=false for date => passes string as-is, no coercion', () => {
             const config = {
                 validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false } }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false } }
             }
             const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
                 convertersBuild, config, productMetadata.dateAttributesList, 'date'

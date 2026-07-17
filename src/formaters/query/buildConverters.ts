@@ -1,10 +1,18 @@
-import { EntityBase } from '../../types/entity/Root'
-import { Query, EntityQueryable, QueryEntityAttributeTypes, 
+import { EntityBase, EntityNoExternal } from '../../types/entity/Root'
+import { 
+    Query, EntityQueryable, QueryEntityAttributeTypes, 
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
     QueryFormaterBaseConfig, QueryRangeAttributeTypeTransform,
-    QueryRangeAttributeTypes, EntityQueryRangeAttributes} from '../../types/entity/Query'
+    QueryRangeAttributeTypes, EntityQueryRangeAttributes,
+    QueryAttributeTransform,
+    QueryAttributes} 
+from '../../types/entity/Query'
 import { PickByType } from '../../types/Global'
-import { validateString, validateNumber, validateDate, validateBoolean, validateRangeDate, validateRangeNumber } from './validators'
+import { 
+    validateString, validateNumber, validateDate, 
+    validateBoolean, validateRangeDate, validateRangeNumber,
+    validateSelect 
+} from './validators'
 
 
 /**
@@ -159,6 +167,28 @@ export function buildRangeAttributeConverters<E extends EntityBase, F, K extends
     return transform
 }
 
+export function buildQueryAttributeConverters<E extends EntityBase, F>(
+    convertersBuild: ConvertersBuild<E, F>,
+    config: QueryFormaterBaseConfig,
+    attributes: Array<keyof EntityNoExternal<E>>
+): QueryAttributeTransform<E, F> {
+    const transform = {} as QueryAttributeTransform<E, F>
+    const validation = config.validation.queryAttributes
+    let converter
+    let validationOn: boolean
+
+    // create select converter
+    converter = convertersBuild['queryAttributes']['select']
+    validationOn = validation['select']
+    transform['select'] = {
+        convert: (value: unknown, converted: F) => validationOn
+            ? converter(value, converted, attributes, assignQueryValidator('select'))
+            : converter(value, converted, attributes)
+    }
+    return transform
+}
+
+
 /**
  * Assign proper validation function to baseAttributes converter.
  * @param type keyof {@link QueryEntityAttributeTypes}
@@ -190,6 +220,20 @@ function assignRangeValidator<K extends keyof QueryRangeAttributeTypes>(type: K)
             return validateRangeNumber
         case 'date':
             return validateRangeDate
+        default: 
+            throw new Error('Type value is not assignable!')
+    }    
+}
+
+/**
+ * Assign proper validation function to query attribute converter.
+ * @param type keyof {@link QueryAttributes}
+ * @returns validation function
+ */
+function assignQueryValidator<K extends keyof QueryAttributes<any>>(type: K) {
+    switch (type) {
+        case 'select':
+            return validateSelect
         default: 
             throw new Error('Type value is not assignable!')
     }    

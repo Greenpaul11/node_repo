@@ -9,6 +9,9 @@ export default {
         rangeAttributes: {
             number: true,
             date: true
+        },
+        queryAttributes: {
+            select: true
         }
     }
 }

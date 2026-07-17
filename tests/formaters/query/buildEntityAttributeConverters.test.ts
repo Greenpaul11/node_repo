@@ -14,7 +14,8 @@ type OrmQuery<E extends EntityBase> = {
 const configOff: QueryFormaterBaseConfig = {
     validation: {
         baseAttributes: { string: false, number: false, date: false, boolean: false },
-        rangeAttributes: { number: false, date: false }
+        rangeAttributes: { number: false, date: false },
+        queryAttributes: { select: false }
     }
 }
 
@@ -61,7 +62,8 @@ const convertersBuild: ConvertersBuild<Product, OrmQuery<Product>> = {
             return converted
         }
     },
-    rangeAttributes: {} as never
+    rangeAttributes: {} as never,
+    queryAttributes: {} as never
 }
 
 describe('buildEntityAttributeConverters', () => {
@@ -95,7 +97,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: true, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
@@ -114,7 +117,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: true, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
@@ -134,7 +138,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: true, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'string'>(
@@ -181,7 +186,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: true, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
@@ -200,7 +206,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: true, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
@@ -220,7 +227,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: true, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
@@ -268,7 +276,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: true, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
@@ -287,7 +296,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: true, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
@@ -307,7 +317,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: true, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
@@ -354,7 +365,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: false, boolean: true },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
@@ -377,7 +389,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: false, boolean: true },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
@@ -397,7 +410,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: false, boolean: true },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
@@ -417,7 +431,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: false, boolean: true },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const result = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(
@@ -479,7 +494,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: true, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'number'>(
@@ -502,7 +518,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: true, boolean: false },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'date'>(
@@ -524,7 +541,8 @@ describe('buildEntityAttributeConverters', () => {
             const configOn: QueryFormaterBaseConfig = {
                 validation: {
                     baseAttributes: { string: false, number: false, date: false, boolean: true },
-                    rangeAttributes: { number: false, date: false }
+                    rangeAttributes: { number: false, date: false },
+                    queryAttributes: { select: false }
                 }
             }
             const resultOff = buildEntityAttributeConverters<Product, OrmQuery<Product>, 'boolean'>(

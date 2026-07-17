@@ -1,4 +1,4 @@
-import { EntityBase } from "../../types/entity/Root"
+import { EntityBase, EntityNoExternal } from "../../types/entity/Root"
 import { EntityQueryable, EntityQueryRangeAttributes } from "../../types/entity/Query"
 
 
@@ -101,9 +101,20 @@ export const validateRangeDate = <
             const date = new Date(value)
             if (!isNaN(date.getTime())) return date as EntityQueryRangeAttributes<E>[K]
         }
+    }
+    throw new Error(
+        `Value type for ${String(attribute)} is not valid. 
+        Type ${typeof value} can not be used where accepted is "date".`
+    )
 }
-throw new Error(
-    `Value type for ${String(attribute)} is not valid. 
-    Type ${typeof value} can not be used where accepted is "date".`
-)
- }
+
+
+export const validateSelect = <
+    E extends EntityBase
+>(value: unknown, attributes: Array<keyof EntityNoExternal<E>>): void => {
+    if (!(attributes.includes(value as keyof EntityNoExternal<E>))) {
+        throw new Error(
+            `Attribute: '${value}' is not a part of baseAttributes of entity.`)
+    }
+
+}
