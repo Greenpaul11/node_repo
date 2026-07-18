@@ -1,7 +1,7 @@
 import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType
 } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
-import { EntityMetadata } from './Metadata'
+import { EntityMetadata, EntityRelationTree } from './Metadata'
 import { EntityTransform } from './Converters'
 import { ConfigTypes } from '../Config'
 import Decimal from 'decimal.js'
@@ -200,7 +200,7 @@ export type ConvertersBuild<E extends EntityBase, F> = {
         select: (
             value: unknown, 
             converted: F, 
-            attributes: Array<keyof EntityNoExternal<E>>,
+            metadata: EntityMetadata<E>,
             validate?: QuerySelectValidator<E>
         ) => F
     }
@@ -507,12 +507,12 @@ export type GroupOptions<E extends EntityBase> =
  * - `query`: FnCount<E> or FnNumber<E> — the fields to aggregate 
  *    look at {@link FnCount}, {@link FnNumber}  
  */
-export type QueryFunctionHandler<T, E extends EntityBase> = {
-    '$count': (metadata: EntityMetadata<E>, query: FnCount<E>) => T;
-    '$sum':   (metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$avg':   (metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$min':   (metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$max':   (metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
+export type QueryFunctionHandler<T> = {
+    '$count': <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnCount<E>) => T;
+    '$sum':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
+    '$avg':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
+    '$min':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
+    '$max':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
 };
 
 /**

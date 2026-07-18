@@ -1,14 +1,21 @@
-import { EntityQueryable, EntityQueryRangeAttributes, ConvertersBuild, 
+import { EntityQueryable, ConvertersBuild, 
     QueryEntityAttributeValidator, QueryRangeValidator, QueryRangeAttributeTypes, 
-    QuerySelectValidator} from "../../../types/entity/Query"
+    QuerySelectValidator,
+    QueryFunctions,
+    AggregateFunctions,
+    FnCount, FnNumber,
+    QuerySelect
+} from "../../../types/entity/Query"
 import { EntityBase, EntityNoExternal } from "../../../types/entity/Root"
 import { PickByType } from "../../../types/Global"
 import { 
     FindOptions, Model, InferAttributes, InferCreationAttributes, 
-    Op, 
+    Op, col, fn,
     FindAttributeOptions
 } from "sequelize"
+import { Fn } from 'sequelize/types/utils'
 import { WhereValue } from "../types"
+import { EntityMetadata } from "../../../types/entity/Metadata"
 
 
 export default function sequelizeConvertersBuild<
@@ -104,13 +111,14 @@ function buildSelectConverter<
     return (
         value: unknown, 
         converted: F, 
-        attributes: Array<keyof EntityNoExternal<E>>,
+        metadata: EntityMetadata<E>,
         validate?: QuerySelectValidator<E>
     ): F => {
-        const select = value
-        if (!select) {
+        if (!value) {
             throw new Error('Value for select attribute is not valid!')
         }
+        const select = value as QuerySelect<E>
+        const attributes = metadata.baseAttributesList
         let sequelizeAttributes: FindAttributeOptions | undefined
         if (select instanceof Array) {
             sequelizeAttributes = []
@@ -121,11 +129,12 @@ function buildSelectConverter<
                         validate(item, attributes)
                     }
                     sequelizeAttributes.push(item)
+                } else if (Array.isArray(item)) {
+                    sequelizeAttributes.push(convertAggregates(metadata, item))
                 } else {
                     throw new Error('Item of select has no valid type!')
                 }
             }
-            
         } else if (typeof select === 'object' && 'exclude' in select) {
             if (select.exclude instanceof Array) {
                 sequelizeAttributes = { exclude: []}
@@ -142,7 +151,6 @@ function buildSelectConverter<
                     }
                 }
             }
-
         } else {
             throw new Error('Value for select attribute is not valid!')
         }
@@ -151,3 +159,66 @@ function buildSelectConverter<
         return converted
     } 
 }
+
+function convertAggregates<
+    E extends EntityBase,
+>(metadata: EntityMetadata<E>, fnsObject: QueryFunctions<E>): [Fn, string] {
+    const key = fnsObject[0]
+    if (typeof key !== 'string') {
+        throw new Error(`Invalid type for aggregate function operator!`)
+    }
+    const operator = aggregateOperators[key]
+    if (!operator) {
+        throw new Error('Invalid aggreagate function operator!')
+    }
+    return convertToSequelizeTuple(key, metadata, fnsObject[1])
+}
+
+function convertToSequelizeTuple<
+    E extends EntityBase = any
+> (
+    on: keyof AggregateFunctions<E>, 
+    metadata: EntityMetadata<E>, 
+    item: FnCount<E> | FnNumber<E>,
+    deepEntity: string[] = []
+): [Fn, string] {
+    if (typeof item === 'string') {
+        const alias = deepEntity.length
+            ? `${on}_${deepEntity.join('_')}_${String(item)}`
+            : `${on}_${String(item)}`
+        if (item === '*') {
+            return [fn(aggregateOperators[on], col('*')), alias]
+        } else if (metadata.entityAttributesList.includes(item)){
+            const column = deepEntity.length ? `${deepEntity.join('.')}.${String(item)}` : item 
+            return [fn(aggregateOperators[on], col(column)), alias]
+        } else {
+            throw new Error(`Value for ${on} function is incorrect!`)
+        }
+    } else if (Array.isArray(item)) {
+        const subEntities = metadata.subEntities
+        if (subEntities) {
+            const key = item[0]
+            const subentity = subEntities[key]
+            if (subentity) {
+                const subMetaData = subentity.metadata
+                const subItem = item[1]
+                const updatedDeep = [...deepEntity, key]
+                return convertToSequelizeTuple(on, subMetaData, subItem as any, updatedDeep)
+            } else {
+                throw new Error(`External reference: ${String(key)} does not exist!`)
+            }
+        } else {
+            throw new Error(`Value for ${on} function is incorrect!`)
+        }
+    }
+    throw new Error('Type for item is not valid!')
+}
+
+const aggregateOperators = {
+    '$count': 'COUNT',
+    '$sum': 'SUM',
+    '$avg': 'AVG',
+    '$min': 'MIN',
+    '$max': 'MAX'
+}
+

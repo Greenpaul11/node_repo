@@ -41,7 +41,7 @@ export abstract class QueryFormaterBase<
             ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date')
         }
         const queryAttributes: QueryAttributeTransform<E, F> = {
-            ...buildQueryAttributeConverters(this.convertersBuild, this.config, this.metadata.baseAttributesList)
+            ...buildQueryAttributeConverters(this.convertersBuild, this.config, this.metadata)
         }
         return {
             ...baseAttributes,

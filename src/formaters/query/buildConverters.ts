@@ -13,6 +13,7 @@ import {
     validateBoolean, validateRangeDate, validateRangeNumber,
     validateSelect 
 } from './validators'
+import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
 
 
 /**
@@ -170,7 +171,7 @@ export function buildRangeAttributeConverters<E extends EntityBase, F, K extends
 export function buildQueryAttributeConverters<E extends EntityBase, F>(
     convertersBuild: ConvertersBuild<E, F>,
     config: QueryFormaterBaseConfig,
-    attributes: Array<keyof EntityNoExternal<E>>
+    metadata: EntityMetadata<E>
 ): QueryAttributeTransform<E, F> {
     const transform = {} as QueryAttributeTransform<E, F>
     const validation = config.validation.queryAttributes
@@ -182,8 +183,8 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
     validationOn = validation['select']
     transform['select'] = {
         convert: (value: unknown, converted: F) => validationOn
-            ? converter(value, converted, attributes, assignQueryValidator('select'))
-            : converter(value, converted, attributes)
+            ? converter(value, converted, metadata, assignQueryValidator('select'))
+            : converter(value, converted, metadata)
     }
     return transform
 }
