@@ -366,7 +366,7 @@ export class Repository<
     async getManyBy<Q extends Query<E>>(query: Q, raw: boolean = false): Promise<EntityProjection<E, Q>[] | T[]> {
         const entityRaw = await this.menager.getManyBy(query)
         if (raw) return entityRaw
-        return this.outputFormater.asEntities(entityRaw)
+        return this.outputFormater.asEntities(entityRaw, query)
     }
 
 }

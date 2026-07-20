@@ -2,6 +2,7 @@ import { EntityBase, EntityNoExternal, ExternalReferences } from '../../../types
 import { MapEntitySelect, SubMapSelect} from '../../../types/entity/Query';
 import { EntityRelationTree } from '../../../types/entity/Metadata';
 import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../types'
+import { extractFnToString } from '../../../formaters/output/convertRow';
 
 
 /**
@@ -96,6 +97,14 @@ export function rowToGrouped<E extends EntityBase>(
         }
 
         grouped[attribute] = value as SequelizeRawEntity<E>[typeof attribute];
+    }
+
+    if (fns) {
+        for (let i = 0; i < fns.length; i++) {
+            const fnKey = extractFnToString(fns[i]) as keyof SequelizeRawEntityNotGrouped<E>
+            const fnKeyGrouped = fnKey as keyof SequelizeRawEntity<E>
+            grouped[fnKeyGrouped] = row[fnKey] as SequelizeRawEntity<E>[typeof fnKeyGrouped] 
+        }
     }
 
     if (!subEntities) return grouped
@@ -243,7 +252,7 @@ export function rowIsUniqueOrNotMerged<E extends EntityBase>(
         return false; // nothing to compare -> treat as merged
     }
 
-    // if subEntities undefined -> targeg as merged
+    // if subEntities undefined -> target as merged
     if (!subEntities) {
         return false
     }

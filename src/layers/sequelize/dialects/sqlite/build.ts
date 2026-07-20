@@ -6,7 +6,6 @@ export default {
             date: (value: string | null) => value === null ? null : new Date(value)
         },
         fns: {
-            $count: (value: string) => Number(value),
             $sum: (value: string) => new Decimal(value),
             $avg: (value: string) => new Decimal(value),
             $min: (value: string) => new Decimal(value),
@@ -20,7 +19,6 @@ export default {
             boolean: (value: number | null) => value === null ? null : Boolean(value) 
         }, 
         fns: {
-            $count: (value: string) => new Decimal(value),
             $sum: (value: string) => new Decimal(value),
             $avg: (value: string) => new Decimal(value),
             $min: (value: string) => new Decimal(value),

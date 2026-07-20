@@ -48,6 +48,7 @@ export class OrmManager<
 
     async getManyBy<Q extends Query<E>>(query: Q): Promise<T[]> {
         const ormQuery = this.convertQuery(query) 
-        return await this.manager.findAll(ormQuery)
+        const defaults = { raw: true, nest: true}
+        return await this.manager.findAll({...ormQuery, ...defaults})
     }
 }

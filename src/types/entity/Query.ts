@@ -499,23 +499,6 @@ export type GroupOptions<E extends EntityBase> =
     `by ${keyof EntityNoExternal<E> & string}`
 
 /**
- * QueryFunctionHandler maps aggregate function names
- * ($count, $sum, $avg, $min, $max) to handler functions.
- *
- * Each handler receives:
- * - `metadata`: EntityMetadata<E> — information about the entity and its relations
- * - `query`: FnCount<E> or FnNumber<E> — the fields to aggregate 
- *    look at {@link FnCount}, {@link FnNumber}  
- */
-export type QueryFunctionHandler<T> = {
-    '$count': <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnCount<E>) => T;
-    '$sum':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$avg':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$min':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-    '$max':   <E extends EntityBase>(metadata: EntityMetadata<E>, query: FnNumber<E>) => T;
-};
-
-/**
  * Determine what type of entity will be returned accordingly to Query['select'] attribute.
  * If select attribute present in query - return attributes of entity included in select array.
  * If select is type of object and has exclude property - return attributes 
@@ -534,14 +517,14 @@ export type EntityProjection<E extends EntityBase, Q = {}> =
 export type AttributesProjection<E extends EntityBase, Q> =
     Q extends { select: infer S }
         ? S extends Array<keyof E | QueryFunctions<E>>
-            ? EntityAggregateAttributes<E, FnKeysOnly<E, S>> & Required<Pick<E, EntityKeysOnly<E, S>>>
+            ? EntityAggregateAttributes<E, Array<FnKeysOnly<E, S>>> & Required<Pick<E, EntityKeysOnly<E, S>>>
             : S extends { exclude: infer Z }
-                ? Z extends Array<keyof E & keyof ExternalReferences<E>>
-                    ? Required<Omit<E, Z[number]>>
-                    : Z extends Array<keyof E>
-                        ? Omit<Required<Omit<E, Z[number]>>, keyof ExternalReferences<E>>
-                        : never
-                : EntityNoExternal<E>
+               ? Z extends Array<keyof E & keyof ExternalReferences<E>>
+                   ? Required<Omit<E, Z[number]>>
+                   : Z extends Array<keyof E>
+                       ? Omit<Required<Omit<E, Z[number]>>, keyof ExternalReferences<E>>
+                       : never
+               : EntityNoExternal<E>
         : EntityNoExternal<E>
 
 /** 

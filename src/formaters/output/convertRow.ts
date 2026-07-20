@@ -123,7 +123,7 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
 
     // Recursive calls return immediately — aggregates only apply at the root
     if (nested) return converted
-
+    
     // 3. Convert aggregate function attributes (root level only)
     const convertedWithFns = converted as E & EntityAggregateAttributes<E>
     for (const fnTuple of fns!) {
@@ -136,6 +136,7 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
             convertedWithFns[asFnKey] = converter(row[asTransformedFnKey])
         }
     }
+    
     return convertedWithFns
 }
 
@@ -170,7 +171,7 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
  * extractFnToString(['$avg', ['user', ['product', ['price']]]]) // => "$avg_user_product_price"
  * ```
  */
-function extractFnToString<T extends [string, unknown]>(fnTuple: T): string {
+export function extractFnToString<T extends [string, unknown]>(fnTuple: T): string {
     const atIndexZero = fnTuple[0]
     const atIndexOne = fnTuple[1]
     if (typeof atIndexOne === 'string') {

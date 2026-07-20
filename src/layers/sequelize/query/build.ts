@@ -2,20 +2,23 @@ import { EntityQueryable, ConvertersBuild,
     QueryEntityAttributeValidator, QueryRangeValidator, QueryRangeAttributeTypes, 
     QuerySelectValidator,
     QueryFunctions,
-    AggregateFunctions,
     FnCount, FnNumber,
-    QuerySelect
+    QuerySelect,
+    Query
 } from "../../../types/entity/Query"
-import { EntityBase, EntityNoExternal } from "../../../types/entity/Root"
+import { EntityBase, EntityNoExternal, AggregateOperators } from "../../../types/entity/Root"
 import { PickByType } from "../../../types/Global"
 import { 
     FindOptions, Model, InferAttributes, InferCreationAttributes, 
     Op, col, fn,
-    FindAttributeOptions
+    FindAttributeOptions,
+    Includeable,
+    IncludeOptions
 } from "sequelize"
 import { Fn } from 'sequelize/types/utils'
 import { WhereValue } from "../types"
 import { EntityMetadata } from "../../../types/entity/Metadata"
+import { ref } from "node:process"
 
 
 export default function sequelizeConvertersBuild<
@@ -130,7 +133,9 @@ function buildSelectConverter<
                     }
                     sequelizeAttributes.push(item)
                 } else if (Array.isArray(item)) {
-                    sequelizeAttributes.push(convertAggregates(metadata, item))
+                    const [aggregate, subEntities] = convertAggregates(metadata, item)
+                    sequelizeAttributes.push(aggregate)
+                    includeSelectSubEntities(subEntities, converted)
                 } else {
                     throw new Error('Item of select has no valid type!')
                 }
@@ -162,63 +167,109 @@ function buildSelectConverter<
 
 function convertAggregates<
     E extends EntityBase,
->(metadata: EntityMetadata<E>, fnsObject: QueryFunctions<E>): [Fn, string] {
+>(metadata: EntityMetadata<E>, fnsObject: QueryFunctions<E>): [[Fn, string], string[]] {
     const key = fnsObject[0]
-    if (typeof key !== 'string') {
-        throw new Error(`Invalid type for aggregate function operator!`)
+    if (!isAggregateKey(key)) {
+        throw new Error(
+            `Invalid aggregate function operator "${key}". ` +
+            `Expected one of: ${Object.keys(AGGREGATE_OPERATORS).join(', ')}`
+        )
     }
-    const operator = aggregateOperators[key]
-    if (!operator) {
-        throw new Error('Invalid aggreagate function operator!')
-    }
+
     return convertToSequelizeTuple(key, metadata, fnsObject[1])
 }
 
 function convertToSequelizeTuple<
-    E extends EntityBase = any
+    E extends EntityBase
 > (
-    on: keyof AggregateFunctions<E>, 
+    on: AggregateOperators, 
     metadata: EntityMetadata<E>, 
     item: FnCount<E> | FnNumber<E>,
     deepEntity: string[] = []
-): [Fn, string] {
+): [[Fn, string], string[]] {
     if (typeof item === 'string') {
         const alias = deepEntity.length
             ? `${on}_${deepEntity.join('_')}_${String(item)}`
             : `${on}_${String(item)}`
         if (item === '*') {
-            return [fn(aggregateOperators[on], col('*')), alias]
-        } else if (metadata.entityAttributesList.includes(item)){
-            const column = deepEntity.length ? `${deepEntity.join('.')}.${String(item)}` : item 
-            return [fn(aggregateOperators[on], col(column)), alias]
-        } else {
-            throw new Error(`Value for ${on} function is incorrect!`)
+            return [[fn(AGGREGATE_OPERATORS[on], col('*')), alias], deepEntity]
         }
-    } else if (Array.isArray(item)) {
-        const subEntities = metadata.subEntities
-        if (subEntities) {
-            const key = item[0]
-            const subentity = subEntities[key]
-            if (subentity) {
-                const subMetaData = subentity.metadata
-                const subItem = item[1]
-                const updatedDeep = [...deepEntity, key]
-                return convertToSequelizeTuple(on, subMetaData, subItem as any, updatedDeep)
-            } else {
-                throw new Error(`External reference: ${String(key)} does not exist!`)
-            }
-        } else {
-            throw new Error(`Value for ${on} function is incorrect!`)
+        if (!metadata.baseAttributesList.includes(item as keyof EntityNoExternal<E>)) {
+            throw new Error(
+                `Field "${String(item)}" not found on entity for ${alias}). ` +
+                `Available attributes: [${metadata.baseAttributesList.join(', ')}]`
+            )
         }
+        const column = deepEntity.length
+            ? `${deepEntity.join('.')}.${String(item)}`
+            : item
+        
+        return [[fn(AGGREGATE_OPERATORS[on], col(column)), alias], deepEntity]
     }
+
+    if (Array.isArray(item)) {
+        const subEntities = metadata.subEntities
+        if (!subEntities) {
+            throw new Error(`Value for ${on} function is incorrect!`)
+        }
+        const key = item[0]
+        const subentity = subEntities[key]
+        if (!subentity) {
+            throw new Error(`External reference: ${String(key)} does not exist!`)
+        }
+
+        return convertToSequelizeTuple(
+            on,
+            subentity.metadata,
+            item[1] as any,
+            [...deepEntity, key as string]
+        )
+    }
+
     throw new Error('Type for item is not valid!')
 }
 
-const aggregateOperators = {
+function isAggregateKey(key: string): key is AggregateOperators {
+    return key in AGGREGATE_OPERATORS
+}
+
+const AGGREGATE_OPERATORS = {
     '$count': 'COUNT',
     '$sum': 'SUM',
     '$avg': 'AVG',
     '$min': 'MIN',
     '$max': 'MAX'
+} as const satisfies Record<AggregateOperators, string>
+
+
+function includeSelectSubEntities(subEntities: string[], converted: FindOptions<InferAttributes<any>>) {
+    converted.include ??= []
+    const include = converted.include as IncludeOptions[]
+    mapSubentitiesToIncludable(subEntities, include)
 }
+
+function mapSubentitiesToIncludable(
+    subEntities: string[],
+    include: IncludeOptions[] 
+) {
+    const [subEntity, ...rest] = subEntities;   
+    if (!subEntity) {
+      return
+    }   
+    
+    let reference = include.find( item => item.association === subEntity)  
+    
+    if (!reference) {
+        reference = { association: subEntity}    
+        include.push(reference);
+    }   
+    
+    if (rest.length > 0) {
+        reference.include ??= [] 
+        mapSubentitiesToIncludable(rest, reference.include as IncludeOptions[])
+    }
+}
+
+
+
 

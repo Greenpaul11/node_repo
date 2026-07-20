@@ -66,19 +66,13 @@ export function entitySelectToMapSelect<E extends EntityBase>(
 
     if (Array.isArray(selectQuery)) {
         // SELECT: ['id', 'name', [$count, 'price']]
-        if (!selectQuery.length) {
-            return nested
-                ? { select: [...baseAttributes] }
-                : { select: [...baseAttributes], fns: [] }
-        }
-
         for (let i = 0; i < selectQuery.length; i++) {
             const item = selectQuery[i]
             // check if is baseAttribute(it can be an external one)
             const isBaseAttribute = baseAttributes.includes(item as keyof EntityNoExternal<E>)
             if (isBaseAttribute) { // is base attribute
                 select.push(item as keyof EntityNoExternal<E>)
-            } else if (!nested && typeof item === 'object') { // is aggregate function
+            } else if (!nested && Array.isArray(item)) { // is aggregate function
                 fns.push(item)
             }
         }
@@ -105,7 +99,6 @@ export function entitySelectToMapSelect<E extends EntityBase>(
             }
         }
     }
-
     return nested
         ? { select }
         : { select, fns }
