@@ -3,7 +3,7 @@ import type { EntityBase } from '../../../types/entity/Root'
 import type { CreationOptional, EntityCreationAttributes } from '../../../types/entity/Creation'
 import { OrmManagerBase } from '../../../ormManager/ormMenagerBase'
 import { DialectOptions } from '../../../types/Config'
-import { EntityQueryable } from '../../../types/entity/Query'
+import { EntityQueryable, QueryControl } from '../../../types/entity/Query'
 import { Query } from '../../../types/entity/Query'
 
 
@@ -41,14 +41,15 @@ export class OrmManager<
         return count
     }
 
-    async getOneBy<Q extends Query<E>>(query: Q): Promise<T | null> {
+    async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T>): Promise<T | null> {
         const ormQuery = this.convertQuery(query) 
-        return await this.manager.findOne(ormQuery)
+        const defaults = control.native ? {} : { raw: true, nest: true}
+        return await this.manager.findOne({...ormQuery, ...defaults})
     }
 
-    async getManyBy<Q extends Query<E>>(query: Q): Promise<T[]> {
+    async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T>): Promise<T[]> {
         const ormQuery = this.convertQuery(query) 
-        const defaults = { raw: true, nest: true}
+        const defaults = control.native ? {} : { raw: true, nest: true}
         return await this.manager.findAll({...ormQuery, ...defaults})
     }
 }

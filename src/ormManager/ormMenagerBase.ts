@@ -1,7 +1,7 @@
 import type { EntityBase } from '../types/entity/Root'
 import type { CreationOptional, EntityCreationAttributes } from '../types/entity/Creation'
 import type { DialectOptions } from '../types/Config'
-import type { EntityQueryable, Query } from '../types/entity/Query'
+import type { EntityQueryable, Query, QueryControl } from '../types/entity/Query'
 
 
 /**
@@ -109,12 +109,12 @@ export abstract class OrmManagerBase<
      *
      * @param query  
      */
-    public abstract getOneBy<Q extends Query<E>>(query: Q): Promise<T | null>
+    public abstract getOneBy<Q extends Query<E>, C extends QueryControl<T>>(query: Q, control: C): Promise<T | null>
 
     /**
      * Get records of entity by specfic query.
      *
      * @param query  
      */
-    public abstract getManyBy<Q extends Query<E>>(query: Q): Promise<T[]>
+    public abstract getManyBy<Q extends Query<E>, C extends QueryControl<T>>(query: Q, control: C): Promise<T[]>
 }

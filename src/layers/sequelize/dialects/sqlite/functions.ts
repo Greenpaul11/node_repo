@@ -15,14 +15,15 @@ export default function extract<
     return {
         asEntity(this: OutputFormaterBase<E, T>, row: T | null, query: Query<E> = {}) {
             if (!row) return null
-            const mappedSelects = this.mapSelects(query)
-            const sequelizRow = row.toJSON() as unknown as SequelizeEntity<E>
-            return convertRow(sequelizRow, mappedSelects, this.converters['native']) 
+            const raw = row as unknown as SequelizeRawEntityNotGrouped<E>
+            const mappedSelect = this.mapSelects(query)
+            const merged = mergeRowsIntoEntities(mappedSelect, this.relationTree, raw)
+            return convertRow(merged, mappedSelect, this.converters['raw']) 
         },
         asEntities(this: OutputFormaterBase<E, T>, rows: T[], query: Query<E> = {}) {
-            const rawRaws = rows as unknown as SequelizeRawEntityNotGrouped<E>[]
+            const raw = rows as unknown as SequelizeRawEntityNotGrouped<E>[]
             const mappedSelect = this.mapSelects(query)
-            const merged: SequelizeRawEntity<E>[] = mergeRowsIntoEntities(mappedSelect, this.relationTree, rawRaws)
+            const merged = mergeRowsIntoEntities(mappedSelect, this.relationTree, raw)
             return merged.map((row) => convertRow(row, mappedSelect, this.converters['raw']))
         }
     }

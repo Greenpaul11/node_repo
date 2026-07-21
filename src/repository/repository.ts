@@ -6,7 +6,7 @@ import { OutputFormaterBase } from "../formaters/output/outputFormaterBase";
 import { OrmOptions, DialectOptions } from "../types/Config";
 import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation";
 import { OrmManagerBase } from "../ormManager/ormMenagerBase";
-import { Query, EntityQueryable, EntityProjection } from "../types/entity/Query";
+import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query";
 import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
 
 
@@ -301,16 +301,16 @@ export class Repository<
     /**
      * Find a single record matching the query and return it as a typed entity.
      *
-     * The return type is selected by the `raw` flag:
-     *  - `raw` omitted or `false` (default) → typed entity `E`;
-     *  - `raw: true` → raw ORM model `T`.
+     * The return type is selected by the {@link QueryControl}.native flag:
+     *  - `native: false` (default) → typed entity `E`;
+     *  - `native: true` → raw ORM model `T`.
      *
      * @typeParam Q - Query type, inferred from `query`. Controls which
      *                fields are selected and which relations are included.
      * @param query Declarative query with filters, selects, and nested
      *               relation queries. See {@link Query}.
-     * @param raw   When `true`, returns the raw ORM model instead of
-     *              the typed entity (or `null` when not found).
+     * @param control When has 'native' set to `true`, returns the raw ORM model instead of
+     *                the typed entity (or `null` when not found).
      * @returns The matching row projected to `Q`, or `null` when no
      *          record matches the query.
      *
@@ -319,32 +319,32 @@ export class Repository<
      * const product = await repo.getOneBy({ id: 1, select: ['id', 'brand'] })
      * // => { id: 1, brand: 'Samsung' }
      *
-     * const raw = await repo.getOneBy({ id: 1 }, true)
+     * const raw = await repo.getOneBy({ id: 22 }, { native: true })
      * // => ProductModel instance
      * ```
      */
     async getOneBy<Q extends Query<E>>(query: Q): Promise<EntityProjection<E, Q> | null>
-    async getOneBy<Q extends Query<E>>(query: Q, raw: false): Promise<EntityProjection<E, Q> | null>
-    async getOneBy<Q extends Query<E>>(query: Q, raw: true): Promise<T | null>
-    async getOneBy<Q extends Query<E>>(query: Q, raw: boolean = false): Promise<EntityProjection<E, Q> | T | null> {
-        const entityRaw = await this.menager.getOneBy(query)
-        if (raw) return entityRaw
+    async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: false }): Promise<EntityProjection<E, Q> | null>
+    async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: true }): Promise<T | null>
+    async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q> | T | null> {
+        const entityRaw = await this.menager.getOneBy(query, control)
+        if (control.native) return entityRaw
         return this.outputFormater.asEntity(entityRaw, query)
     }
 
     /**
      * Find all records matching the query and return them as typed entities.
      *
-     * The return type is selected by the `raw` flag:
-     *  - `raw` omitted or `false` (default) → typed entity array `E[]`;
-     *  - `raw: true` → raw ORM model array `T[]`.
+     * The return type is selected by the {@link QueryControl}.native flag:
+     *  - `native: false` (default) → typed entity array `E[]`;
+     *  - `native: true` → raw ORM model array `T[]`.
      *
      * @typeParam Q - Query type, inferred from `query`. Controls which
      *                fields are selected and which relations are included.
      * @param query Declarative query with filters, selects, and nested
-     *               relation queries. See {@link Query}.
-     * @param raw   When `true`, returns raw ORM models instead of
-     *              typed entities.
+     *              relation queries. See {@link Query}.
+     * @param control When has 'native' set to `true`, returns raw ORM 
+     *                models instead of typed entities.
      * @returns An array of matching rows projected to `Q`, or an empty
      *          array when no records match the query.
      *
@@ -356,16 +356,16 @@ export class Repository<
      * })
      * // => [{ id: 1, model: 'Galaxy S23' }, ...]
      *
-     * const raw = await repo.getManyBy({ active: true }, true)
+     * const raw = await repo.getManyBy({ id: 22 }, { native: true })
      * // => ProductModel[]
      * ```
      */
     async getManyBy<Q extends Query<E>>(query: Q): Promise<EntityProjection<E, Q>[]>
-    async getManyBy<Q extends Query<E>>(query: Q, raw: false): Promise<EntityProjection<E, Q>[]>
-    async getManyBy<Q extends Query<E>>(query: Q, raw: true): Promise<T[]>
-    async getManyBy<Q extends Query<E>>(query: Q, raw: boolean = false): Promise<EntityProjection<E, Q>[] | T[]> {
-        const entityRaw = await this.menager.getManyBy(query)
-        if (raw) return entityRaw
+    async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: false }): Promise<EntityProjection<E, Q>[]>
+    async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: true }): Promise<T[]>
+    async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q>[] | T[]> {
+        const entityRaw = await this.menager.getManyBy(query, control)
+        if (control.native) return entityRaw
         return this.outputFormater.asEntities(entityRaw, query)
     }
 

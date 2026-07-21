@@ -285,9 +285,21 @@ export function mergeRowsIntoEntities<E extends EntityBase>
 (
     mapSelect: MapEntitySelect<E>,
     tree:  EntityRelationTree<E>, 
+    rows: SequelizeRawEntityNotGrouped<E> 
+): SequelizeRawEntity<E>
+export function mergeRowsIntoEntities<E extends EntityBase>
+(
+    mapSelect: MapEntitySelect<E>,
+    tree:  EntityRelationTree<E>, 
+    rows: SequelizeRawEntityNotGrouped<E>[]
+): SequelizeRawEntity<E>[]
+export function mergeRowsIntoEntities<E extends EntityBase>
+(
+    mapSelect: MapEntitySelect<E>,
+    tree:  EntityRelationTree<E>, 
     rows: SequelizeRawEntityNotGrouped<E> | SequelizeRawEntityNotGrouped<E>[]
 )
-: SequelizeRawEntity<E>[] {
+: SequelizeRawEntity<E> | SequelizeRawEntity<E>[] {
     const isArray = Array.isArray(rows)
     
     // if is empty array
@@ -311,6 +323,6 @@ export function mergeRowsIntoEntities<E extends EntityBase>
         }
         return accumulated
     } else {
-        return [rowToGrouped(mapSelect, tree, rows)]
+        return rowToGrouped(mapSelect, tree, rows)
     }
 }

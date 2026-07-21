@@ -50,7 +50,6 @@ describe('test formatQuerySelectAttribute - expected output from database (sqlit
 
     
     describe('select with field names', async () => {
-        return
         it('select with single field returns only that field', async () => {
             const products = await productRepository.getManyBy({ select: ['brand']})
             
@@ -177,11 +176,14 @@ describe('test formatQuerySelectAttribute - expected output from database (sqlit
         })
         
         it('aggregate with deep entity reference', async () => {
-            //const row = await productRepository.getOneBy({ select: [['$count', ['prices', 'id']]] })
+            //const row = await productRepository.getOneBy({ 
+            //    select: ['id', ['$count', ['prices', 'id']]], 
+            //    prices: {} 
+            //})
             //assert(row)
             //assert.strictEqual(row['$count_prices_id'], priceIds.length)
             
-            const rows = await productRepository.getManyBy({ select: [['$count', ['prices', 'id']]] })
+            const rows = await productRepository.getManyBy({ select: ['id', ['$count', ['prices', 'id']]] })
             assert.strictEqual(rows[0]['$count_prices_id'], priceIds.length)
         })
         

@@ -5,6 +5,7 @@ import { EntityMetadata, EntityRelationTree } from './Metadata'
 import { EntityTransform } from './Converters'
 import { ConfigTypes } from '../Config'
 import Decimal from 'decimal.js'
+import type { Model, InferAttributes, InferCreationAttributes, ModelStatic, FindOptions } from 'sequelize'
 
 
 /**
@@ -90,6 +91,13 @@ export type QueryBaseSelect<E extends EntityBase> =
     Omit<Query<E>, 'search_in' | 'order' | 'group' | 'aggregate'>
 
 
+export type QueryControl<T> =
+    T extends Model<InferAttributes<any>, InferCreationAttributes<any>>
+        ?   {
+                native: boolean
+            }
+        : { native: boolean}
+     
 export type QueryFormaterBaseConfig = {
     validation: {
         baseAttributes: {
