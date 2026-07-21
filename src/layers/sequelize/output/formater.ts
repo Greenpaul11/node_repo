@@ -10,7 +10,7 @@ import {
 import mysqlConverterBuild from '../dialects/mysql/build'
 import sqliteConverterBuild from '../dialects/sqlite/build'
 import extractMysqlFuntions from '../dialects/mysql/functions'
-import extractSqliteFuntions from '../dialects/mysql/functions'
+import extractSqliteFuntions from '../dialects/sqlite/functions'
 
 // define dialect converters build
 export const converterDialectsBuild = {

@@ -60,14 +60,19 @@ export function entitySelectToMapSelect<E extends EntityBase>(
     nested?: true
 ): MapEntitySelect<E> {
 
-    const selectQuery = querySelect ?? []
     const select: Array<keyof EntityNoExternal<E>> = []
     const fns: QueryFunctions<E>[] = []
 
-    if (Array.isArray(selectQuery)) {
+    if (!querySelect) {
+        return nested
+            ? {select: [...baseAttributes]}
+            : {select: [...baseAttributes], fns: []}
+    }
+
+    if (Array.isArray(querySelect)) {
         // SELECT: ['id', 'name', [$count, 'price']]
-        for (let i = 0; i < selectQuery.length; i++) {
-            const item = selectQuery[i]
+        for (let i = 0; i < querySelect.length; i++) {
+            const item = querySelect[i]
             // check if is baseAttribute(it can be an external one)
             const isBaseAttribute = baseAttributes.includes(item as keyof EntityNoExternal<E>)
             if (isBaseAttribute) { // is base attribute
@@ -76,10 +81,10 @@ export function entitySelectToMapSelect<E extends EntityBase>(
                 fns.push(item)
             }
         }
-    } else if (typeof selectQuery === 'object') {
+    } else if (typeof querySelect === 'object') {
         // SELECT: { exclude: [...] }
         const excluded: Array<keyof EntityNoExternal<E>> = [];
-        const exclude = selectQuery.exclude
+        const exclude = querySelect.exclude
 
         for (let i = 0; i < exclude.length; i++) {
             const item = exclude[i]

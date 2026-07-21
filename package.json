@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node --env-file=config/.env index.js",
-    "test": "node --trace-uncaught --env-file=config/.env.sequelize_sqlite --import tsx --import ./config/testSetup.ts --test --test-concurrency=1 --test-force-exit \"**/*selectAttribute.test.ts\"",
+    "test": "node --trace-uncaught --env-file=config/.env.sequelize_sqlite --import tsx --import ./config/testSetup.ts --test --test-concurrency=1 --test-force-exit \"**/*.test.ts\"",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch"
   },

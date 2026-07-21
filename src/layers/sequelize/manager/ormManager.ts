@@ -43,8 +43,7 @@ export class OrmManager<
 
     async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T>): Promise<T | null> {
         const ormQuery = this.convertQuery(query) 
-        const defaults = control.native ? {} : { raw: true, nest: true}
-        return await this.manager.findOne({...ormQuery, ...defaults})
+        return await this.manager.findOne(ormQuery)
     }
 
     async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T>): Promise<T[]> {

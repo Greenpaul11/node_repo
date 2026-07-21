@@ -173,7 +173,7 @@ export class Repository<
         const repository = new Repository<E, C, T>(metadata, connection);
         const orm = repository._resolveOrmName(connection)
         const dialect = repository._resolveDialectName(connection);
-
+        
         // place for implementation of queryFormater
         const ormQueryModule = await import(`../layers/${orm}/query/formater`);
         const QueryFormater = ormQueryModule.QueryFormater as new (

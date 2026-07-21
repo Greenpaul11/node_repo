@@ -135,7 +135,9 @@ function buildSelectConverter<
                 } else if (Array.isArray(item)) {
                     const [aggregate, subEntities] = convertAggregates(metadata, item)
                     sequelizeAttributes.push(aggregate)
-                    includeSelectSubEntities(subEntities, converted)
+                    if (subEntities.length) {
+                        includeSelectSubEntities(subEntities, converted)
+                    }
                 } else {
                     throw new Error('Item of select has no valid type!')
                 }

@@ -56,7 +56,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             
             const mappedSelects = productSelect(query)
             const result = mergeRowsIntoEntities(mappedSelects, productTree, rows)
-            assert.deepStrictEqual(result[0], {
+            assert.deepStrictEqual(result, {
                 id: 1, brand: 'Samsung', model: 'Galaxy S23' 
             })
         })
@@ -157,7 +157,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('single row is unchanged or its relations are transformed', () => {
                 const row = {id: 1, brand: 'Samsung', specification_tree: {id: 2, product_id: 1}} as SequelizeRawEntityNotGrouped<Product>
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {id: 1, brand: 'Samsung', specification_tree: {id: 2, product_id: 1}})
+                assert.deepStrictEqual(result, {id: 1, brand: 'Samsung', specification_tree: {id: 2, product_id: 1}})
             })
 
             it ('duplicated rows with relations are merged', () => {
@@ -186,7 +186,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('row with last chain relation as null - relations are transformed or unchanged', () => {
                 const row = {id: 1, brand: 'Samsung', specification_tree: null} as SequelizeRawEntityNotGrouped<Product>
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {id: 1, brand: 'Samsung', specification_tree: null})
+                assert.deepStrictEqual(result, {id: 1, brand: 'Samsung', specification_tree: null})
             })
             
             it ('duplicated rows with last chain relation as null are merged', () => {
@@ -225,7 +225,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('single row is unchanged or its relations are transformed', () => {
                 const row = {id: 1, brand: 'Samsung', prices: {id: 1, price: '3332.99', created: new Date('2023-05-10T15:00:00Z')}} as SequelizeRawEntityNotGrouped<Product>
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     id: 1, brand: 'Samsung', 
                     prices: [
                         {id: 1, price: '3332.99', created: new Date('2023-05-10T15:00:00Z')}
@@ -263,7 +263,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('row with last chain relation as null - relations are transformed or unchanged', () => {
                 const row = {id: 1, brand: 'Samsung', prices: null} as SequelizeRawEntityNotGrouped<Product>
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {id: 1, brand: 'Samsung', prices: []})
+                assert.deepStrictEqual(result, {id: 1, brand: 'Samsung', prices: []})
             })
             
             it ('duplicated rows with last chain relation as null are merged', () => {
@@ -302,7 +302,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('single row is unchanged or its relations are transformed', () => {
                 const row = {id: 1, content: 'This device is greate', product: {id: 2, model: 'Galaxy 3'}} as SequelizeRawEntityNotGrouped<Comment>
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {id: 1, content: 'This device is greate', product: {id: 2, model: 'Galaxy 3'}})
+                assert.deepStrictEqual(result, {id: 1, content: 'This device is greate', product: {id: 2, model: 'Galaxy 3'}})
             })
 
             it ('duplicated rows with relations are merged', () => {
@@ -331,7 +331,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
             it ('row with last chain relation as null - relations are transformed or unchanged', () => {
                 const row = {id: 1, content: 'This device is greate', product: null} as SequelizeRawEntityNotGrouped<Comment>
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {id: 1, content: 'This device is greate', product: null})
+                assert.deepStrictEqual(result, {id: 1, content: 'This device is greate', product: null})
             })
             
             it ('duplicated rows with last chain relation as null are merged', () => {
@@ -387,7 +387,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                  } as SequelizeRawEntityNotGrouped<Product>
                  const unChanged = copyRow(row)
                  const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                 assert.deepStrictEqual(result[0], unChanged)
+                 assert.deepStrictEqual(result, unChanged)
              })
 
              it ('duplicated rows with relations are merged', () => {
@@ -457,7 +457,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                  } as SequelizeRawEntityNotGrouped<Product>
                  const unChanged = copyRow(row)
                  const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                 assert.deepStrictEqual(result[0], unChanged)
+                 assert.deepStrictEqual(result, unChanged)
              })
 
              it ('duplicated rows with last chain relation as null are merged', () => {
@@ -533,7 +533,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                 } as SequelizeRawEntityNotGrouped<SpecificationTree>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, specificationTreeTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     id: 1,
                     specification_type: 'smartphone',
                     product: {
@@ -646,7 +646,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                 } as SequelizeRawEntityNotGrouped<SpecificationTree>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, specificationTreeTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     id: 1,
                     specification_type: 'smartphone',
                     product: {
@@ -756,7 +756,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                 
                 const unChanged = copyRow(row)
                 const result = mergeRowsIntoEntities(mappedSelects, specificationTreeTree, row)
-                assert.deepStrictEqual(result[0], unChanged)
+                assert.deepStrictEqual(result, unChanged)
             })
 
             it ('duplicated rows with relations are merged', () => {
@@ -824,7 +824,7 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
                 
                 const unChanged = copyRow(row)
                 const result = mergeRowsIntoEntities(mappedSelects, specificationTreeTree, row)
-                assert.deepStrictEqual(result[0], unChanged)
+                assert.deepStrictEqual(result, unChanged)
             })
 
 
@@ -898,7 +898,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<ProductImporter>
 
                 const result = mergeRowsIntoEntities(mappedSelects, productImporterTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     name: 'Importer A',
                     products: [{
                         brand: 'Samsung',
@@ -998,7 +998,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<ProductImporter>
 
                 const result = mergeRowsIntoEntities(mappedSelects, productImporterTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     name: 'Importer A',
                     products: [{
                         brand: 'Samsung',
@@ -1097,7 +1097,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                     }
                 } as SequelizeRawEntityNotGrouped<User>
                 const result = mergeRowsIntoEntities(mappedSelects, userTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     name: 'John Doe',
                     comments: [{
                         content: 'Great product',
@@ -1188,7 +1188,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                     }
                 } as SequelizeRawEntityNotGrouped<User>
                 const result = mergeRowsIntoEntities(mappedSelects, userTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     name: 'John Doe',
                     comments: [{
                         content: 'Great product',
@@ -1276,7 +1276,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                     }
                 } as SequelizeRawEntityNotGrouped<Product>
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     brand: 'Samsung',
                     model: 'Galaxy S23',
                     product_categories: [{
@@ -1379,7 +1379,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<Product>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, productTree, row) 
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     brand: 'Samsung',
                     model: 'Galaxy S23',
                     product_categories: [{
@@ -1486,7 +1486,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<Comment>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     content: 'Great product',
                     product: {
                         brand: 'Samsung',
@@ -1608,7 +1608,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<Comment>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     content: 'Great product',
                     product: {
                         brand: 'Samsung',
@@ -1725,7 +1725,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<Comment>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     content: 'Great product',
                     product: {
                         brand: 'Samsung',
@@ -1830,7 +1830,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 } as SequelizeRawEntityNotGrouped<Comment>
                 
                 const result = mergeRowsIntoEntities(mappedSelects, commentTree, row)
-                assert.deepStrictEqual(result[0], {
+                assert.deepStrictEqual(result, {
                     content: 'Great product',
                     product: {
                         brand: 'Samsung',
@@ -1933,7 +1933,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
                 
                 const unChanged = copyRow(row)
                 const result = mergeRowsIntoEntities(mappedSelects, rateTree, row)
-                assert.deepStrictEqual(result[0], unChanged)
+                assert.deepStrictEqual(result, unChanged)
             })
 
             it ('duplicated rows with relations are merged', () => {
@@ -2005,7 +2005,7 @@ describe('one to many -> one to one: ProductImporter -> Product -> Specification
             const unChanged = copyRow(row) as SequelizeRawEntityNotGrouped<Rate>
 
             const result = mergeRowsIntoEntities(mappedSelects, rateTree, row)
-            assert.deepStrictEqual(result[0], unChanged)
+            assert.deepStrictEqual(result, unChanged)
         })
 
         it ('duplicated rows with last chain relation as null are merged', () => {

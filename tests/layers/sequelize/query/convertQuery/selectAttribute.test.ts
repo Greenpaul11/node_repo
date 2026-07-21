@@ -296,7 +296,8 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('prices.id')), '$count_prices_id']]
+                attributes: [[fn('COUNT', col('prices.id')), '$count_prices_id']],
+                include: [{association: 'prices'}]
             })
         })
 
@@ -306,7 +307,8 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('prices.shop.id')), '$count_prices_shop_id']]
+                attributes: [[fn('COUNT', col('prices.shop.id')), '$count_prices_shop_id']],
+                include: [{association: 'prices', include: [{association: 'shop'}]}]
             })
         })
 
@@ -316,7 +318,8 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('comments.user.rates.id')), '$count_comments_user_rates_id']]
+                attributes: [[fn('COUNT', col('comments.user.rates.id')), '$count_comments_user_rates_id']],
+                include: [{association: 'comments', include: [{association: 'user', include: [{association: 'rates'}]}]}]
             })
         })
 
@@ -377,7 +380,8 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('prices.shop.id')), '$count_prices_shop_id']]
+                attributes: [[fn('COUNT', col('prices.shop.id')), '$count_prices_shop_id']],
+                include: [{association: 'prices', include: [{association: 'shop'}]}]
             })
         })
 
@@ -387,7 +391,8 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('comments.user.rates.id')), '$count_comments_user_rates_id']]
+                attributes: [[fn('COUNT', col('comments.user.rates.id')), '$count_comments_user_rates_id']],
+                include: [{association: 'comments', include: [{association: 'user', include: [{association: 'rates'}]}]}]
             })
         })
 
