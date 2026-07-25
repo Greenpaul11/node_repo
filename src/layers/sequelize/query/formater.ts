@@ -3,7 +3,8 @@ import { EntityBase } from "../../../types/entity/Root";
 import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata";
 import { Model, InferAttributes, InferCreationAttributes, FindOptions } from "sequelize"
 import sequelizeConvertersBuild from "./build"
-import { Query, QueryConvertObject, QueryFormaterBaseConfig } from "../../../types/entity/Query";
+import { Query, QueryConvertObject, OverridesQueryConverterConfig } from "../../../types/entity/Query";
+import { queryConvertObjectFactory } from "../../../formaters/query/buildConverters";
 
 
 export class QueryFormater< 
@@ -15,25 +16,24 @@ export class QueryFormater<
     constructor(
         metadata: EntityMetadata<E>, 
         relationTree: EntityRelationTree<E>,
-        config?: QueryFormaterBaseConfig 
+        config?: OverridesQueryConverterConfig 
     ) {
         super(metadata, relationTree, config)
-
-        this.convertersBuild = sequelizeConvertersBuild<E, T, F>()
-        this.queryConvertObject = this.queryConvertObjectFactory()
+        this.convertersBuild = sequelizeConvertersBuild<F>()
+        this.queryConvertObject = queryConvertObjectFactory(this.convertersBuild, this.config, metadata)
     }
 
     public formatQuery<Q extends Query<E>>(query: Q): F {
         // create orm query object
-        const formated = {} as F
+        const formatted = {} as F
 
         for (const [key, value] of Object.entries(query)) {
             const queryKey = key as keyof QueryConvertObject<E, F>
             if (this.queryConvertObject.hasOwnProperty(key)) {
-                this.queryConvertObject[queryKey].convert(value, formated)
+                this.queryConvertObject[queryKey].convert(value, formatted)
             }
         }
 
-        return formated
+        return formatted
     }
 }

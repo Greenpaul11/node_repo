@@ -1,4 +1,4 @@
-import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType
+import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, DeepPartial
 } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
 import { EntityMetadata, EntityRelationTree } from './Metadata'
@@ -98,7 +98,7 @@ export type QueryControl<T> =
             }
         : { native: boolean}
      
-export type QueryFormaterBaseConfig = {
+export type QueryConverterConfig = {
     validation: {
         baseAttributes: {
             string: boolean
@@ -113,6 +113,15 @@ export type QueryFormaterBaseConfig = {
         queryAttributes: {
             select: boolean
         }
+    }
+    subEntityRelationDepth: number
+}
+
+export type OverridesQueryConverterConfig = DeepPartial<QueryConverterConfig> & {
+    validation?: boolean | DeepPartial<QueryConverterConfig['validation']> & {
+        baseAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['baseAttributes']>
+        rangeAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['rangeAttributes']>
+        queryAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['queryAttributes']>
     }
 }
 
@@ -131,8 +140,8 @@ export type QueryRangeAttributeTypes = {
 export type QueryConvertObject<E extends EntityBase, F> =
     QueryEntityAttributeTransform<E, F> &
     QueryRangeAttributeTransform<E, F> &
-    QueryAttributeTransform<E, F>
-    //QueryRelationTransform<E, F> &
+    QueryAttributeTransform<F> &
+    QueryRelationTransform<E, F> 
     
 
 
@@ -159,7 +168,7 @@ export type QueryRangeAttributeTypeTransform<E extends EntityBase, K extends key
     }
 }
 
-export type QueryAttributeTransform<E extends EntityBase, F> = {
+export type QueryAttributeTransform<F> = {
     select: {
         convert: (value: unknown, converted: F) => F
     }
@@ -180,38 +189,53 @@ export type QuerySelectValidator<E extends EntityBase> =
 
 
 export type QueryRelationTransform<E extends EntityBase, F> = {
-    [K in keyof ExternalReferences<E>]?: QueryConvertObject<ExternalReferences<E>[K], F>
+    [K in keyof ExternalReferences<E>]: {
+        queryConvertObject: QueryConvertObject<ExternalReferences<E>[K], F> 
+        convert: (value: unknown, converted: F) => F
+    }
 }
 
 
-export type ConvertersBuild<E extends EntityBase, F> = {
+export type ConvertersBuild<F> = {
     baseAttributes: {
         [Key in keyof QueryEntityAttributeTypes]: 
-            <K extends keyof EntityQueryable<E>>(
+            <E extends EntityBase, K extends keyof EntityQueryable<E>>(
                 value: unknown, 
                 converted: F, 
                 attribute: K, 
+                nested: boolean,
                 validate?: QueryEntityAttributeValidator<E>
             ) => F
     }
     rangeAttributes: {
         [Key in keyof QueryRangeAttributeTypes]:
-            <K extends keyof PickByType<E, QueryRangeAttributeTypes[Key]>>(
+            <E extends EntityBase, K extends keyof PickByType<E, QueryRangeAttributeTypes[Key]>>(
                 value: unknown, 
                 converted: F, 
                 suffix: '_from' | '_to',  
                 attribute: K, 
+                nested: boolean,
                 validate?: QueryRangeValidator<E>
             ) => F
     }
     queryAttributes: {
-        select: (
+        select: <E extends EntityBase>(
             value: unknown, 
             converted: F, 
             metadata: EntityMetadata<E>,
+            nested: boolean,
             validate?: QuerySelectValidator<E>
         ) => F
+    },
+    relationAttributes: {
+        relations: <E extends EntityBase, K extends keyof ExternalReferences<E>>(
+           value: unknown,
+           converted: F,
+           attribute: K,
+           queryConvertObject: QueryConvertObject<ExternalReferences<E>[K], F>
+        ) => F
     }
+    
 }
 
 /**

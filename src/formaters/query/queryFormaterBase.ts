@@ -1,13 +1,10 @@
 import { EntityBase } from '../../types/entity/Root'
 import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
-import { Query, QueryEntityAttributeTransform, ConvertersBuild,  
-    QueryConvertObject, QueryFormaterBaseConfig, 
-    QueryRangeAttributeTransform,
-    QueryAttributeTransform} from '../../types/entity/Query'
-import { buildEntityAttributeConverters, buildRangeAttributeConverters,
-    buildQueryAttributeConverters
- } from './buildConverters'
-import defaultConfig from './config'
+import { Query, ConvertersBuild,  
+    QueryConvertObject, QueryConverterConfig, OverridesQueryConverterConfig 
+} from '../../types/entity/Query'
+import { overrideObject } from '../../lib/override'
+import { defaultConfig, validationOn, validationOff } from './config'
 
 export abstract class QueryFormaterBase<
     E extends EntityBase,
@@ -15,39 +12,29 @@ export abstract class QueryFormaterBase<
     F = unknown // object with formated query suitable for orm specific query processing
 > {
     
-    public convertersBuild!: ConvertersBuild<E, F>;
+    public convertersBuild!: ConvertersBuild<F>;
     public queryConvertObject!: QueryConvertObject<E, F>
-    public config: QueryFormaterBaseConfig;
-    
+    public config: QueryConverterConfig
     
     constructor(
         public metadata: EntityMetadata<E>,
         public relationTree: EntityRelationTree<E>,
-        config?: QueryFormaterBaseConfig
+        config?: OverridesQueryConverterConfig
     ) {
-        this.config = config ?? defaultConfig 
+        this.config = config ? this._overrideConfig(defaultConfig, config) : defaultConfig
     }
 
-    public queryConvertObjectFactory(): QueryConvertObject<E, F>  {
-
-        const baseAttributes: QueryEntityAttributeTransform<E, F> = {
-            ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.stringAttributesList, 'string'),
-            ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.numberAttributesList, 'number'),
-            ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date'),
-            ...buildEntityAttributeConverters(this.convertersBuild, this.config, this.metadata.booleanAttributesList, 'boolean'),
+    private _overrideConfig(target: QueryConverterConfig, source: OverridesQueryConverterConfig): QueryConverterConfig {
+        const normalized = { ...source } as Record<string, unknown>
+        if (source.hasOwnProperty('validation')) {
+            const validation = source.validation
+            normalized.validation = validation === true
+                ? validationOn
+                : validation === false
+                    ? validationOff
+                    : validation
         }
-        const rangeAttributes: QueryRangeAttributeTransform<E, F> = {
-            ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.numberAttributesList, 'number'),
-            ...buildRangeAttributeConverters(this.convertersBuild, this.config, this.metadata.dateAttributesList, 'date')
-        }
-        const queryAttributes: QueryAttributeTransform<E, F> = {
-            ...buildQueryAttributeConverters(this.convertersBuild, this.config, this.metadata)
-        }
-        return {
-            ...baseAttributes,
-            ...rangeAttributes,
-            ...queryAttributes
-        }
+        return overrideObject(target, normalized) as QueryConverterConfig
     }
 
     public abstract formatQuery<Q extends Query<E>>(query: Q): F

@@ -1,66 +1,93 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
 import { buildRangeAttributeConverters } from '../../../src/formaters/query/buildConverters'
-import { ConvertersBuild, QueryRangeValidator } from '../../../src/types/entity/Query'
+import { ConvertersBuild, QueryRangeAttributeTypes, QueryRangeValidator } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
 import { EntityBase } from '../../../src/types/entity/Root'
 import { PickByType } from '../../../src/types/Global'
 import { validateRangeNumber, validateRangeDate } from '../../../src/formaters/query/validators'
 
-type OrmQuery<E extends EntityBase> = {
+type OrmQuery = {
     where: Record<string, unknown>
 }
 
-const convertersBuild: ConvertersBuild<Product, OrmQuery<Product>> = {
-    baseAttributes: {} as never,
-    queryAttributes: {} as never,
-    rangeAttributes: {
-        number: <
-            K extends keyof PickByType<Product, number>
-        >(
-            value: unknown,
-            converted: OrmQuery<Product>,
-            suffix: '_from' | '_to',
-            attribute: K,
-            validate?: QueryRangeValidator<Product>
-        ) => {
-            if (!converted.where) converted.where = {}
-            const op = suffix === '_from' ? '_gte' : '_lt'
-            const validatedValue = validate ? validate(value, attribute as any) : value
-            converted.where[`${String(attribute)}${op}`] = validatedValue
-            return converted
+const validationOn = {
+    validation: {
+        baseAttributes: {
+            string: true,
+            number: true,
+            date: true,
+            boolean: true
         },
-        date: <
-            K extends keyof PickByType<Product, Date>
-        >(
-            value: unknown,
-            converted: OrmQuery<Product>,
-            suffix: '_from' | '_to',
-            attribute: K,
-            validate?: QueryRangeValidator<Product>
-        ) => {
-            if (!converted.where) converted.where = {}
-            const op = suffix === '_from' ? '_gte' : '_lt'
-            const validatedValue = validate ? validate(value, attribute as any) : value
-            converted.where[`${String(attribute)}${op}`] = validatedValue
-            return converted
+        rangeAttributes: {
+            number: true,
+            date: true
+        },
+        queryAttributes: {
+            select: true
         }
+    },
+    subEntityRelationDepth: 2
+}
+
+
+export const validationOff = {
+    validation: {
+        baseAttributes: {
+            string: false,
+            number: false,
+            date: false,
+            boolean: false
+        },
+        rangeAttributes: {
+            number: false,
+            date: false
+        },
+        queryAttributes: {
+            select: false
+        }
+    },
+    subEntityRelationDepth: 2
+}
+
+function buildRangeConverter<R extends keyof QueryRangeAttributeTypes, F extends OrmQuery>() {
+    return <E extends EntityBase, K extends keyof PickByType<E, QueryRangeAttributeTypes[R]>>(
+        value: unknown,
+        converted: F,
+        suffix: '_from' | '_to',
+        attribute: K,
+        nested: boolean,
+        validate?: QueryRangeValidator<E>
+    ): F => {
+        if (!converted.where) converted.where = {}
+        const op = suffix === '_from' ? '_gte' : '_lt'
+        const validatedValue = validate ? validate(value, attribute as any) : value
+        converted.where[`${String(attribute)}${op}`] = validatedValue
+        return converted
     }
 }
 
+function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
+    return {
+        baseAttributes: {} as never,
+        rangeAttributes: {
+            number: buildRangeConverter<'number', F>(),
+            date: buildRangeConverter<'date', F>()
+        },
+        queryAttributes: {} as never,
+        relationAttributes: {} as never
+    }
+}
+
+const convertersBuild = createConvertersBuild()
 
 describe('buildRangeAttributeConverters', () => {
     describe('number range attributes', () => {
         it('creates converters for all number range attributes with _from and _to keys', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
                 convertersBuild,
-                config,
+                validationOff,
                 productMetadata.numberAttributesList,
                 'number'
             )
@@ -74,64 +101,42 @@ describe('buildRangeAttributeConverters', () => {
         })
 
         it('validate=false => passes number value as-is for _from (Op.gte equivalent)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOff, productMetadata.numberAttributesList, 'number'
             )
 
-            const converted = converters.id_from.convert(100, {} as OrmQuery<Product>)
+            const converted = converters.id_from.convert(100, {} as OrmQuery)
             assert.deepStrictEqual(converted, { where: { id_gte: 100 } })
             assert.strictEqual(typeof converted.where.id_gte, 'number')
         })
 
         it('validate=false => passes number value as-is for _to (Op.lt equivalent)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOff, productMetadata.numberAttributesList, 'number'
             )
 
-            const converted = converters.id_to!.convert(500, {} as OrmQuery<Product>)
+            const converted = converters.id_to!.convert(500, {} as OrmQuery)
             assert.deepStrictEqual(converted, { where: { id_lt: 500 } })
             assert.strictEqual(typeof converted.where.id_lt, 'number')
         })
 
         it('validate=true => coerces string to number for range', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false },
-                    queryAttributes: { select: false } 
-                },
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOn, productMetadata.numberAttributesList, 'number'
             )
 
-            const converted = converters.id_from.convert('100', {} as OrmQuery<Product>)
+            const converted = converters.id_from.convert('100', {} as OrmQuery)
             assert.deepStrictEqual(converted, { where: { id_gte: 100 } })
             assert.strictEqual(typeof converted.where.id_gte, 'number')
         })
 
         it('validate=true => throws Error for invalid number range value', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOn, productMetadata.numberAttributesList, 'number'
             )
 
             assert.throws(
-                () => converters.id_from.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
+                () => converters.id_from.convert({ invalid: 'object' } as any, {} as OrmQuery),
                 /Value type for id is not valid/
             )
         })
@@ -139,14 +144,9 @@ describe('buildRangeAttributeConverters', () => {
 
     describe('date range attributes', () => {
         it('creates converters for all date range attributes with _from and _to keys', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
                 convertersBuild,
-                config,
+                validationOff,
                 productMetadata.dateAttributesList,
                 'date'
             )
@@ -160,83 +160,55 @@ describe('buildRangeAttributeConverters', () => {
         })
 
         it('validate=false => passes Date as-is for _from', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOff, productMetadata.dateAttributesList, 'date'
             )
 
             const dateObj = new Date('2024-01-15T10:30:00Z')
-            const converted = converters.created_from.convert(dateObj, {} as OrmQuery<Product>)
+            const converted = converters.created_from.convert(dateObj, {} as OrmQuery)
             assert.ok(converted.where.created_gte instanceof Date)
             assert.strictEqual(converted.where.created_gte.toISOString(), '2024-01-15T10:30:00.000Z')
         })
 
         it('validate=true => validates string as valid date format', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOn, productMetadata.dateAttributesList, 'date'
             )
 
-            const converted = converters.updated_from.convert('2024-12-31T23:59:59Z', {} as OrmQuery<Product>)
+            const converted = converters.updated_from.convert('2024-12-31T23:59:59Z', {} as OrmQuery)
             assert.strictEqual((converted.where.updated_gte as any).toISOString(), '2024-12-31T23:59:59.000Z')
             assert.strictEqual(typeof converted.where.updated_gte, 'object')
         })
 
         it('validate=true => throws Error for invalid date range value', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOn, productMetadata.dateAttributesList, 'date'
             )
 
             assert.throws(
-                () => converters.created_from.convert({ invalid: 'object' } as any, {} as OrmQuery<Product>),
+                () => converters.created_from.convert({ invalid: 'object' } as any, {} as OrmQuery),
                 /Value type for created is not valid/
             )
         })
 
         it('validate=true => throws Error for number passed as date range', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOn, productMetadata.dateAttributesList, 'date'
             )
 
             assert.throws(
-                () => converters.created_to!.convert(123456789 as any, {} as OrmQuery<Product>),
+                () => converters.created_to!.convert(123456789 as any, {} as OrmQuery),
                 /Value type for created is not valid/
             )
         })
 
         it('validate=false => passes Date as-is for _to', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOff, productMetadata.dateAttributesList, 'date'
             )
 
             const dateObj = new Date('2024-06-01T00:00:00Z')
-            const converted = converters.updated_to!.convert(dateObj, {} as OrmQuery<Product>)
+            const converted = converters.updated_to!.convert(dateObj, {} as OrmQuery)
             assert.ok(converted.where.updated_lt instanceof Date)
             assert.strictEqual(converted.where.updated_lt.toISOString(), '2024-06-01T00:00:00.000Z')
         })
@@ -244,35 +216,25 @@ describe('buildRangeAttributeConverters', () => {
 
     describe('chaining and accumulation', () => {
         it('accumulates multiple range conditions on the same converted object', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOff, productMetadata.numberAttributesList, 'number'
             )
 
-            const first = converters.id_from.convert(10, {} as OrmQuery<Product>)
+            const first = converters.id_from.convert(10, {} as OrmQuery)
             const second = converters.id_to!.convert(100, first)
 
             assert.deepStrictEqual(second.where, { id_gte: 10, id_lt: 100 })
         })
 
         it('chaining number and date ranges', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const numConverters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const numConverters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOff, productMetadata.numberAttributesList, 'number'
             )
-            const dateConverters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const dateConverters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOff, productMetadata.dateAttributesList, 'date'
             )
 
-            const acc = {} as OrmQuery<Product>
+            const acc = {} as OrmQuery
             numConverters.id_from.convert(10, acc)
             numConverters.id_to!.convert(100, acc)
             dateConverters.created_from.convert(new Date('2024-01-01'), acc)
@@ -289,63 +251,41 @@ describe('buildRangeAttributeConverters', () => {
 
     describe('validation behavior', () => {
         it('validate=false => passes value without coercion (number stays number)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOff, productMetadata.numberAttributesList, 'number'
             )
 
-            const converted = converters.id_from.convert(42, {} as OrmQuery<Product>)
+            const converted = converters.id_from.convert(42, {} as OrmQuery)
             assert.strictEqual(converted.where.id_gte, 42)
             assert.strictEqual(typeof converted.where.id_gte, 'number')
         })
 
         it('validate=true => coerces string to number', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: true, date: false },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'number'>(
-                convertersBuild, config, productMetadata.numberAttributesList, 'number'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'number'>(
+                convertersBuild, validationOn, productMetadata.numberAttributesList, 'number'
             )
 
-            const converted = converters.id_from.convert('42', {} as OrmQuery<Product>)
+            const converted = converters.id_from.convert('42', {} as OrmQuery)
             assert.strictEqual(converted.where.id_gte, 42)
             assert.strictEqual(typeof converted.where.id_gte, 'number')
         })
 
         it('validate=true for date => validates string date format (returns date)', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: true },
-                    queryAttributes: { select: false }
-                }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOn, productMetadata.dateAttributesList, 'date'
             )
 
-            const converted = converters.created_from.convert('2024-01-01', {} as OrmQuery<Product>)
+            const converted = converters.created_from.convert('2024-01-01', {} as OrmQuery)
             assert.strictEqual((converted.where.created_gte as any).toISOString(), '2024-01-01T00:00:00.000Z')
             assert.strictEqual(typeof converted.where.created_gte, 'object')
         })
 
         it('validate=false for date => passes string as-is, no coercion', () => {
-            const config = {
-                validation: { baseAttributes: { string: false, number: false, date: false, boolean: false },
-                    rangeAttributes: { number: false, date: false },
-                    queryAttributes: { select: false } }
-            }
-            const converters = buildRangeAttributeConverters<Product, OrmQuery<Product>, 'date'>(
-                convertersBuild, config, productMetadata.dateAttributesList, 'date'
+            const converters = buildRangeAttributeConverters<Product, OrmQuery, 'date'>(
+                convertersBuild, validationOff, productMetadata.dateAttributesList, 'date'
             )
 
-            const converted = converters.created_from.convert('2024-01-01', {} as OrmQuery<Product>)
+            const converted = converters.created_from.convert('2024-01-01', {} as OrmQuery)
             assert.strictEqual(converted.where.created_gte, '2024-01-01')
             assert.strictEqual(typeof converted.where.created_gte, 'string')
         })

@@ -1,74 +1,101 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
 import { buildQueryAttributeConverters } from '../../../src/formaters/query/buildConverters'
-import { ConvertersBuild, QueryFormaterBaseConfig, QuerySelectValidator } from '../../../src/types/entity/Query'
+import { ConvertersBuild, QuerySelectValidator } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
-import { EntityBase, EntityNoExternal } from '../../../src/types/entity/Root'
+import { EntityBase } from '../../../src/types/entity/Root'
 import { validateSelect } from '../../../src/formaters/query/validators'
 import { EntityMetadata } from '../../../src/types/entity/Metadata'
-import { escape } from 'node:querystring'
 
-type OrmQuery<E extends EntityBase> = {
+type OrmQuery= {
     attributes: (string | unknown[])[]
 }
 
-const configOff: QueryFormaterBaseConfig = {
+const validationOn = {
     validation: {
-        baseAttributes: { string: false, number: false, date: false, boolean: false },
-        rangeAttributes: { number: false, date: false },
-        queryAttributes: { select: false }
-    }
-}
-
-const configOn: QueryFormaterBaseConfig = {
-    validation: {
-        baseAttributes: { string: false, number: false, date: false, boolean: false },
-        rangeAttributes: { number: false, date: false },
-        queryAttributes: { select: true }
-    }
-}
-
-// create test converter build
-const convertersBuild: ConvertersBuild<Product, OrmQuery<Product>> = {
-    baseAttributes: {} as never,
-    rangeAttributes: {} as never,
-    queryAttributes: {
-        select: (
-            value: unknown,
-            converted: OrmQuery<Product>,
-            metadata: EntityMetadata<Product>,
-            validate?: QuerySelectValidator<Product>
-        ) => {
-            const attributes = metadata.baseAttributesList
-            if (!converted.attributes) converted.attributes = [] 
-            if (Array.isArray(value)) {
-                for (let i = 0; i < value.length; i++) {
-                    const item = value[i]
-                    if (typeof item === 'string') {
-                        if (validate) validate(item, attributes)
-                        converted.attributes.push(item)
-                    } else if (Array.isArray(item)) {
-                        converted.attributes.push(item)
-                    } else {
-                        throw new Error('Invalid type for select item!')
-                    }
-                }
-            } else {
-                throw new Error('Invalid type for select attribute where expected list of attributes or aggregates!')
-            }
-            
-            return converted
+        baseAttributes: {
+            string: true,
+            number: true,
+            date: true,
+            boolean: true
+        },
+        rangeAttributes: {
+            number: true,
+            date: true
+        },
+        queryAttributes: {
+            select: true
         }
+    },
+    subEntityRelationDepth: 2
+}
+
+export const validationOff = {
+    validation: {
+        baseAttributes: {
+            string: false,
+            number: false,
+            date: false,
+            boolean: false
+        },
+        rangeAttributes: {
+            number: false,
+            date: false
+        },
+        queryAttributes: {
+            select: false
+        }
+    },
+    subEntityRelationDepth: 2
+}
+
+function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
+    return {
+        baseAttributes: {} as never,
+        rangeAttributes: {} as never,
+        queryAttributes: {
+            select: <E extends EntityBase>(
+                value: unknown,
+                converted: F,
+                metadata: EntityMetadata<E>,
+                nested: boolean,
+                validate?: QuerySelectValidator<E>
+            ) => {
+                const attributes = metadata.baseAttributesList
+                if (!converted.attributes) converted.attributes = [] 
+                if (Array.isArray(value)) {
+                    for (let i = 0; i < value.length; i++) {
+                        const item = value[i]
+                        if (typeof item === 'string') {
+                            if (validate) validate(item, attributes)
+                            converted.attributes.push(item)
+                        } else if (Array.isArray(item)) {
+                            converted.attributes.push(item)
+                        } else {
+                            throw new Error('Invalid type for select item!')
+                        }
+                    }
+                } else {
+                    throw new Error('Invalid type for select attribute where expected list of attributes or aggregates!')
+                }
+
+
+                return converted
+            }
+        },
+        relationAttributes: {} as never
     }
 }
+
+const convertersBuild = createConvertersBuild()
 
 describe('buildQueryAttributeConverters', () => {
     describe('select converter', () => {
         it('creates select converter with convert function', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
@@ -77,103 +104,103 @@ describe('buildQueryAttributeConverters', () => {
         })
 
         it('validate=false => passes value as-is, no validation', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
-            const converted = result.select.convert(['brand'], {} as OrmQuery<Product>)
+            const converted = result.select.convert(['brand'], {} as OrmQuery)
             assert.deepStrictEqual(converted, { attributes: ['brand'] })
             assert.strictEqual(typeof converted.attributes[0], 'string')
         })
 
         it('validate=true => valid attribute passes validation', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
-            const converted = result.select.convert(['brand'], {} as OrmQuery<Product>)
+            const converted = result.select.convert(['brand'], {} as OrmQuery)
             assert.deepStrictEqual(converted, { attributes: ['brand'] })
         })
 
         it('validate=true => passes all baseAttributes of entity', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
-            const converted = result.select.convert([...productMetadata.baseAttributesList], {} as OrmQuery<Product>)
+            const converted = result.select.convert([...productMetadata.baseAttributesList], {} as OrmQuery)
             assert.deepStrictEqual(converted, { attributes: [...productMetadata.baseAttributesList] })
         })
 
         it('validate=true => throws Error when attribute is not part of entity', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
             assert.throws(
-                () => result.select.convert(['nonexistent'], {} as OrmQuery<Product>),
+                () => result.select.convert(['nonexistent'], {} as OrmQuery),
                 /not a part of baseAttributes/
             )
         })
 
         it('validate=true => throws Error for external reference attribute', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
             assert.throws(
-                () => result.select.convert(['prices'] as any, {} as OrmQuery<Product>),
+                () => result.select.convert(['prices'] as any, {} as OrmQuery),
                 /not a part of baseAttributes/
             )
         })
 
         it('validate=false => aggregate function tuple passes through', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
             const converted = result.select.convert(
                 [['$count', '*']] as any,
-                {} as OrmQuery<Product>
+                {} as OrmQuery
             )
             assert.ok(Array.isArray(converted.attributes[0]))
             assert.deepStrictEqual(converted.attributes[0], ['$count', '*'])
         })
 
         it('validate=false => aggregate function with attribute passes through', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
             const converted = result.select.convert(
                 [['$sum', 'id'], 'id'] as any,
-                {} as OrmQuery<Product>
+                {} as OrmQuery
             )
             assert.deepStrictEqual(converted.attributes, [['$sum', 'id'], 'id'])
         })
 
         it('validate=true => aggregate function passes through without validation', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
             const converted = result.select.convert(
                 [['$count', '*']] as any,
-                {} as OrmQuery<Product>
+                {} as OrmQuery
             )
             assert.deepStrictEqual(converted.attributes[0], ['$count', '*'])
         })
@@ -181,13 +208,13 @@ describe('buildQueryAttributeConverters', () => {
 
     describe('converter function behavior', () => {
         it('returns the converted object to allow chaining', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
-            const obj = {} as OrmQuery<Product>
+            const obj = {} as OrmQuery
             const returned = result.select.convert(['brand'], obj)
             assert.strictEqual(returned, obj)
         })
@@ -195,59 +222,59 @@ describe('buildQueryAttributeConverters', () => {
 
     describe('validation behavior', () => {
         it('validate=false => passes only value of type array without validation', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
-            const converted = result.select.convert(['nonexistent'], {} as OrmQuery<Product>)
+            const converted = result.select.convert(['nonexistent'], {} as OrmQuery)
             assert.deepStrictEqual(converted, { attributes: ['nonexistent'] })
             
             assert.throws(
-                () => result.select.convert(123, {} as OrmQuery<Product>),
+                () => result.select.convert(123, {} as OrmQuery),
                 /Invalid type for select attribute where expected list of attributes or aggregates!/
             )
         })
 
         it('validate=false => passes only array of values of type string or tuple without validation', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOff,
+                validationOff,
                 productMetadata
             )
 
-            const converted = result.select.convert(['nonexistent', ['some', 'some']], {} as OrmQuery<Product>)
+            const converted = result.select.convert(['nonexistent', ['some', 'some']], {} as OrmQuery)
             assert.deepStrictEqual(converted, { attributes: ['nonexistent', ['some', 'some']] })
 
             assert.throws(
-                () => result.select.convert(123, {} as OrmQuery<Product>),
+                () => result.select.convert(123, {} as OrmQuery),
                 /Invalid type for select attribute where expected list of attributes or aggregates!/
             )
         })
 
         it('validate=true => throws Error for array with invalid item', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
             assert.throws(
-                () => result.select.convert(['invalid_attr'], {} as OrmQuery<Product>),
+                () => result.select.convert(['invalid_attr'], {} as OrmQuery),
                 /not a part of baseAttributes/
             )
         })
 
         it('validate=true => throws Error for array with invalid item (numeric)', () => {
-            const result = buildQueryAttributeConverters<Product, OrmQuery<Product>>(
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
                 convertersBuild,
-                configOn,
+                validationOn,
                 productMetadata
             )
 
             assert.throws(
-                () => result.select.convert([123] as any, {} as OrmQuery<Product>),
+                () => result.select.convert([123] as any, {} as OrmQuery),
                 /Invalid type for select item!/
             )
         })

@@ -1,11 +1,15 @@
-import { EntityBase, EntityNoExternal } from '../../types/entity/Root'
+import { EntityBase } from '../../types/entity/Root'
 import { 
-    Query, EntityQueryable, QueryEntityAttributeTypes, 
+    QueryEntityAttributeTypes, 
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
-    QueryFormaterBaseConfig, QueryRangeAttributeTypeTransform,
-    QueryRangeAttributeTypes, EntityQueryRangeAttributes,
+    QueryConverterConfig, QueryRangeAttributeTypeTransform,
+    QueryRangeAttributeTypes,
     QueryAttributeTransform,
-    QueryAttributes} 
+    QueryAttributes,
+    QueryRelationTransform,
+    QueryConvertObject,
+    QueryEntityAttributeTransform,
+    QueryRangeAttributeTransform} 
 from '../../types/entity/Query'
 import { PickByType } from '../../types/Global'
 import { 
@@ -13,7 +17,7 @@ import {
     validateBoolean, validateRangeDate, validateRangeNumber,
     validateSelect 
 } from './validators'
-import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
+import { EntityMetadata } from '../../types/entity/Metadata'
 
 
 /**
@@ -69,10 +73,11 @@ import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
  * ```
  */
 export function buildEntityAttributeConverters<E extends EntityBase, F, K extends keyof QueryEntityAttributeTypes>(
-    convertersBuild: ConvertersBuild<E, F>,
-    config: QueryFormaterBaseConfig,
+    convertersBuild: ConvertersBuild<F>,
+    config: QueryConverterConfig,
     attributes: Array<keyof PickByType<E, QueryEntityAttributeTypes[K]>>,
     type: K,
+    nested: boolean = false
 ): QueryEntityAttributeTypeTransform<E, K, F> {
     const transform = {} as QueryEntityAttributeTypeTransform<E, K, F>
     const converter = convertersBuild['baseAttributes'][type]
@@ -80,9 +85,9 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
     
     for (const attribute of attributes) {
         transform[attribute] = {
-            convert: <K extends keyof EntityQueryable<E>>(value: unknown, converted: F) => validationOn 
-                ? converter(value, converted, attribute as K, assignFieldValidator(type))
-                : converter(value, converted, attribute as K)
+            convert: (value: unknown, converted: F) => validationOn 
+                ? converter(value, converted, attribute, nested, assignFieldValidator(type))
+                : converter(value, converted, attribute, nested)
         } 
     }
     return transform
@@ -146,10 +151,11 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
  * ```
  */
 export function buildRangeAttributeConverters<E extends EntityBase, F, K extends keyof QueryRangeAttributeTypes>(
-    convertersBuild: ConvertersBuild<E, F>,
-    config: QueryFormaterBaseConfig,
+    convertersBuild: ConvertersBuild<F>,
+    config: QueryConverterConfig,
     attributes: Array<keyof PickByType<E, QueryRangeAttributeTypes[K]>>,
     type: K,
+    nested: boolean = false
 ): QueryRangeAttributeTypeTransform<E, K, F> {
     const transform = {} as QueryRangeAttributeTypeTransform<E, K, F>
     const converter = convertersBuild['rangeAttributes'][type]
@@ -160,8 +166,8 @@ export function buildRangeAttributeConverters<E extends EntityBase, F, K extends
             const key = `${String(attribute)}${suffix}` as keyof QueryRangeAttributeTypeTransform<E, K, F>
             transform[key] = {
                 convert: ( value: unknown, converted: F) => validationOn 
-                    ? converter(value, converted, suffix, attribute, assignRangeValidator(type))
-                    : converter(value, converted, suffix, attribute )
+                    ? converter(value, converted, suffix, attribute, nested, assignRangeValidator(type))
+                    : converter(value, converted, suffix, attribute, nested)
             } 
         }
     }
@@ -169,11 +175,12 @@ export function buildRangeAttributeConverters<E extends EntityBase, F, K extends
 }
 
 export function buildQueryAttributeConverters<E extends EntityBase, F>(
-    convertersBuild: ConvertersBuild<E, F>,
-    config: QueryFormaterBaseConfig,
-    metadata: EntityMetadata<E>
-): QueryAttributeTransform<E, F> {
-    const transform = {} as QueryAttributeTransform<E, F>
+    convertersBuild: ConvertersBuild<F>,
+    config: QueryConverterConfig,
+    metadata: EntityMetadata<E>,
+    nested: boolean = false
+): QueryAttributeTransform<F> {
+    const transform = {} as QueryAttributeTransform<F>
     const validation = config.validation.queryAttributes
     let converter
     let validationOn: boolean
@@ -183,10 +190,75 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
     validationOn = validation['select']
     transform['select'] = {
         convert: (value: unknown, converted: F) => validationOn
-            ? converter(value, converted, metadata, assignQueryValidator('select'))
-            : converter(value, converted, metadata)
+            ? converter(value, converted, metadata, nested, assignQueryValidator('select'))
+            : converter(value, converted, metadata, nested)
     }
     return transform
+}
+
+export function buildRelationAttributeConverters<E extends EntityBase, F>(
+    convertersBuild: ConvertersBuild<F>,
+    config: QueryConverterConfig,
+    metadata: EntityMetadata<E>,
+    depth: number 
+): QueryRelationTransform<E, F>{
+    const transform = {} as QueryRelationTransform<E, F>
+    
+    // limit recursion depth
+    if (config.subEntityRelationDepth < depth) {
+        return transform
+    }
+    
+    const subEntities = metadata.subEntities
+
+    if (!subEntities) {
+        return transform
+    }
+    const converter = convertersBuild['relationAttributes']['relations']
+
+    for (const key in subEntities) {
+        const subMetadata = subEntities[key].metadata
+        const relationDepth = depth
+        const queryConvertObject = queryConvertObjectFactory(convertersBuild, config, subMetadata, relationDepth)
+        transform[key] = {
+            queryConvertObject: queryConvertObject,
+            convert: (value: unknown, converted: F) => converter(value, converted, key, queryConvertObject)
+        }
+    }
+
+    return transform
+}
+
+export function queryConvertObjectFactory<E extends EntityBase, F>(
+    convertersBuild: ConvertersBuild<F>, 
+    config: QueryConverterConfig,
+    metadata: EntityMetadata<E>,
+    depth: number = 0
+): QueryConvertObject<E, F> {
+    const nested = depth > 0 ? true : false
+    
+    const baseAttributes: QueryEntityAttributeTransform<E, F> = {
+        ...buildEntityAttributeConverters(convertersBuild, config, metadata.stringAttributesList, 'string', nested),
+        ...buildEntityAttributeConverters(convertersBuild, config, metadata.numberAttributesList, 'number', nested),
+        ...buildEntityAttributeConverters(convertersBuild, config, metadata.dateAttributesList, 'date', nested),
+        ...buildEntityAttributeConverters(convertersBuild, config, metadata.booleanAttributesList, 'boolean', nested),
+    }
+    const rangeAttributes: QueryRangeAttributeTransform<E, F> = {
+        ...buildRangeAttributeConverters(convertersBuild, config, metadata.numberAttributesList, 'number', nested),
+        ...buildRangeAttributeConverters(convertersBuild, config, metadata.dateAttributesList, 'date', nested)
+    }
+    const queryAttributes: QueryAttributeTransform<F> = {
+        ...buildQueryAttributeConverters(convertersBuild, config, metadata, nested)
+    }
+    const relationAttributes: QueryRelationTransform<E, F> = {
+        ...buildRelationAttributeConverters(convertersBuild, config, metadata, depth + 1)
+    } 
+    return {
+        ...baseAttributes,
+        ...rangeAttributes,
+        ...queryAttributes,
+        ...relationAttributes
+    }
 }
 
 

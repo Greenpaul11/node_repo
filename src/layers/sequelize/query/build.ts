@@ -4,9 +4,10 @@ import { EntityQueryable, ConvertersBuild,
     QueryFunctions,
     FnCount, FnNumber,
     QuerySelect,
-    Query
+    Query,
+    QueryConvertObject
 } from "../../../types/entity/Query"
-import { EntityBase, EntityNoExternal, AggregateOperators } from "../../../types/entity/Root"
+import { EntityBase, EntityNoExternal, AggregateOperators, ExternalReferences } from "../../../types/entity/Root"
 import { PickByType } from "../../../types/Global"
 import { 
     FindOptions, Model, InferAttributes, InferCreationAttributes, 
@@ -22,35 +23,36 @@ import { ref } from "node:process"
 
 
 export default function sequelizeConvertersBuild<
-    E extends EntityBase,
-    T extends Model<InferAttributes<T>, InferCreationAttributes<T>>,
-    F extends FindOptions<InferAttributes<T>> = FindOptions<InferAttributes<T>>
->(): ConvertersBuild<E, F> {
+    F extends FindOptions<InferAttributes<any>> | IncludeOptions = FindOptions<InferAttributes<any>>
+>(): ConvertersBuild<F> {
     return {
         baseAttributes: {
-            string: buildAttributeConverter<E, F>(),
-            number: buildAttributeConverter<E, F>(),
-            date: buildAttributeConverter<E, F>(),
-            boolean: buildAttributeConverter<E, F>(),
+            string: buildAttributeConverter<F>(),
+            number: buildAttributeConverter<F>(),
+            date: buildAttributeConverter<F>(),
+            boolean: buildAttributeConverter<F>(),
         },
         rangeAttributes: {
-            number: buildRangeConverter<E, F, 'number'>(),
-            date: buildRangeConverter<E, F, 'date'>()
+            number: buildRangeConverter<F, 'number'>(),
+            date: buildRangeConverter<F, 'date'>()
         },
         queryAttributes: {
-            select: buildSelectConverter<E, F>()
+            select: buildSelectConverter<F>()
+        },
+        relationAttributes: {
+            relations: buildRelationConverter<F>()
         } 
     }
 }
 
 function buildAttributeConverter<
-    E extends EntityBase, 
-    F extends FindOptions<InferAttributes<any>>
+    F extends FindOptions<InferAttributes<any>> | IncludeOptions
 >() {
-    return <K extends keyof EntityQueryable<E>>(
+    return <E extends EntityBase, K extends keyof EntityQueryable<E>>(
         value: unknown,
         converted: F,
         attribute: K,
+        nested: boolean,
         validate?: QueryEntityAttributeValidator<E>
     ): F => {
         converted.where ??= {}
@@ -77,15 +79,15 @@ function buildAttributeConverter<
 }
 
 function buildRangeConverter<
-    E extends EntityBase, 
-    F extends FindOptions<InferAttributes<any>>, 
+    F extends FindOptions<InferAttributes<any>> | IncludeOptions, 
     R extends keyof QueryRangeAttributeTypes
 >() {
-    return <K extends keyof PickByType<E, QueryRangeAttributeTypes[R]>>(
+    return <E extends EntityBase, K extends keyof PickByType<E, QueryRangeAttributeTypes[R]>>(
         value: unknown,
         converted: F,
         suffix: '_from' | '_to',
         attribute: K,
+        nested: boolean,
         validate?: QueryRangeValidator<E>
     ): F => {
         converted.where ??= {}
@@ -108,13 +110,13 @@ function buildRangeConverter<
 }
 
 function buildSelectConverter<
-    E extends EntityBase,
-    F extends FindOptions<InferAttributes<any>>
+    F extends FindOptions<InferAttributes<any>> | IncludeOptions
 >() {
-    return (
+    return <E extends EntityBase>(
         value: unknown, 
         converted: F, 
         metadata: EntityMetadata<E>,
+        nested: boolean,
         validate?: QuerySelectValidator<E>
     ): F => {
         if (!value) {
@@ -142,7 +144,7 @@ function buildSelectConverter<
                     throw new Error('Item of select has no valid type!')
                 }
             }
-        } else if (typeof select === 'object' && 'exclude' in select) {
+        } else if (!nested && typeof select === 'object' && 'exclude' in select) {
             if (select.exclude instanceof Array) {
                 sequelizeAttributes = { exclude: []}
                 const exclude = select.exclude as Array<keyof EntityNoExternal<E>>
@@ -259,7 +261,7 @@ function mapSubentitiesToIncludable(
       return
     }   
     
-    let reference = include.find( item => item.association === subEntity)  
+    let reference = include.find(item => item.association === subEntity)  
     
     if (!reference) {
         reference = { association: subEntity}    
@@ -269,6 +271,46 @@ function mapSubentitiesToIncludable(
     if (rest.length > 0) {
         reference.include ??= [] 
         mapSubentitiesToIncludable(rest, reference.include as IncludeOptions[])
+    }
+}
+
+function buildRelationConverter<
+    F extends FindOptions<InferAttributes<any>> | IncludeOptions
+>() {
+    return <E extends EntityBase, K extends keyof ExternalReferences<E>>(
+        value: unknown,
+        converted: F,
+        attribute: K,
+        queryConvertObject: QueryConvertObject<ExternalReferences<E>[K], F>
+    ): F => {
+        if (!value || typeof value !== 'object') {
+            throw new Error(`Value for attribute '${String(attribute)}' is not valid!`)
+        }
+        
+        const query = value as Query<ExternalReferences<E>[K]>
+        
+        const formatted = {} as F
+        for (const [key, value] of Object.entries(query)) {
+            const queryKey = key as keyof typeof queryConvertObject
+            if (queryConvertObject.hasOwnProperty(key)) {
+                queryConvertObject[queryKey].convert(value, formatted)
+            }
+        }
+
+        converted.include ??= []
+        const include = converted.include as IncludeOptions[]
+
+        let reference = include.find(item => item.association === attribute)
+        
+        if (!reference) {
+            reference = { association: attribute as string}    
+            include.push(reference);
+        }   
+
+        // assign formatted query
+        Object.assign(reference, formatted)
+        
+        return converted
     }
 }
 

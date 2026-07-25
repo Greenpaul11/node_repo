@@ -33,6 +33,14 @@ export type StringifyObjectProperties<T> = {
 }
 
 /**
+ * DeepPartial – recursive Partial so every nested field becomes optional
+ */
+export type DeepPartial<T> = T extends Record<string, unknown>
+    ? { [K in keyof T]?: DeepPartial<T[K]> }
+    : T
+
+
+/**
  * Expands nested object types to their full form.
  * Useful for debugging complex type transformations.
  */
