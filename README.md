@@ -8,31 +8,12 @@ A polymorphic, type-safe ORM abstraction for TypeScript. One
 same.
 
 The layer turns ORM-specific typed entities into fully typed domain entities
-defined by your `EntityBase` shape. Your type definition of an `Entity` is
-independent of the ORM layer definition. When you decide to switch ORM —
-e.g., from Sequelize to Prisma — all you need to do is uninstall Sequelize and
-install the Prisma package. The application requires the following
-configuration:
+defined by your `EntityBase` shape. Your entity definition is independent
+of the ORM layer. Switching ORMs — e.g., from Sequelize to Prisma — means
+changing only the connection and the layer import; application code does not
+change.
 
-- A definition for your entities (see `tests/testSkeleton/entities.ts`).
-- An `EntityConfig` definition for each entity (this will auto-generate
-  definitions for the Sequelize model or Prisma schema, plus an
-  `EntityMetadata`). This feature is not fully implemented yet. Currently
-  it looks like this:
-  1. Define `EntityConfig<YourEntity>` → `new EntityMetadataManager(EntityConfig<YourEntity>, relations)` → `EntityMetadata` (see `tests/testSkeleton/config.ts`).
-  2. Define the Sequelize models manually (see `tests/testSkeleton/models.ts`).
-
-To initialize your repository, follow these steps:
-
-1. Import the repository from `src/repository/repository.ts`.
-2. Import your ORM connection (currently only Sequelize connections are
-   accepted).
-3. Initialize the repository:
-   `await Repository.init(connection, metadata, ormEntity)`
-   where `ormEntity` is either a Sequelize `Model` or a Prisma model.
-
-The application currently handles the following ORM conversion with the
-specified dialects:
+Currently supported ORM and dialects:
 
 - Sequelize
   - mysql
@@ -40,123 +21,224 @@ specified dialects:
 
 ## Why this exists
 
-First of all, I wanted to learn something new, so I chose a project of this
-kind: **CREATE A MINI ORM LAYER THAT WILL HANDLE USAGE OF MULTIPLE ORM
-LAYERS**.
+I wanted to learn something new, so I chose a project like this:
+**CREATE A MINI ORM LAYER THAT HANDLES MULTIPLE ORM BACKENDS**.
 
-## Current stage of development
+## How to run
 
-My current goal is to implement:
+The application requires:
 
-- A full `QueryFormater` class that turns domain-level queries into
-  ORM-level queries. The top layer has its own query language that should
-  stay independent of any ORM-specific query language.
-- Implementations for all available Sequelize dialects.
+- An ORM connection (currently only Sequelize is accepted).
+- A definition for your entities (see `tests/testSkeleton/entities.ts`).
+- An `EntityConfig` definition for each entity. This will auto-generate
+  `EntityMetadata` (see `tests/testSkeleton/config.ts`).
+- The Sequelize models defined manually (see `tests/testSkeleton/models.ts`).
 
-## What has been solved so far
+Initialize your repository like this:
 
-These solutions are specific to vanilla Sequelize:
+```ts
+import { Repository } from 'src/repository/repository'
+import connection from 'config/connection'
+import { productMetadata } from 'tests/testSkeleton/config'
+import { ProductModel } from 'tests/testSkeleton/models'
 
-1. **Model instantiation cost** — every row creates a `Model` proxy with
-   getter / setter / validator / hook chains. At 1000+ rows this is
-   significant overhead. Bypassing it with `raw: true, nest: true` returns
-   plain objects, but you then lose typed entities and joined-row
-   deduplication. This layer operates on the plain-object path and adds the
-   typing and deduplication on top. (The solution applies only when
-   retrieving multiple entities.)
-2. **Polymorphism lock-in** — Sequelize is hard to swap. Application code
-   learns `Model.findAll`, `include`, `where`, and Sequelize-specific
-   operators. Switching to Prisma means rewriting call sites. With a
-   polymorphic `Repository<T>`, the call sites stay identical.
-3. **Type-level drift** — when a column type changes, the model, the
-   formatters, and the runtime converters drift apart silently. The
-   `EntityTransformRules` machinery derives the runtime converter types
-   from the dialect build, so the compiler keeps the type definitions and
-   runtime behavior in sync.
+const repo = await Repository.init(connection, productMetadata, ProductModel)
+```
+
+Now you have a repository with these available calls:
+
+- `createOne(data, native?)` — creates a record. Returns a domain typed entity by default, or the raw ORM model if `native = true`.
+- `getOneBy(query, control?)` — finds one record matching the query. Returns a domain typed entity or `null`. Pass `{ native: true }` to get the raw ORM model.
+- `getManyBy(query, control?)` — finds all records matching the query. Returns an array of domain typed entities (or raw ORM models).
+- `deleteOne(id)` — deletes a record by id. Returns `true` if a record was removed.
+- `destroyAll(where?)` — deletes all records matching the condition. Returns the number of deleted records.
+
+These calls will always stay the same regardless of the ORM underneath. The
+query parameter uses its own query language that is independent of the ORM.
+Currently you can use in your queries:
+
+- **base attributes** — the entity's own fields like `id`, `name`, `brand`
+  ```
+  { brand: 'Apple', active: true }
+  ```
+
+- **range attributes** — number or date fields with `_from` or `_to` suffixes
+  ```
+  { id_from: 10, created_from: '2023-03-01T00:00:00Z' }
+  ```
+
+- **relation attributes** — fields that point to other entities. Each relation
+  value is itself a query for that sub-entity. Aggregate functions are not
+  available inside relation queries.
+  ```
+  { prices: { active: true, price_from: 100, shop: { name: 'Shopnix' } } }
+  ```
+
+- **select attribute** — choose which fields to return, or use aggregate
+  functions (`$count`, `$sum`, `$avg`, `$min`, `$max`), or exclude fields.
+  ```
+  { select: ['id', 'name', ['$sum', ['prices', 'price']]] }
+  { select: { exclude: ['image', 'description'] } }
+  ```
+
+The domain query language is converted to the ORM-specific query language
+internally. When entities are returned by the ORM manager, they are converted
+by `asEntity`/`asEntities` in `OutputFormater` into domain typed entities.
+
+## How the query conversion works
+
+1. A `Query<E>` object is passed to `QueryFormater.formatQuery()`.
+2. The formater uses a `QueryConvertObject` — a flat dispatch table built by
+   `queryConvertObjectFactory()` — to convert each key/value pair.
+3. The dispatch table contains converters for:
+   - **base attributes** (string, number, date, boolean)
+   - **range attributes** (`_from`/`_to` for number and date)
+   - **query attributes** (`select`)
+   - **relation attributes** (recursive conversion via `buildRelationAttributeConverters`)
+4. Validation can be enabled per attribute type. When active, each value is
+   checked before conversion.
+5. The result is an ORM-specific query object (e.g., Sequelize `FindOptions`).
 
 ## Architecture
 
-Four layers, dependencies flow downward:
+`Repository` sits at the top and wires three parallel collaborators through
+dynamic imports. The abstract contracts live in `src/formaters/` and
+`src/ormManager/`; each ORM (Sequelize, and later Prisma) provides concrete
+implementations under `src/layers/<orm>/`.
 
 ```
-┌─────────────────────────────────────────────────┐
-│ Repository         (src/repository/)            │  ← user-facing entry point
-├─────────────────────────────────────────────────┤
-│ QueryFormaterBase  (src/formaters/query/)       │  ← query DSL (reserved)
-├─────────────────────────────────────────────────┤
-│ OrmMenagerBase     (src/ormManager/)            │  ← CRUD contract
-├─────────────────────────────────────────────────┤
-│ Sequelize / Prisma       (src/layers/)          │  ← raw DB layer
-├─────────────────────────────────────────────────┤
-│ OutputFormaterBase (src/formaters/output/)      │  ← row → entity conversion
-└─────────────────────────────────────────────────┘
+                        ┌──────────────────────────────┐
+                        │        Repository            │
+                        │     src/repository/          │  ← user-facing
+                        └──────────┬───────────────────┘
+                                   │ wires via dynamic import
+              ┌────────────────────┼────────────────────┐
+              ▼                    ▼                    ▼
+ ┌────────────────────┐ ┌──────────────────┐ ┌────────────────────┐
+ │   QueryFormater    │ │   OrmManager     │ │   OutputFormater   │
+ │  ┌──────────────┐  │ │  ┌────────────┐  │ │  ┌──────────────┐  │
+ │  │ abstract base│  │ │  │abstract    │  │ │  │ abstract base│  │
+ │  │ src/formaters│  │ │  │base        │  │ │  │ src/formaters│  │
+ │  │ /query/      │  │ │  │src/orm     │  │ │  │ /output/     │  │
+ │  │              │  │ │  │Manager/    │  │ │  │              │  │
+ │  └──────┬───────┘  │ │  └─────┬──────┘  │ │  └──────┬───────┘  │
+ │  ┌──────┴───────┐  │ │  ┌─────┴──────┐  │ │  ┌──────┴───────┐  │
+ │  │  Sequelize   │  │ │  │ Sequelize  │  │ │  │  Sequelize   │  │
+ │  │  layers/     │  │ │  │ layers/    │  │ │  │  layers/     │  │
+ │  │  sequelize/  │  │ │  │ sequelize/ │  │ │  │  sequelize/  │  │
+ │  │  query/      │  │ │  │ manager/   │  │ │  │  output/     │  │
+ │  └──────────────┘  │ │  └────────────┘  │ │  └──────────────┘  │
+ └────────────────────┘ └──────────────────┘ └────────────────────┘
 ```
 
-- **Repository** — what application code calls. Wires the other layers
-  via dynamic imports so the ORM-specific code is not bundled until
-  needed.
-  **QueryFormaterBase** — reserved for the future declarative query
-  implementation (`findOne`, `findAll`, aggregate queries). The slot
-  exists so the public API can stay stable while the implementation
-  lands.
-- **OrmManagerBase** — abstract CRUD surface (`createOne`,
-  `deleteOne`, `destroyAll`). Subclassed per ORM.
-- **OutputFormaterBase** — converts ORM rows into typed entities via
-  dialect-aware converters.
+- **Repository** (`src/repository/repository.ts`) — what application code
+  calls. Constructed synchronously; the async `Repository.init()` factory
+  dynamically imports the right implementations based on the connection's
+  ORM and dialect.
+- **QueryFormater** — converts domain `Query<E>` objects into ORM-specific
+  query objects (e.g. Sequelize `FindOptions`). Validation is configurable
+  per attribute type. Abstract base: `src/formaters/query/queryFormaterBase.ts`.
+  Sequelize impl: `src/layers/sequelize/query/formater.ts` using converters
+  from `src/layers/sequelize/query/build.ts`.
+- **OrmManager** — performs actual CRUD against the database. Abstract base:
+  `src/ormManager/ormMenagerBase.ts`. Sequelize impl:
+  `src/layers/sequelize/manager/ormManager.ts`.
+- **OutputFormater** — converts raw ORM rows into domain typed entities.
+  Handles `raw: true, nest: true` row deduplication(in Sequelize case). Abstract base:
+  `src/formaters/output/outputFormaterBase.ts`. Sequelize impl:
+  `src/layers/sequelize/output/formater.ts` with
+  `mergeRowsIntoEntities.ts`.
+
+All layers are type-parameterized on the entity shape `E` and the ORM model
+type `T`, so the compiler catches mismatches between layers.
 
 ## Data flow
 
-### `createOne` path (current)
+### `createOne`
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Repo as Repository
-    participant Mgr as OrmManager (Sequelize)
-    participant Seq as Sequelize
-    participant Fmt as OutputFormater
-
-    User->>Repo: createOne(data)
-    Repo->>Mgr: createOne(data)
-    Mgr->>Seq: Model.create(data)
-    Seq-->>Mgr: Model instance (raw)
-    Mgr-->>Repo: Model instance
-    Repo->>Fmt: asEntity(model)
-    Fmt-->>Repo: typed Entity
-    Repo-->>User: typed Entity (or raw Model if raw=true)
+```
+User → Repo.createOne(data)
+        → OrmManager.createOne(data) → Model.create(data)
+        → OutputFormater.asEntity(model) → typed Entity
 ```
 
-### Future query path (`findAll`, etc.)
+### `getManyBy` / `getOneBy`
 
-The reserved `QueryFormaterBase` will plug in here:
+```
+User → Repo.getManyBy(query)
+        → QueryFormater.formatQuery(query) → ORM query object
+        → OrmManager.getManyBy(ormQuery) → raw rows
+        → OutputFormater.asEntities(rows, query) → typed Entities
+```
 
-```mermaid
-flowchart LR
-    A[Repository.findAll REPO query] --> B[QueryFormater]
-    B --> C[ORM-specific query]
-    C --> D[ORM-typed entity]
-    D --> E[OutputFormater.asEntities]
-    E --> F[REPO Entity array]
+## Project layout
+
+```
+src/
+  types/                          Type-level DSL and metadata types
+    entity/
+      Root.ts                     EntityBase, ExternalReferences, EntityNoExternal
+      Query.ts                    Query<E>, QuerySelect, EntityProjection, ...
+      Metadata.ts                 EntityMetadata, sub-entity references, sort options
+      Converters.ts               TransformRule, EntityTransform, dialect-aware rules
+      Creation.ts                 CreationOptional, EntityCreationAttributes
+    Config.ts                     OrmOptions, DialectOptions
+    Global.ts                     Utility types (PickByType, NonUndefined, ...)
+  formaters/
+    output/                       Row → entity conversion
+      outputFormaterBase.ts       Abstract formater
+      buildConverters.ts          Type-keyed → attribute-keyed converters
+      convertRow.ts               Single-row recursive transformation
+      mapSelects.ts               QuerySelect → MapEntitySelect
+    query/                        Domain query → ORM query conversion
+      queryFormaterBase.ts        Abstract query formater
+      buildConverters.ts          Builds per-attribute converter dispatch table
+      config.ts                   Default config, validation presets
+      validators.ts               Type validators (string, number, date, boolean, range, select)
+  layers/
+    sequelize/                    Sequelize implementation
+      dialects/{mysql,sqlite}/    Per-dialect converter build + functions
+      manager/ormManager.ts       Concrete OrmManager
+      output/
+        formater.ts               Concrete OutputFormater
+        mergeRowsIntoEntities.ts   raw:true, nest:true deduplication
+      query/
+        build.ts                  Sequelize-specific converter functions
+        formater.ts               Sequelize QueryFormater
+      types.ts                    Sequelize-specific type helpers
+  metadata/
+    entityMetadataMenager.ts      Attribute lists, lazy order/group trees
+  ormManager/
+    ormMenagerBase.ts             Abstract CRUD contract
+  repository/
+    repository.ts                 Polymorphic entry point (Repository.init)
+  tree/
+    treeBuilders.ts               Cycle-safe relation-tree builder
+  lib/
+    override.ts                   Deep partial override utility
+config/                           Environment files, connection bootstrap, test setup
+docs/api/                         Generated TypeDoc reference (npm run docs)
 ```
 
 ## Highlights
 
-- **Polymorphic `Repository<T>`** — one class, any ORM. Dynamic import
-  by ORM name picks the right `OrmManager` and `OutputFormater`
-  implementations; the public API stays identical.
-- **Type-level query DSL** — `Query<E>`, ordering templates
-  (`` `by ${attribute} asc nulls first` ``), aggregate functions
-  (`$count`, `$sum`, `$avg`, `$min`, `$max`), range filters
-  (`_from`/`_to`), `exclude`-mode selection — all checked at compile
-  time against your entity shape.
-- **Dialect-aware converters** — per-dialect (MySQL, SQLite)
-  attribute and aggregate converters. The dialect build object drives
-  `EntityTransformRules`, so the compiler keeps type definitions and
-  runtime converters in sync.
-- **Recursive relation handling** — 1:1, 1:N, N:1, N:M, including
-  arbitrarily nested sub-entities. Relation trees use lazy callbacks
-  (`getSubEntities: () => ...`) so cyclic graphs don't cause infinite
-  recursion.
+- **Polymorphic `Repository<T>`** — one class, any ORM. Dynamic imports
+  pick the right `OrmManager` and `OutputFormater` implementations.
+- **Type-level query DSL** — `Query<E>` with range filters, select
+  inclusion/exclusion, aggregate functions (`$count`, `$sum`, `$avg`,
+  `$min`, `$max`), all checked at compile time against your entity shape.
+- **Metadata-driven converter pipeline** — converters are built from
+  entity metadata, not hard-coded per entity. Adding a new entity
+  requires no converter code.
+- **Configurable validation** — type validation can be enabled or disabled
+  independently per attribute type (string, number, date, boolean, range,
+  select).
+- **Recursive relation handling** — 1:1, 1:N, N:1, N:M with arbitrarily
+  nested sub-entities. Depth is bounded by configuration.
+- **Dialect-aware converters** — per-dialect (MySQL, SQLite) attribute
+  and aggregate converters.
+- **Exclude-in-relation select** — `select: { exclude: ['field'] }` works
+  both at root level and inside relation queries.
 
 ## Requirements
 
@@ -171,125 +253,139 @@ npm install
 
 ## Scripts
 
-| Command             | Purpose                                                          |
-| ------------------- | ---------------------------------------------------------------- |
-| `npm start`         | Bootstraps the application entry point (`index.js`).             |
-| `npm test`          | Runs the full test suite via `node --test` with `tsx` on SQLite. |
-| `npm run docs`      | Generates the TypeDoc API reference into `docs/api/`.            |
-| `npm run docs:watch`| Regenerates docs on save.                                        |
+| Command | Purpose |
+|---|---|
+| `npm start` | Bootstraps the application entry point. |
+| `npm test` | Runs the full test suite via `node --test` with `tsx` on SQLite. |
+| `npm run docs` | Generates the TypeDoc API reference into `docs/api/`. |
+| `npm run docs:watch` | Regenerates docs on save. |
 
 ## Configuration
 
 Environment files live in `config/`:
 
-- `config/.env`                  — default development settings.
-- `config/.env.sequelize_mysql`  — test profile for MySQL.
-- `config/.env.sequelize_sqlite` — test profile for SQLite (used by
-  `npm test`).
+- `config/.env` — default development settings.
+- `config/.env.sequelize_mysql` — test profile for MySQL.
+- `config/.env.sequelize_sqlite` — test profile for SQLite (used by `npm test`).
 
 `npm test` already passes `--env-file=config/.env.sequelize_sqlite`.
-
-## Project layout
-
-```
-src/
-  types/entity/                  Type-level DSL
-    Root.ts                      EntityBase, ExternalReferences, ...
-    Query.ts                     Query<E>, QuerySelect, OrderOptions, ...
-    Metadata.ts                  EntityMetadata, SortOptions, ...
-    Converters.ts                TransformRule, EntityTransform, ...
-    Creation.ts                  CreationOptional, EntityCreationAttributes
-  formaters/
-    output/                      Row → entity conversion
-      outputFormaterBase.ts      Abstract formater
-      buildConverters.ts         Type-keyed → attribute-keyed converters
-      convertRow.ts              Single-row transformation (recursive)
-      mapSelects.ts              QuerySelect → MapEntitySelect
-    query/                       Query DSL (reserved)
-      queryFormaterBase.ts       Abstract query formater (future)
-  layers/sequelize/              Sequelize implementation
-    dialects/{mysql,sqlite}/     Per-dialect converter build + functions
-    manager/ormManager.ts        Concrete OrmManager
-    output/
-      formater.ts                Concrete OutputFormater
-      mergeRowsIntoEntities.ts   raw:true, nest:true deduplication
-  metadata/entityMetadataMenager.ts  Attribute lists, lazy order/group trees
-  ormManager/ormMenagerBase.ts   Abstract CRUD contract
-  repository/repository.ts       Polymorphic entry point (Repository.init)
-  tree/treeBuilders.ts           Cycle-safe relation-tree builder
-tests/
-  testSkeleton/                  Shared entities, models, repos, seed data
-  formaters/output/              buildConverters, convertRow, mapSelects tests
-  layers/sequelize/output/       mergeRowsIntoEntities, compareOutput tests
-  layers/sequelize/repository/   Manager CRUD lifecycle tests
-config/                          Connection bootstrap, env files, test setup
-docs/api/                        Generated TypeDoc reference (npm run docs)
-```
 
 ## Usage — `Repository<T>` (recommended)
 
 ```ts
 import { Repository } from 'src/repository/repository'
-import { productMetadata, Product, ProductModel } from 'tests/testSkeleton/config'
+import { productMetadata } from 'tests/testSkeleton/config'
+import { Product, ProductModel } from 'tests/testSkeleton/entities'
 import connection from 'config/connection'
 
-const repo = await Repository.init<Product, ProductModel>(
+const repo = await Repository.init<Product, typeof ProductModel>(
     connection,
     productMetadata,
     ProductModel
 )
 
+// --- Create ---
 const created = await repo.createOne({ brand: 'Samsung', model: 'Galaxy S23' })
 //    => Product  (typed entity)
 
-const rawRow  = await repo.createOne({ brand: 'Apple', model: 'iPhone 15' }, true)
+const rawRow = await repo.createOne({ brand: 'Apple', model: 'iPhone 15' }, true)
 //    => ProductModel  (raw Sequelize instance)
 
-await repo.destroyAll()
+// --- Query with relations ---
+const products = await repo.getManyBy({
+    brand: 'Apple',
+    prices: { active: true, price_from: 3000 }
+})
+//    => Product[]  (typed entities with nested prices)
+
+const one = await repo.getOneBy({
+    id: 1,
+    select: ['id', 'brand', 'model'],
+    prices: { select: ['price', 'url'], active: true }
+})
+//    => Product  (only selected fields)
+
+// --- Query with range ---
+const recent = await repo.getManyBy({
+    created_from: new Date('2024-06-01'),
+    prices: { price_to: 500 }
+})
+
+// --- Query with exclude select ---
+const withoutImage = await repo.getOneBy({
+    select: { exclude: ['image', 'description'] },
+    prices: { select: { exclude: ['url'] } }
+})
+
+// --- Query with aggregate functions ---
+const stats = await repo.getOneBy({
+    select: [
+        ['$count', '*'],
+        ['$sum', ['prices', 'price']],
+        ['$avg', ['prices', 'price']],
+        ['$min', ['prices', 'price']],
+        ['$max', ['prices', 'price']]
+    ]
+})
+//    => { $count_*, $sum_prices_price, $avg_prices_price, $min_prices_price, $max_prices_price }
+
+const counts = await repo.getManyBy({
+    select: ['id', ['$count', ['prices', 'id']]]
+})
+//    => each row: { id, $count_prices_id }
+
+// --- Delete ---
+await repo.deleteOne(1)
+
+// --- Destroy all matching ---
+await repo.destroyAll({ brand: 'Dell' })
 ```
 
-`createOne` returns a typed entity by default. Pass `true` as the
-second argument to receive the raw ORM model instead.
+### Validation
 
-## Usage — `OutputFormater` (advanced)
-
-If you want to convert raw `raw: true, nest: true` rows yourself, use
-the formater directly:
+By default, validation is enabled for all attribute types. You can disable
+it globally or per type:
 
 ```ts
-import { OutputFormater } from 'src/layers/sequelize/output/formater'
+import { QueryFormater } from 'src/layers/sequelize/query/formater'
 import { createRelationTree } from 'src/tree/treeBuilders'
-import { productMetadata, Product, ProductModel } from 'tests/testSkeleton/config'
 
-const tree     = createRelationTree(productMetadata)
-const formater = new OutputFormater<Product, ProductModel>(productMetadata, tree, 'mysql')
+const tree = createRelationTree(productMetadata)
+const formater = new QueryFormater(productMetadata, tree, {
+    validation: {
+        baseAttributes: { string: false, number: false },
+        rangeAttributes: { number: false },
+        queryAttributes: { select: false }
+    }
+})
 
-const query: Query<Product> = {
-    active: true,
-    prices:             { select: ['id', 'price'] },
-    specification_tree: { select: ['id', 'specification_type'] },
-}
-
-const entity   = formater.asEntity(row, query)
-const entities = formater.asEntities(rows, query)
+const result = formater.formatQuery({ brand: 123, prices: { price_from: 'abc' } })
+// passes without validation; with validation these would throw
 ```
 
-## Type-level features
+`Repository.init` uses default validation (all on). To use custom config,
+instantiate `QueryFormater` directly.
 
-- `EntityQueryable<E>` / `Query<E>` — typed filtering with `_from` /
-  `_to` ranges for `Date` and numeric fields
-  (`EntityQueryExtendedAttributes`).
-- `QuerySelect<E>` — select arrays, `{ exclude: [...] }` objects, or
-  mixed with aggregate functions (`$count`, `$sum`, `$avg`, `$min`,
-  `$max`).
-- `OrderOptions<E>` — template-literal ordering strings like
-  `` `by ${attribute} asc nulls first` `` with aggregate suffixes.
-- `EntityTransform<E, R>` — applies transform rules to base
-  attributes, nested entities, and aggregate results via one
-  composable type.
-- `TransformRule<O, T>` / `MatchedType<T, R>` / `TransformType<T, R>` —
-  the derivation pipeline that keeps type definitions in sync with
-  runtime converters.
+## `queryControl` parameter
+
+`getOneBy` and `getManyBy` accept an optional second argument `queryControl`:
+
+```ts
+type QueryControl = { native: boolean }
+```
+
+- `{ native: false }` (default) — returns domain typed entities.
+- `{ native: true }` — returns raw ORM model instances (Sequelize `Model`).
+
+```ts
+// Domain typed entity (default)
+const product = await repo.getOneBy({ brand: 'Apple' })
+//    => Product  (plain object, no Sequelize getters/setters)
+
+// Raw Sequelize model instance
+const raw = await repo.getOneBy({ brand: 'Apple' }, { native: true })
+//    => ProductModel  (Sequelize Model with getters, setters, validators)
+```
 
 ## Testing
 
@@ -297,31 +393,38 @@ const entities = formater.asEntities(rows, query)
 npm test
 ```
 
-The suite uses the built-in `node --test` runner. Coverage includes:
+The suite uses the built-in `node --test` runner with `tsx`. Coverage includes:
 
-- `compareOutput.test.ts` — deep equality between formater output and
-  raw Sequelize output (`toJSON()` and `raw: true, nest: true`),
-  across simple queries, one-level relations (1:1, 1:N, N:1),
-  two-level nested relations in every combination, and mixed / deeply
-  nested includes.
-- `manager.test.ts` — Sequelize `Repository` CRUD lifecycle
-  (`createOne`, `destroyAll`) against the `testSkeleton` fixtures.
-- Formater unit tests (`buildConverters`, `convertRow`,
-  `mapSelects`) and merge-row unit tests (`mergeRowsIntoEntities`,
+- **Formater unit tests** — `buildEntityAttributeConverters`,
+  `buildRangeAttributeConverters`, `buildQueryAttributeConverters`,
+  `buildRelationAttributeConverters` — verify converter construction
+  with and without validation.
+- **Query conversion tests** — `baseAttributes`, `rangeAttributes`,
+  `relationAttribute`, `selectAttribute` at both formater level and
+  database output level (sqlite + mysql).
+- **Database output tests** — end-to-end: construct a query, run it
+  against the database, assert returned entity shapes and values.
+- **Output formater tests** — `buildConverters`, `convertRow`,
+  `mapSelects`, `compareOutput` (deep equality between formater output
+  and raw Sequelize output).
+- **Merge/deduplication tests** — `mergeRowsIntoEntities`,
   `rowIsUniqueOrNotMerged`, `entityRowIsUnique`,
-  `subRowIsUniqueOrNotMerged`, `rowToGrouped`).
+  `subRowIsUniqueOrNotMerged`, `rowToGrouped`.
+- **Manager CRUD tests** — `createOne`, `deleteOne`, `destroyAll`
+  lifecycle against test fixtures.
+- **Relation model tests** — Sequelize model relation setup and cascade
+  delete behavior.
+- **Override utility tests** — `lib/override.test.ts`.
 
-A known cosmetic mismatch exists between `toJSON()` Date
-stringification and the native `Date` objects produced by the
-formater; the affected assertions are tracked separately and excluded
-from the green set.
+All tests run against the SQLite dialect by default (`npm test`). MySQL
+tests can be run with the corresponding env file.
 
 ## Documentation
 
 - This README — entry point, architecture, usage.
-- **TypeDoc API reference** — generated from TSDoc comments. Generated
-  into [`docs/api/`](https://Greenpaul11.github.io/node_repo/). Run `npm run docs` to
-  regenerate. Covers every public class, method, type, and parameter.
+- **TypeDoc API reference** — generated from TSDoc comments into
+  [`docs/api/`](https://Greenpaul11.github.io/node_repo/).
+  Run `npm run docs` to regenerate.
 
 ## License
 

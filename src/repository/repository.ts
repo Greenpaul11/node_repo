@@ -246,33 +246,33 @@ export class Repository<
      * Insert a single record and return it as a typed entity.
      *
      * The return type is selected by the `raw` flag:
-     *  - `raw` omitted or `false` (default) → typed entity `E`;
-     *  - `raw: true` → raw ORM model `T`.
+     *  - `native` omitted or `false` (default) → typed entity `E`;
+     *  - `native: true` → native ORM model `T`.
      *
      * @param data Fields for the new record. Optional / auto-generated
      *             fields declared in {@link CreationOptional} or
      *             {@link CreationOptionalAlways} may be omitted.
-     * @param raw  When `true`, returns the raw ORM model instead of
+     * @param native  When `true`, returns the native ORM model instead of
      *             the typed entity.
      * @returns The newly created row, either as a typed entity or as
-     *          a raw ORM model depending on `raw`.
+     *          a native ORM model depending on `native`.
      *
      * @example
      * ```ts
      * // Typed entity
      * const product = await repo.createOne({ brand: 'Samsung', model: 'Galaxy S23' })
      *
-     * // Raw ORM model
-     * const raw = await repo.createOne({ brand: 'Apple', model: 'iPhone 15' }, true)
+     * // native ORM model
+     * const native = await repo.createOne({ brand: 'Apple', model: 'iPhone 15' }, true)
      * ```
      */
     async createOne(data: C): Promise<E>
-    async createOne(data: C, raw: false): Promise<E>
-    async createOne(data: C, raw: true): Promise<T>
-    async createOne(data: C, raw: boolean = false): Promise<E | T> {
-        const entityRaw = await this.menager.createOne(data)
-        if (raw) return entityRaw
-        return this.outputFormater.asEntity(entityRaw)
+    async createOne(data: C, native: false): Promise<E>
+    async createOne(data: C, native: true): Promise<T>
+    async createOne(data: C, native: boolean = false): Promise<E | T> {
+        const entityNative = await this.menager.createOne(data)
+        if (native) return entityNative
+        return this.outputFormater.asEntity(entityNative)
     }
 
     /**

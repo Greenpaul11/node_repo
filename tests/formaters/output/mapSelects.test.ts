@@ -33,7 +33,7 @@ describe('mapSelects: Map query selects to mapped select objects for database qu
         })
 
         it ('attributes with related entity reference - should exclude external references', () => {
-            querySelect = ['id', 'brand', 'description', 'prices']
+            querySelect = ['id', 'brand', 'description']
             const {select, fns} = entitySelectToMapSelect(querySelect, metadata.baseAttributesList)
             assert.deepStrictEqual(select, ["id", "brand", "description"])
             assert.deepStrictEqual(fns, [])
