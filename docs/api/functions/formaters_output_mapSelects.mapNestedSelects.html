@@ -1,0 +1,83 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>mapNestedSelects | node_repo</title><meta name="description" content="Documentation for node_repo"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">node_repo</a>
+<div id="tsd-toolbar-links"><a href="https://github.com/your-username/your-repo">GitHub</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/formaters_output_mapSelects.html">formaters/output/mapSelects</a></li>
+<li><a href="" aria-current="page">mapNestedSelects</a></li></ul>
+<h1>Function mapNestedSelects</h1></div>
+<section class="tsd-panel">
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="mapnestedselects"><span class="tsd-kind-call-signature">mapNestedSelects</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">tree</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-signature-type tsd-kind-type-alias">EntityRelationTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">subEntities</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.SubMapSelect.html" class="tsd-signature-type tsd-kind-type-alias">SubMapSelect</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">}</span><a href="#mapnestedselects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Recursively map select definitions for every related entity in a query.</p>
+<p>Walks the relation tree, and for each relation key present in the
+<a href="../types/types_entity_Query.Query.html" class="tsd-kind-type-alias">Query</a>, delegates to <a href="formaters_output_mapSelects.entitySelectToMapSelect.html" class="tsd-kind-function">entitySelectToMapSelect</a> (with
+<code>nested = true</code> to suppress aggregates) and recurses into the
+relation's own sub-entities.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="mapnestedselectse"><span class="tsd-kind-type-parameter">E</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>Entity whose relations are being mapped.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">query</span>: <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></span>
+<div class="tsd-comment tsd-typography"><p><a href="../types/types_entity_Query.Query.html" class="tsd-kind-type-alias">Query</a> for the current entity <code>E</code>. Each key
+corresponding to a related entity may carry its own <code>select</code> and
+nested sub-queries.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">tree</span>: <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-signature-type tsd-kind-type-alias">EntityRelationTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-kind-type-alias">EntityRelationTree</a> for <code>E</code>. Each branch
+exposes:</p>
+<ul>
+<li><code>baseAttributes</code> — selectable base attributes of the related
+entity;</li>
+<li><code>getSubEntities()</code> — function returning the deeper relation
+branches for further recursion.</li>
+</ul>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-symbol">{}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">subEntities</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.SubMapSelect.html" class="tsd-signature-type tsd-kind-type-alias">SubMapSelect</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#mapnestedselectse">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">}</span></h4><p>Either:</p>
+<ul>
+<li><code>{ subEntities: ... }</code> — a <a href="../types/types_entity_Query.SubMapSelect.html" class="tsd-kind-type-alias">SubMapSelect</a>-shaped object
+containing one entry per relation that appears in <code>query</code>; or</li>
+<li><code>{}</code> — when the query is <code>undefined</code>, the tree is empty, or no
+relation in the tree is referenced by the query.</li>
+</ul>
+
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-5">// Tree has relations `prices` and `specification_tree`, but query only asks for `prices`.</span><br/><span class="hl-3">mapNestedSelects</span><span class="hl-1">(</span><br/><span class="hl-1">  { </span><span class="hl-4">prices:</span><span class="hl-1"> { </span><span class="hl-4">select:</span><span class="hl-1"> [</span><span class="hl-7">&#39;id&#39;</span><span class="hl-1">, </span><span class="hl-7">&#39;price&#39;</span><span class="hl-1">] } },</span><br/><span class="hl-1">  { </span><span class="hl-4">prices:</span><span class="hl-1"> </span><span class="hl-4">branchA</span><span class="hl-1">, </span><span class="hl-4">specification_tree:</span><span class="hl-1"> </span><span class="hl-4">branchB</span><span class="hl-1"> }</span><br/><span class="hl-1">)</span><br/><span class="hl-5">// =&gt; { subEntities: { prices: { select: [&#39;id&#39;, &#39;price&#39;] } } }</span><br/><br/><span class="hl-5">// Empty tree or empty query</span><br/><span class="hl-3">mapNestedSelects</span><span class="hl-1">(</span><span class="hl-0">undefined</span><span class="hl-1">, {})</span><br/><span class="hl-5">// =&gt; {}</span>
+</code><button type="button">Copy</button></pre>
+
+</div></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/formaters/output/mapSelects.ts#L153">formaters/output/mapSelects.ts:153</a></li></ul></aside></div></li></ul></section></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/your-username/your-repo" class="tsd-nav-link">GitHub</a></nav>
+<nav class="tsd-navigation"><a href="../index.html">node_repo</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>

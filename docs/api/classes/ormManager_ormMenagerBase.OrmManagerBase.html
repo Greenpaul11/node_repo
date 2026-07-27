@@ -1,0 +1,280 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>OrmManagerBase | node_repo</title><meta name="description" content="Documentation for node_repo"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">node_repo</a>
+<div id="tsd-toolbar-links"><a href="https://github.com/your-username/your-repo">GitHub</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/ormManager_ormMenagerBase.html">ormManager/ormMenagerBase</a></li>
+<li><a href="" aria-current="page">OrmManagerBase</a></li></ul>
+<h1>Class OrmManagerBase&lt;E, T, M, F&gt;<code class="tsd-tag">Abstract</code></h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Base class that defines the contract every ORM manager must satisfy.</p>
+<p>An ORM manager wraps the raw database layer behind a small, typed
+CRUD surface (<code>createOne</code>, <code>deleteOne</code>, <code>destroyAll</code>). It exposes a
+single concrete instance (<code>manager</code>) plus the active DialectOptions,
+and leaves the actual database calls to subclasses that know the
+specifics of one ORM (Sequelize today, Prisma-ready for the future).</p>
+<p>Subclasses implement the abstract methods to talk to their ORM's
+native model API, while callers consume the typed entity shape <code>E</code>
+regardless of which ORM is underneath.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><pre><code class="ts"><span class="hl-5">// Minimal Sequelize-style subclass</span><br/><span class="hl-0">class</span><span class="hl-1"> </span><span class="hl-6">OrmManager</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1"> </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">EntityBase</span><span class="hl-1">&gt;</span><br/><span class="hl-1">    </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">OrmManagerBase</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">, </span><span class="hl-6">Model</span><span class="hl-1">&lt;</span><span class="hl-6">any</span><span class="hl-1">, </span><span class="hl-6">any</span><span class="hl-1">&gt;, </span><span class="hl-6">Sequelize</span><span class="hl-1">&gt; {</span><br/><br/><span class="hl-1">    </span><span class="hl-0">async</span><span class="hl-1"> </span><span class="hl-3">createOne</span><span class="hl-1">(</span><br/><span class="hl-1">        </span><span class="hl-4">data</span><span class="hl-1">: </span><span class="hl-6">EntityCreationAttributes</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">, </span><span class="hl-6">CreationOptional</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">&gt;&gt;</span><br/><span class="hl-1">    ): </span><span class="hl-6">Promise</span><span class="hl-1">&lt;</span><span class="hl-6">Model</span><span class="hl-1">&lt;</span><span class="hl-6">any</span><span class="hl-1">, </span><span class="hl-6">any</span><span class="hl-1">&gt;&gt; {</span><br/><span class="hl-1">        </span><span class="hl-8">return</span><span class="hl-1"> </span><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-4">manager</span><span class="hl-1">.</span><span class="hl-3">create</span><span class="hl-1">(</span><span class="hl-4">data</span><span class="hl-1">);</span><br/><span class="hl-1">    }</span><br/><br/><span class="hl-1">    </span><span class="hl-0">async</span><span class="hl-1"> </span><span class="hl-3">deleteOne</span><span class="hl-1">(</span><span class="hl-4">id</span><span class="hl-1">: </span><span class="hl-6">number</span><span class="hl-1">): </span><span class="hl-6">Promise</span><span class="hl-1">&lt;</span><span class="hl-6">boolean</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">        </span><span class="hl-0">const</span><span class="hl-1"> </span><span class="hl-2">n</span><span class="hl-1"> = </span><span class="hl-8">await</span><span class="hl-1"> </span><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-4">manager</span><span class="hl-1">.</span><span class="hl-3">destroy</span><span class="hl-1">({ </span><span class="hl-4">where:</span><span class="hl-1"> { </span><span class="hl-4">id</span><span class="hl-1"> } });</span><br/><span class="hl-1">        </span><span class="hl-8">return</span><span class="hl-1"> </span><span class="hl-4">n</span><span class="hl-1"> &gt; </span><span class="hl-9">0</span><span class="hl-1">;</span><br/><span class="hl-1">    }</span><br/><br/><span class="hl-1">    </span><span class="hl-0">async</span><span class="hl-1"> </span><span class="hl-3">destroyAll</span><span class="hl-1">(</span><span class="hl-4">where</span><span class="hl-1">?: </span><span class="hl-6">EntityQueryable</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">&gt;): </span><span class="hl-6">Promise</span><span class="hl-1">&lt;</span><span class="hl-6">number</span><span class="hl-1">&gt; {</span><br/><span class="hl-1">        </span><span class="hl-8">return</span><span class="hl-1"> </span><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-4">manager</span><span class="hl-1">.</span><span class="hl-3">destroy</span><span class="hl-1">({ </span><span class="hl-4">where</span><span class="hl-1"> });</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+</div></div></section>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="e"><span class="tsd-kind-type-parameter">E</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Root.EntityBase.html" class="tsd-signature-type tsd-kind-type-alias">EntityBase</a></span>
+<div class="tsd-comment tsd-typography"><p>The typed entity shape. Must extend <a href="../types/types_entity_Root.EntityBase.html" class="tsd-kind-type-alias">EntityBase</a>.</p>
+</div></li>
+<li><span id="t"><span class="tsd-kind-type-parameter">T</span></span>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific row / model type returned by <code>createOne</code>.
+Typically a Sequelize <code>Model</code> instance or a Prisma
+record. Left open (<code>T</code>) because every ORM has its own
+model type.</p>
+</div></li>
+<li><span id="m"><span class="tsd-kind-type-parameter">M</span> = <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific database manager type (e.g. a Sequelize
+<code>Sequelize</code> instance or a Prisma <code>PrismaClient</code>).
+Defaults to <code>unknown</code> — supply it explicitly in
+subclasses so <code>manager</code> carries a useful type.</p>
+</div></li>
+<li><span id="f"><span class="tsd-kind-type-parameter">F</span> = <span class="tsd-signature-type">unknown</span></span></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L53">ormManager/ormMenagerBase.ts:53</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#convertquery" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>convert<wbr/>Query</span></a>
+<a href="#dialect" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dialect</span></a>
+<a href="#manager" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>manager</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#createone" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>One</span></a>
+<a href="#deleteone" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>One</span></a>
+<a href="#destroyall" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>destroy<wbr/>All</span></a>
+<a href="#getmanyby" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Many<wbr/>By</span></a>
+<a href="#getoneby" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>One<wbr/>By</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructorormmanagerbase"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">OrmManagerBase</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorormmanagerbasee">E</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorormmanagerbaset">T</a><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorormmanagerbasem">M</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructorormmanagerbasef">F</a> <span class="tsd-signature-symbol">=</span> <span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">manager</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#m">M</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">dialect</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">DialectOptions</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">convertQuery</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type tsd-kind-type-parameter">Q</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#f">F</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">OrmManagerBase</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#m">M</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#f">F</a><span class="tsd-signature-symbol">&gt;</span><a href="#constructorormmanagerbase" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="constructorormmanagerbasee"><span class="tsd-kind-type-parameter">E</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>The typed entity shape. Must extend <a href="../types/types_entity_Root.EntityBase.html" class="tsd-kind-type-alias">EntityBase</a>.</p>
+</div></li>
+<li><span id="constructorormmanagerbaset"><span class="tsd-kind-type-parameter">T</span></span>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific row / model type returned by <code>createOne</code>.
+Typically a Sequelize <code>Model</code> instance or a Prisma
+record. Left open (<code>T</code>) because every ORM has its own
+model type.</p>
+</div></li>
+<li><span id="constructorormmanagerbasem"><span class="tsd-kind-type-parameter">M</span> = <span class="tsd-signature-type">unknown</span></span>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific database manager type (e.g. a Sequelize
+<code>Sequelize</code> instance or a Prisma <code>PrismaClient</code>).
+Defaults to <code>unknown</code> — supply it explicitly in
+subclasses so <code>manager</code> carries a useful type.</p>
+</div></li>
+<li><span id="constructorormmanagerbasef"><span class="tsd-kind-type-parameter">F</span> = <span class="tsd-signature-type">unknown</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">manager</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#m">M</a></span>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific database manager instance (e.g.
+<code>Sequelize</code>, <code>PrismaClient</code>). Held as a public field
+so subclasses can reach the underlying connection.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">dialect</span>: <span class="tsd-signature-type">DialectOptions</span></span>
+<div class="tsd-comment tsd-typography"><p>The active database dialect. Drives dialect-aware
+decisions in subclasses (converter selection, SQL
+flavor, etc.).</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">convertQuery</span>: <span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type tsd-kind-type-parameter">Q</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#f">F</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">OrmManagerBase</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#m">M</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#f">F</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L67">ormManager/ormMenagerBase.ts:67</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="convertquery"><span>convert<wbr/>Query</span><a href="#convertquery" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">convertQuery</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type tsd-kind-type-parameter">Q</span><span class="tsd-signature-symbol">)</span> <span class="tsd-signature-symbol">=&gt;</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#f">F</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L70">ormManager/ormMenagerBase.ts:70</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="dialect"><span>dialect</span><a href="#dialect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">dialect</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">DialectOptions</span></div>
+<div class="tsd-comment tsd-typography"><p>The active database dialect. Drives dialect-aware
+decisions in subclasses (converter selection, SQL
+flavor, etc.).</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L69">ormManager/ormMenagerBase.ts:69</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="manager"><span>manager</span><a href="#manager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">manager</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#m">M</a></div>
+<div class="tsd-comment tsd-typography"><p>The ORM-specific database manager instance (e.g.
+<code>Sequelize</code>, <code>PrismaClient</code>). Held as a public field
+so subclasses can reach the underlying connection.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L68">ormManager/ormMenagerBase.ts:68</a></li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="createone"><code class="tsd-tag">Abstract</code><span>create<wbr/>One</span><a href="#createone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="createone-1"><span class="tsd-kind-call-signature">createOne</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">data</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Creation.EntityCreationAttributes.html" class="tsd-signature-type tsd-kind-type-alias">EntityCreationAttributes</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a href="../types/types_entity_Creation.CreationOptional.html" class="tsd-signature-type tsd-kind-type-alias">CreationOptional</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span><a href="#createone-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Insert a single new record.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">data</span>: <a href="../types/types_entity_Creation.EntityCreationAttributes.html" class="tsd-signature-type tsd-kind-type-alias">EntityCreationAttributes</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a href="../types/types_entity_Creation.CreationOptional.html" class="tsd-signature-type tsd-kind-type-alias">CreationOptional</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Fields for the new record. Fields declared in
+<a href="../types/types_entity_Creation.CreationOptional.html" class="tsd-kind-type-alias">CreationOptional</a> or CreationOptionalAlways
+may be omitted (they are auto-generated by the
+database).</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">&gt;</span></h4><p>The newly created ORM row / model (<code>T</code>). Whether this is
+a fully-typed entity or a raw ORM model depends on the
+subclass — see the subclass-specific docs.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L84">ormManager/ormMenagerBase.ts:84</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="deleteone"><code class="tsd-tag">Abstract</code><span>delete<wbr/>One</span><a href="#deleteone" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="deleteone-1"><span class="tsd-kind-call-signature">deleteOne</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span><a href="#deleteone-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Delete a single record by primary key.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">id</span>: <span class="tsd-signature-type">number</span></span>
+<div class="tsd-comment tsd-typography"><p>Numeric primary key of the record to delete.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4><p><code>true</code> when a record was actually removed, <code>false</code> when
+no matching record existed.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L95">ormManager/ormMenagerBase.ts:95</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="destroyall"><code class="tsd-tag">Abstract</code><span>destroy<wbr/>All</span><a href="#destroyall" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="destroyall-1"><span class="tsd-kind-call-signature">destroyAll</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">where</span><span class="tsd-signature-symbol">?:</span> <a href="../types/types_entity_Query.EntityQueryable.html" class="tsd-signature-type tsd-kind-type-alias">EntityQueryable</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><a href="#destroyall-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Delete every record matching the optional filter.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">where</span>: <a href="../types/types_entity_Query.EntityQueryable.html" class="tsd-signature-type tsd-kind-type-alias">EntityQueryable</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Optional <a href="../types/types_entity_Query.EntityQueryable.html" class="tsd-kind-type-alias">EntityQueryable</a> filter. When omitted
+(or <code>undefined</code>), <strong>every</strong> record of the entity is
+removed — use with care.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4><p>The number of records deleted.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L105">ormManager/ormMenagerBase.ts:105</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getmanyby"><code class="tsd-tag">Abstract</code><span>get<wbr/>Many<wbr/>By</span><a href="#getmanyby" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getmanyby-1"><span class="tsd-kind-call-signature">getManyBy</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyq">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyc">C</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyq">Q</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">control</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyc">C</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span><a href="#getmanyby-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get records of entity by specfic query.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="getmanybyq"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span id="getmanybyc"><span class="tsd-kind-type-parameter">C</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">query</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyq">Q</a></span></li>
+<li><span><span class="tsd-kind-parameter">control</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#getmanybyc">C</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L119">ormManager/ormMenagerBase.ts:119</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="getoneby"><code class="tsd-tag">Abstract</code><span>get<wbr/>One<wbr/>By</span><a href="#getoneby" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="getoneby-1"><span class="tsd-kind-call-signature">getOneBy</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyq">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyc">C</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyq">Q</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">control</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyc">C</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span><a href="#getoneby-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Get single record of entity by specfic query.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="getonebyq"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span></li>
+<li><span id="getonebyc"><span class="tsd-kind-type-parameter">C</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">native</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span> <span class="tsd-signature-symbol">}</span></span></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">query</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyq">Q</a></span></li>
+<li><span><span class="tsd-kind-parameter">control</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#getonebyc">C</a></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">Promise</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/461664828cb89b03ce4ad663037155d94a209e46/src/ormManager/ormMenagerBase.ts#L112">ormManager/ormMenagerBase.ts:112</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#convertquery"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>convert<wbr/>Query</span></a><a href="#dialect"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dialect</span></a><a href="#manager"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>manager</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#createone"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>create<wbr/>One</span></a><a href="#deleteone"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>delete<wbr/>One</span></a><a href="#destroyall"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>destroy<wbr/>All</span></a><a href="#getmanyby"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>Many<wbr/>By</span></a><a href="#getoneby"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>get<wbr/>One<wbr/>By</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/your-username/your-repo" class="tsd-nav-link">GitHub</a></nav>
+<nav class="tsd-navigation"><a href="../index.html">node_repo</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
