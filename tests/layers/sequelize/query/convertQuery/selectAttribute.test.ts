@@ -3,11 +3,11 @@ import { it, describe, before } from "node:test";
 import { productMetadata, priceMetadata } from '../../../../testSkeleton/config'
 import { QueryFormater } from '../../../../../src/layers/sequelize/query/formater'
 import { createRelationTree } from '../../../../../src/tree/treeBuilders'
-import { Query, QueryFormaterBaseConfig } from '../../../../../src/types/entity/Query';
+import { Query, QueryConverterConfig } from '../../../../../src/types/entity/Query';
 import { Product, Price } from '../../../../testSkeleton/entities';
 import { fn, col } from 'sequelize';
 
-const configWithoutValidation: QueryFormaterBaseConfig = {
+const validationOff: QueryConverterConfig = {
     validation: {
         baseAttributes: {
             string: false,
@@ -20,12 +20,14 @@ const configWithoutValidation: QueryFormaterBaseConfig = {
             date: false
         },
         queryAttributes: {
-            select: false
+            select: true
         }
-    }
+    },
+    subEntityRelationDepth: 0
 }
 
-const configWithValidation: QueryFormaterBaseConfig = {
+
+const validationOn: QueryConverterConfig = {
     validation: {
         baseAttributes: {
             string: true,
@@ -40,7 +42,8 @@ const configWithValidation: QueryFormaterBaseConfig = {
         queryAttributes: {
             select: true
         }
-    }
+    },
+    subEntityRelationDepth: 0
 }
 
 describe('test formatQuery with selectAttribute', async () => {
@@ -48,17 +51,13 @@ describe('test formatQuery with selectAttribute', async () => {
     describe('test formating select without validators', () => {
 
         let formatProduct: (query: Query<Product>) => any
-        let formatPrice: (query: Query<Price>) => any
 
         before(() => {
             const productRelationTree = createRelationTree(productMetadata)
-            const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithoutValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithoutValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
         })
 
         it('select as array of valid field names', () => {
@@ -156,17 +155,13 @@ describe('test formatQuery with selectAttribute', async () => {
     describe('test formating select with validators', () => {
 
         let formatProduct: (query: Query<Product>) => any
-        let formatPrice: (query: Query<Price>) => any
 
         before(() => {
             const productRelationTree = createRelationTree(productMetadata)
-            const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOn)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
         })
 
         it('valid field names pass validation', () => {
@@ -221,8 +216,8 @@ describe('test formatQuery with selectAttribute', async () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithoutValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithoutValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
+            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOff)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
             formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
@@ -343,17 +338,13 @@ describe('test formatQuery with selectAttribute', async () => {
     describe('aggregate functions with validation', () => {
 
         let formatProduct: (query: Query<Product>) => any
-        let formatPrice: (query: Query<Price>) => any
-
+        
         before(() => {
             const productRelationTree = createRelationTree(productMetadata)
-            const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOn)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
         })
 
         it('$count with wildcard passes validation', () => {

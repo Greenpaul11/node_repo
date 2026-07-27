@@ -4,10 +4,10 @@ import { Op } from 'sequelize'
 import { productMetadata, priceMetadata } from '../../../../testSkeleton/config'
 import { QueryFormater } from '../../../../../src/layers/sequelize/query/formater'
 import { createRelationTree } from '../../../../../src/tree/treeBuilders'
-import { Query, QueryFormaterBaseConfig } from '../../../../../src/types/entity/Query';
+import { Query, QueryConverterConfig } from '../../../../../src/types/entity/Query';
 import { Product, Price } from '../../../../testSkeleton/entities';
 
-const configWithoutValidation: QueryFormaterBaseConfig = {
+const validationOff: QueryConverterConfig = {
     validation: {
         baseAttributes: {
             string: false,
@@ -22,10 +22,12 @@ const configWithoutValidation: QueryFormaterBaseConfig = {
         queryAttributes: {
             select: false
         }
-    }
+    },
+    subEntityRelationDepth: 5
 }
 
-const configWithValidation: QueryFormaterBaseConfig = {
+
+const validationOn: QueryConverterConfig = {
     validation: {
         baseAttributes: {
             string: true,
@@ -40,7 +42,8 @@ const configWithValidation: QueryFormaterBaseConfig = {
         queryAttributes: {
             select: true
         }
-    }
+    },
+    subEntityRelationDepth: 5
 }
 
 describe('test formatQueryRangeAttributes', async () => {
@@ -54,8 +57,8 @@ describe('test formatQueryRangeAttributes', async () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithoutValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithoutValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
+            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOff)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
             formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
@@ -165,8 +168,8 @@ describe('test formatQueryRangeAttributes', async () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, configWithValidation)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, configWithValidation)
+            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOn)
+            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOn)
 
             formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
             formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)

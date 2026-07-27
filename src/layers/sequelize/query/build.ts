@@ -134,7 +134,7 @@ function buildSelectConverter<
                         validate(item, attributes)
                     }
                     sequelizeAttributes.push(item)
-                } else if (Array.isArray(item)) {
+                } else if (!nested && Array.isArray(item)) {
                     const [aggregate, subEntities] = convertAggregates(metadata, item)
                     sequelizeAttributes.push(aggregate)
                     if (subEntities.length) {
@@ -144,7 +144,7 @@ function buildSelectConverter<
                     throw new Error('Item of select has no valid type!')
                 }
             }
-        } else if (!nested && typeof select === 'object' && 'exclude' in select) {
+        } else if (typeof select === 'object' && 'exclude' in select) {
             if (select.exclude instanceof Array) {
                 sequelizeAttributes = { exclude: []}
                 const exclude = select.exclude as Array<keyof EntityNoExternal<E>>
@@ -294,6 +294,8 @@ function buildRelationConverter<
             const queryKey = key as keyof typeof queryConvertObject
             if (queryConvertObject.hasOwnProperty(key)) {
                 queryConvertObject[queryKey].convert(value, formatted)
+            } else {
+                throw new Error (`Entry: ${String(queryKey)} is not valid query attribute or depth limit exceeded!`)
             }
         }
 

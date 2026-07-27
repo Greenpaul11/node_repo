@@ -90,6 +90,7 @@ export function buildEntityAttributeConverters<E extends EntityBase, F, K extend
                 : converter(value, converted, attribute, nested)
         } 
     }
+    
     return transform
 }
 
@@ -171,9 +172,57 @@ export function buildRangeAttributeConverters<E extends EntityBase, F, K extends
             } 
         }
     }
+    
     return transform
 }
 
+/**
+ * Build converter set for query-level attributes (e.g. `select`).
+ *
+ * Currently only handles the `select` attribute. Looks up the converter
+ * registered for `'select'` in `convertersBuild.queryAttributes` and,
+ * when validation is enabled, wraps it with a validator (e.g.
+ * {@link validateSelect}).
+ *
+ * Build steps:
+ *  1. **Look up** the converter registered for `'select'` in
+ *     `convertersBuild.queryAttributes`.
+ *  2. **Check** `config.validation.queryAttributes.select` to decide
+ *     whether to inject the validator.
+ *  3. **Bind** the `select` key to a `convert` function that calls the
+ *     converter with (`value`, `converted`, `metadata`, `nested`) and,
+ *     when validation is on, passes the validator as the last argument.
+ *
+ * @typeParam E - Entity whose query attributes are being converted.
+ * @typeParam F - The ORM-specific query output type (e.g. Sequelize
+ *                `FindOptions`).
+ *
+ * @param convertersBuild Type-keyed converter definitions produced by
+ *                        the ORM layer {@link ConvertersBuild}.
+ * @param config          Configuration object with a `validation` section
+ *                        that controls whether the validator is forwarded.
+ * @param metadata        Entity metadata used to resolve attribute lists
+ *                        during select conversion.
+ * @param nested          Whether this converter is being built for a
+ *                        nested (relation) context. When `true`, aggregate
+ *                        functions inside select arrays are disallowed.
+ *
+ * @returns A {@link QueryAttributeTransform}`<F>` with a `convert`
+ *          function for the `select` key. The convert accepts
+ *          (`value`, `converted`) and optionally applies validation
+ *          before delegating to the layer's converter.
+ *
+ * @example
+ * ```ts
+ * const queryConverters = buildQueryAttributeConverters(
+ *     sequelizeConvertersBuild,
+ *     { validation: { queryAttributes: { select: true } } },
+ *     metadata
+ * )
+ *
+ * queryConverters.select.convert(['id', 'brand'], findOptions)
+ * ```
+ */
 export function buildQueryAttributeConverters<E extends EntityBase, F>(
     convertersBuild: ConvertersBuild<F>,
     config: QueryConverterConfig,
@@ -193,9 +242,62 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
             ? converter(value, converted, metadata, nested, assignQueryValidator('select'))
             : converter(value, converted, metadata, nested)
     }
+    
     return transform
 }
 
+/**
+ * Build converter set for relation (sub-entity) attributes.
+ *
+ * Iterates over every sub-entity defined in the entity metadata and
+ * recursively builds a full {@link QueryConvertObject} for each one.
+ * Recursion is bounded by `config.subEntityRelationDepth` — when
+ * `depth` exceeds the configured limit the function returns an empty
+ * transform so no further relations are processed.
+ *
+ * Build steps:
+ *  1. **Check** `config.subEntityRelationDepth` against `depth`. If the
+ *     limit is reached, return an empty transform immediately.
+ *  2. **Look up** the sub-entity map from `metadata.subEntities`.
+ *     If none exist, return an empty transform.
+ *  3. **Look up** the relation converter from
+ *     `convertersBuild.relationAttributes.relations`.
+ *  4. **For each sub-entity**, recursively call
+ *     {@link queryConvertObjectFactory} with `depth + 1` to produce its
+ *     `queryConvertObject`, then bind a `convert` function that
+ *     delegates to the relation converter with
+ *     (`value`, `converted`, `key`, `queryConvertObject`).
+ *
+ * @typeParam E - Entity whose relation attributes are being converted.
+ * @typeParam F - The ORM-specific query output type (e.g. Sequelize
+ *                `FindOptions`).
+ *
+ * @param convertersBuild Type-keyed converter definitions produced by
+ *                        the ORM layer {@link ConvertersBuild}.
+ * @param config          Configuration object with a `validation` section
+ *                        and a `subEntityRelationDepth` limit.
+ * @param metadata        Entity metadata containing the sub-entity map.
+ * @param depth           Current recursion depth. Starts at `0` at the
+ *                        root entity and increments by one per nested
+ *                        level.
+ *
+ * @returns A {@link QueryRelationTransform}`<E, F>` with a `convert`
+ *          function and a nested `queryConvertObject` for each
+ *          sub-entity. When the depth limit is exceeded or no
+ *          sub-entities exist, an empty object is returned.
+ *
+ * @example
+ * ```ts
+ * const relationConverters = buildRelationAttributeConverters(
+ *     sequelizeConvertersBuild,
+ *     { subEntityRelationDepth: 3, validation: { ... } },
+ *     productMetadata,
+ *     0
+ * )
+ *
+ * relationConverters.prices.convert({ active: true }, findOptions)
+ * ```
+ */
 export function buildRelationAttributeConverters<E extends EntityBase, F>(
     convertersBuild: ConvertersBuild<F>,
     config: QueryConverterConfig,
@@ -229,6 +331,64 @@ export function buildRelationAttributeConverters<E extends EntityBase, F>(
     return transform
 }
 
+/**
+ * Assemble a complete {@link QueryConvertObject} for a given entity.
+ *
+ * Composes the four converter groups — base attributes, range attributes,
+ * query attributes, and relation attributes — into a single flat object.
+ * The `nested` flag is derived from `depth`: when `depth > 0` the
+ * converters are built in nested mode, which disables aggregate functions
+ * inside select arrays for that level.
+ *
+ * Build steps:
+ *  1. **Determine** whether this level is nested (`depth > 0`).
+ *  2. **Build** `baseAttributes` by calling
+ *     {@link buildEntityAttributeConverters} for `'string'`, `'number'`,
+ *     `'date'`, and `'boolean'` attribute types.
+ *  3. **Build** `rangeAttributes` by calling
+ *     {@link buildRangeAttributeConverters} for `'number'` and `'date'`
+ *     range types.
+ *  4. **Build** `queryAttributes` by calling
+ *     {@link buildQueryAttributeConverters} for query-level attributes
+ *     (e.g. `select`).
+ *  5. **Build** `relationAttributes` by calling
+ *     {@link buildRelationAttributeConverters} with `depth + 1` to
+ *     recurse into sub-entities.
+ *  6. **Merge** all four groups into a single object and return it.
+ *
+ * @typeParam E - Entity whose query converters are being assembled.
+ * @typeParam F - The ORM-specific query output type (e.g. Sequelize
+ *                `FindOptions`).
+ *
+ * @param convertersBuild Type-keyed converter definitions produced by
+ *                        the ORM layer {@link ConvertersBuild}.
+ * @param config          Configuration object controlling validation and
+ *                        relation depth limits.
+ * @param metadata        Entity metadata used to resolve attribute lists
+ *                        and sub-entity maps.
+ * @param depth           Current recursion depth. Starts at `0` for the
+ *                        root entity; each nested relation increments by
+ *                        one. Used to derive the `nested` flag and to
+ *                        enforce relation depth limits.
+ *
+ * @returns A fully populated {@link QueryConvertObject}`<E, F>` with
+ *          `convert` functions for every queryable attribute, range
+ *          key, select option, and relation of the entity.
+ *
+ * @example
+ * ```ts
+ * const convertObject = queryConvertObjectFactory(
+ *     sequelizeConvertersBuild,
+ *     { validation: { ... }, subEntityRelationDepth: 5 },
+ *     productMetadata
+ * )
+ *
+ * convertObject.brand.convert('Apple', findOptions)
+ * convertObject.price_from.convert(100, findOptions)
+ * convertObject.select.convert(['id'], findOptions)
+ * convertObject.prices.convert({ active: true }, findOptions)
+ * ```
+ */
 export function queryConvertObjectFactory<E extends EntityBase, F>(
     convertersBuild: ConvertersBuild<F>, 
     config: QueryConverterConfig,
@@ -253,6 +413,7 @@ export function queryConvertObjectFactory<E extends EntityBase, F>(
     const relationAttributes: QueryRelationTransform<E, F> = {
         ...buildRelationAttributeConverters(convertersBuild, config, metadata, depth + 1)
     } 
+    
     return {
         ...baseAttributes,
         ...rangeAttributes,
@@ -260,7 +421,6 @@ export function queryConvertObjectFactory<E extends EntityBase, F>(
         ...relationAttributes
     }
 }
-
 
 /**
  * Assign proper validation function to baseAttributes converter.
