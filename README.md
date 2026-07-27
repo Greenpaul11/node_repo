@@ -423,7 +423,7 @@ tests can be run with the corresponding env file.
 
 - This README — entry point, architecture, usage.
 - **TypeDoc API reference** — generated from TSDoc comments into
-  [`docs/api/`](https://Greenpaul11.github.io/node_repo/).
+  [`docs/api/`](https://greenpaul11.github.io/node_repo/api/).
   Run `npm run docs` to regenerate.
 
 ## License
