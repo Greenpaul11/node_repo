@@ -1,7 +1,7 @@
 import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, DeepPartial
 } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
-import { EntityMetadata, EntityRelationTree } from './Metadata'
+import { EntityMetadata, EntityRelationTree, SortOptions } from './Metadata'
 import { EntityTransform } from './Converters'
 import { ConfigTypes } from '../Config'
 import Decimal from 'decimal.js'
@@ -112,6 +112,7 @@ export type QueryConverterConfig = {
         }
         queryAttributes: {
             select: boolean
+            order: boolean
         }
     }
     subEntityRelationDepth: number
@@ -172,6 +173,9 @@ export type QueryAttributeTransform<F> = {
     select: {
         convert: (value: unknown, converted: F) => F
     }
+    order: {
+        convert: (value: unknown, converted: F) => F
+    }
 }
 
 
@@ -183,6 +187,9 @@ export type QueryRangeValidator<E extends EntityBase> =
 
 export type QuerySelectValidator<E extends EntityBase> = 
     (value: unknown, attributes: Array<keyof EntityNoExternal<E>>) => void 
+
+export type QueryOrderValidator<E extends EntityBase> = 
+    (value: unknown, depth?: number) => void 
 
 
 
@@ -225,6 +232,13 @@ export type ConvertersBuild<F> = {
             metadata: EntityMetadata<E>,
             nested: boolean,
             validate?: QuerySelectValidator<E>
+        ) => F,
+        order: <E extends EntityBase>(
+            value: unknown, 
+            converted: F, 
+            options: SortOptions<E>,
+            nested: boolean,
+            validate?: QueryOrderValidator<E>
         ) => F
     },
     relationAttributes: {
@@ -247,7 +261,6 @@ export type QueryAttributes<E extends EntityBase> = {
     search_in?: Partial<PickByType<E, string>>
     order?: QuerySort<E>
     group?: QuerySort<E>
-    aggregate?: boolean
 }
 
 /**
@@ -413,7 +426,7 @@ export type EntityAggregateAttributes<
  * @example
  * ["by name asc", "by id desc"]
  * or in relation
- * { user: ["by active desc"] }
+ * ["user", ["by active desc"]]
  */
 export type QuerySort<E extends EntityBase> = 
     QuerySortOptions<E> | OrderOptions<E> | GroupOptions<E>
@@ -424,22 +437,33 @@ export type QuerySort<E extends EntityBase> =
  * Each element can be:
  * - An OrderOptions string as field, aggregate, or null-aware ordering
  * - A GroupOptions string as field
- * - A nested object for relations, where keys are relation names and values are
- *   further QuerySortOptions. This allows recursive sorting on related entities.
- * 
+ *
  * @example
  * [
  *   "by name asc",
- *   { price: ["by created desc", "by price_count desc"] }
+ *   [price: ["by created desc", "by price_count desc"]]
  * ]
  */
 export type QuerySortOptions<E extends EntityBase> = 
     Array<
     | OrderOptions<E>
     | GroupOptions<E>
-    | {
-        [Key in keyof ExternalReferences<E>]?: QuerySortOptions<ExternalReferences<E>[Key]>
-    } >
+    | QuerySortExternal<E>
+    >
+
+/**
+ * Tuple where item at index 0 is the name of related entity, item at 
+ * index 1 is QuerySortOption for this entiy. 
+ * This allows recursive sorting on related entities.
+ * 
+ * @example
+ * [price: ["by created desc", "by price_count desc"]]
+ */
+export type QuerySortExternal<
+    E extends EntityBase
+> = {
+    [Key in keyof ExternalReferences<E>]: [Key, QuerySortOptions<ExternalReferences<E>[Key]>]
+}[keyof ExternalReferences<E>]
 
 /**
  * OrderOptions is the union of all possible ordering expressions.
@@ -491,34 +515,34 @@ export type OrderAttributeOptionsWithNulls<E extends EntityBase> =
  * - _min / _max on numeric, Decimal, or Date fields
  * 
  * @example:
- * "by product_count desc"
- * "by price_avg asc"
- * "by created_max desc"
+ * "by $count_product desc"
+ * "by $avg_price asc"
+ * "by $max_created desc"
  */
 export type OrderAggregateOptions<E extends EntityBase> = 
     // all attributes
-      `by ${keyof NonNullableFromObject<EntityNoExternal<E>> & string}_count asc`
-    | `by ${keyof NonNullableFromObject<EntityNoExternal<E>> & string}_count desc`
+      `by $count_${keyof NonNullableFromObject<EntityNoExternal<E>> & string} asc`
+    | `by $count_${keyof NonNullableFromObject<EntityNoExternal<E>> & string} desc`
     
     // number and decimal attributes
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal> & string}_sum asc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal> & string}_sum desc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal> & string}_avg asc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal> & string}_avg desc`
+    | `by $sum_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal> & string} asc`
+    | `by $sum_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal> & string} desc`
+    | `by $avg_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal> & string} asc`
+    | `by $avg_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal> & string} desc`
     
     // number, decimal and Date attributes
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal | Date> & string}_max asc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal | Date> & string}_max desc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal | Date> & string}_min asc`
-    | `by ${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
-        | Decimal | Date> & string}_min desc`
+    | `by $max_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal | Date> & string} asc`
+    | `by $max_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal | Date> & string} desc`
+    | `by $min_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal | Date> & string} asc`
+    | `by $min_${keyof PickByType<NonNullableFromObject<EntityNoExternal<E>>, number 
+        | Decimal | Date> & string} desc`
 
 /**
  * GroupOptions defines a single field to group by.

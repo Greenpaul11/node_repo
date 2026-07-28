@@ -5,20 +5,22 @@ import { EntityQueryable, ConvertersBuild,
     FnCount, FnNumber,
     QuerySelect,
     Query,
-    QueryConvertObject
+    QueryConvertObject,
+    QuerySort,
+    QueryOrderValidator
 } from "../../../types/entity/Query"
 import { EntityBase, EntityNoExternal, AggregateOperators, ExternalReferences } from "../../../types/entity/Root"
 import { PickByType } from "../../../types/Global"
 import { 
     FindOptions, Model, InferAttributes, InferCreationAttributes, 
-    Op, col, fn,
+    Op, col, fn, OrderItem,
     FindAttributeOptions,
     Includeable,
     IncludeOptions
 } from "sequelize"
-import { Fn } from 'sequelize/types/utils'
+import { Col, Fn } from 'sequelize/types/utils'
 import { WhereValue } from "../types"
-import { EntityMetadata } from "../../../types/entity/Metadata"
+import { EntityMetadata, SortFunction, SortOption, SortOptions } from "../../../types/entity/Metadata"
 import { ref } from "node:process"
 
 
@@ -37,13 +39,15 @@ export default function sequelizeConvertersBuild<
             date: buildRangeConverter<F, 'date'>()
         },
         queryAttributes: {
-            select: buildSelectConverter<F>()
+            select: buildSelectConverter<F>(),
+            order: buildOrderConverter<F>(),
         },
         relationAttributes: {
             relations: buildRelationConverter<F>()
         } 
     }
 }
+
 
 function buildAttributeConverter<
     F extends FindOptions<InferAttributes<any>> | IncludeOptions
@@ -316,6 +320,109 @@ function buildRelationConverter<
     }
 }
 
+function buildOrderConverter<F extends FindOptions<InferAttributes<any>> | IncludeOptions>() {
+    return <E extends EntityBase>(
+        value: unknown,
+        converted: F,
+        options: SortOptions<E>,
+        nested: boolean,
+        validate?: QueryOrderValidator<E>
+    ): F => {
+
+        if (validate) {
+            validate(value)
+        }
+        const accumulated: OrderItem[] = []
+        const asOrder = value as QuerySort<E>
+        formatOrderOptions(options, asOrder, accumulated, orderOptionToSequelize, fnOptionToSequelize)
+        converted.order = accumulated
+        return converted
+    }
+}
+
+function formatOrderOptions<E extends EntityBase>(
+    orderOptions: SortOptions<E>,
+    order: QuerySort<E>,
+    acc: OrderItem[],
+    valueFormater: <F extends EntityBase>(acc: OrderItem[], value: SortOption<F>, relAsString?: string) => void,
+    fnFormater: <F extends EntityBase>(acc: OrderItem[], value: SortFunction<F>) => void,
+    relAsString?: string
+): void {
+    if (typeof order === "string") {
+        formatSortOption(acc, orderOptions, order, valueFormater, fnFormater, relAsString)
+    } else if (Array.isArray(order)) {
+        for (const option of order) {
+            if (typeof option === "string") {
+                formatSortOption(acc, orderOptions, option, valueFormater, fnFormater, relAsString)
+            } else if (Array.isArray(option)) {
+                const entity = option[0]
+                const subOptions = option[1]
+                const relationAsString = relAsString ? `${relAsString}.${String(entity)}` : entity
+                const relOrderOptions = orderOptions.related[entity]
+                if (!relOrderOptions) throw new Error("Related order options are undefined!")
+                formatOrderOptions(relOrderOptions, subOptions, acc, valueFormater, fnFormater, relationAsString)
+            }
+        }
+    } else {
+        throw new Error(`Typeof for order is not valid! Expected array or string.`)
+    }
+}
+
+const formatSortOption = <E extends EntityBase>(
+    acc: OrderItem[],
+    sortOptions: SortOptions<E>,
+    option: string,
+    valueFormater: <F extends EntityBase>(acc: OrderItem[], value: SortOption<F>, subEntity?: string) => void,
+    fnFormater?: <F extends EntityBase>(acc: OrderItem[], value: SortFunction<F>, subEntity?: string) => void,
+    subEntity?: string
+): void => {
+    if (sortOptions.options[option]) {
+        valueFormater(acc, sortOptions.options[option], subEntity)
+    } else if (fnFormater && sortOptions.fns[option]) {
+        fnFormater(acc, sortOptions.fns[option], subEntity)
+    } else {
+        throw new Error(`${sortOptions.sortType} has no "${option}"`)
+    }
+}
+
+const orderOptionToSequelize = <E extends EntityBase>(
+    acc: OrderItem[],
+    option: SortOption<E>,
+    entity?: string
+): void => {
+    const column = entity ? `${entity}.${String(option.name)}` : String(option.name)
+    const value = option.value as string
+    switch (value) {
+        case 'ASC NULLS FIRST':
+            acc.push([col(column), 'ASC'])
+            break
+        case 'ASC NULLS LAST':
+            acc.push([fn('ISNULL', col(column)), 'ASC'])
+            acc.push([col(column), 'ASC'])
+            break
+        case 'DESC NULLS FIRST':
+            acc.push([fn('ISNULL', col(column)), 'DESC'])
+            acc.push([col(column), 'DESC'])
+            break
+        case 'DESC NULLS LAST':
+            acc.push([col(column), 'DESC'])
+            break
+        case 'RAND':
+            acc.push([fn('RAND'), 'ASC'])
+            break
+        default:
+            acc.push([col(column), value])
+    }
+}
 
 
-
+const fnOptionToSequelize = <E extends EntityBase>(
+    acc: OrderItem[],
+    option: SortFunction<E>,
+    entity?: string
+): void => {
+    const column = entity ? `${String(entity)}.${String(option.name)}` : String(option.name)
+    const fnName = option.fn
+    const value = option.value as string
+    acc.push([fn(fnName, col(column)), value])
+}

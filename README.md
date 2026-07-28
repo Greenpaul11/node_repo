@@ -81,6 +81,18 @@ Currently you can use in your queries:
   { select: { exclude: ['image', 'description'] } }
   ```
 
+- **order attribute** — single string for one field, array for multi-field composite sorts, 
+  `nulls first`/`nulls last` for null placement. Use tuple syntax for relation ordering 
+  (`['prices', ['by price asc']]`) or deep nested ordering
+  (`['prices', [['shop', ['by name desc']]]]`).
+  ```
+  { order: 'by brand asc' }
+  { order: ['by brand asc', 'by model desc', 'by id asc'] }
+  { order: 'by created desc nulls last' }
+  { order: ['by brand asc', ['prices', ['by price desc']]] }
+  { order: ['by brand asc', ['prices', [['shop', ['by name asc']]]]] }
+  ```
+
 The domain query language is converted to the ORM-specific query language
 internally. When entities are returned by the ORM manager, they are converted
 by `asEntity`/`asEntities` in `OutputFormater` into domain typed entities.
@@ -93,7 +105,7 @@ by `asEntity`/`asEntities` in `OutputFormater` into domain typed entities.
 3. The dispatch table contains converters for:
    - **base attributes** (string, number, date, boolean)
    - **range attributes** (`_from`/`_to` for number and date)
-   - **query attributes** (`select`)
+   - **query attributes** (`select`, `order`)
    - **relation attributes** (recursive conversion via `buildRelationAttributeConverters`)
 4. Validation can be enabled per attribute type. When active, each value is
    checked before conversion.

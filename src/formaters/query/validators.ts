@@ -1,5 +1,6 @@
 import { EntityBase, EntityNoExternal } from "../../types/entity/Root"
-import { EntityQueryable, EntityQueryRangeAttributes } from "../../types/entity/Query"
+import { EntityQueryable, EntityQueryRangeAttributes, QuerySort } from "../../types/entity/Query"
+import { it } from "node:test"
 
 
 export const validateString = <
@@ -116,5 +117,41 @@ export const validateSelect = <
         throw new Error(
             `Attribute: '${value}' is not a part of baseAttributes of entity.`)
     }
+}
 
+export const validateOrder = <
+    E extends EntityBase
+>(value: unknown, depth: number = 0): void => {
+    if (typeof value === 'string') {
+        return
+    }
+    if (Array.isArray(value)) {
+        for (let i = 0; i < value.length; i++) {
+            const item = value[i]
+            if (typeof item === 'string') {
+                continue
+            }
+            if (Array.isArray(item)) {
+                if (typeof item[0] !== 'string') {
+                    throw new Error(
+                        `Array item at index ${i} at depth: ${depth} is not valid! ` +
+                        `Expected [relationName, sortOptions] tuple.`
+                    )
+                }
+                validateOrder(item[1], depth + 1)
+                continue
+            }
+            throw new Error(
+                `Array item at index ${i} at depth: ${depth} is not valid! ` +
+                `Type "${typeof item}" can not be used as order value.`
+            )
+        }
+        return
+    }
+
+
+    throw new Error(
+        `Value type for order attribute is not valid. ` +
+        `Type ${typeof value} can not be used as order value.`
+    )
 }

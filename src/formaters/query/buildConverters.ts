@@ -15,7 +15,7 @@ import { PickByType } from '../../types/Global'
 import { 
     validateString, validateNumber, validateDate, 
     validateBoolean, validateRangeDate, validateRangeNumber,
-    validateSelect 
+    validateSelect, validateOrder 
 } from './validators'
 import { EntityMetadata } from '../../types/entity/Metadata'
 
@@ -231,16 +231,25 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
 ): QueryAttributeTransform<F> {
     const transform = {} as QueryAttributeTransform<F>
     const validation = config.validation.queryAttributes
-    let converter
     let validationOn: boolean
 
     // create select converter
-    converter = convertersBuild['queryAttributes']['select']
+    const converterSelect = convertersBuild['queryAttributes']['select']
     validationOn = validation['select']
     transform['select'] = {
         convert: (value: unknown, converted: F) => validationOn
-            ? converter(value, converted, metadata, nested, assignQueryValidator('select'))
-            : converter(value, converted, metadata, nested)
+            ? converterSelect(value, converted, metadata, nested, assignQueryValidator('select'))
+            : converterSelect(value, converted, metadata, nested)
+    }
+
+    // create order converter
+    const converterOrder = convertersBuild['queryAttributes']['order']
+    validationOn = validation['order']
+    const orderOptions = metadata.orderOptions
+    transform['order'] = {
+        convert: (value: unknown, converted: F) => validationOn
+            ? converterOrder(value, converted, orderOptions, nested, assignQueryValidator('order'))
+            : converterOrder(value, converted, orderOptions, nested)
     }
     
     return transform
@@ -463,10 +472,14 @@ function assignRangeValidator<K extends keyof QueryRangeAttributeTypes>(type: K)
  * @param type keyof {@link QueryAttributes}
  * @returns validation function
  */
-function assignQueryValidator<K extends keyof QueryAttributes<any>>(type: K) {
+function assignQueryValidator(type: 'select'): typeof validateSelect
+function assignQueryValidator(type: 'order'): typeof validateOrder
+function assignQueryValidator(type: string) {
     switch (type) {
         case 'select':
             return validateSelect
+        case 'order':
+            return validateOrder
         default: 
             throw new Error('Type value is not assignable!')
     }    

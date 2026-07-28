@@ -282,27 +282,27 @@ export class EntityMetadataManager<E extends EntityBase>
             }
 
             // COUNT function for every base attribute
-            orderObject['fns'][`by $${String(attribute)}_count asc`] = { name: attribute, value: 'ASC', fn: 'COUNT' }
-            orderObject['fns'][`by $${String(attribute)}_count desc`] = { name: attribute, value: 'DESC', fn: 'COUNT' }
+            orderObject['fns'][`by $count_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'COUNT' }
+            orderObject['fns'][`by $count_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'COUNT' }
 
             // SUM / AVG / MIN / MAX — currently only for 'number' (see @remarks)
             if (this.attributesConfig[attribute]['type'] === 'number') {
-                orderObject['fns'][`by $${String(attribute)}_sum asc`] = { name: attribute, value: 'ASC', fn: 'SUM' }
-                orderObject['fns'][`by $${String(attribute)}_sum desc`] = { name: attribute, value: 'DESC', fn: 'SUM' }
-                orderObject['fns'][`by $${String(attribute)}_avg asc`] = { name: attribute, value: 'ASC', fn: 'AVG' }
-                orderObject['fns'][`by $${String(attribute)}_avg desc`] = { name: attribute, value: 'DESC', fn: 'AVG' }
-                orderObject['fns'][`by $${String(attribute)}_min asc`] = { name: attribute, value: 'ASC', fn: 'MIN' }
-                orderObject['fns'][`by $${String(attribute)}_min desc`] = { name: attribute, value: 'DESC', fn: 'MIN' }
-                orderObject['fns'][`by $${String(attribute)}_max asc`] = { name: attribute, value: 'ASC', fn: 'MAX' }
-                orderObject['fns'][`by $${String(attribute)}_max desc`] = { name: attribute, value: 'DESC', fn: 'MAX' }
+                orderObject['fns'][`by $sum_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'SUM' }
+                orderObject['fns'][`by $sum_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'SUM' }
+                orderObject['fns'][`by $avg_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'AVG' }
+                orderObject['fns'][`by $avg_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'AVG' }
+                orderObject['fns'][`by $min_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MIN' }
+                orderObject['fns'][`by $min_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'MIN' }
+                orderObject['fns'][`by $max_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MAX' }
+                orderObject['fns'][`by $max_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'MAX' }
             }
 
             // MIN / MAX — currently gates on 'object' instead of 'date' (see @remarks)
             if (this.attributesConfig[attribute]['type'] === 'object' && this.attributesConfig[attribute].associated !== 'outside') {
-                orderObject['fns'][`by $${String(attribute)}_min asc`] = { name: attribute, value: 'ASC', fn: 'MIN' }
-                orderObject['fns'][`by $${String(attribute)}_min desc`] = { name: attribute, value: 'DESC', fn: 'MIN' }
-                orderObject['fns'][`by $${String(attribute)}_max asc`] = { name: attribute, value: 'ASC', fn: 'MAX' }
-                orderObject['fns'][`by $${String(attribute)}_max desc`] = { name: attribute, value: 'DESC', fn: 'MAX' }
+                orderObject['fns'][`by $min_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MIN' }
+                orderObject['fns'][`by $min_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'MIN' }
+                orderObject['fns'][`by $max_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MAX' }
+                orderObject['fns'][`by $max_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'MAX' }
             }
         }
 
