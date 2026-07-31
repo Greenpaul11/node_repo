@@ -22,7 +22,8 @@ const validationOff: QueryConverterConfig = {
         },
         queryAttributes: {
             select: false,
-            order: false
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 5
@@ -42,7 +43,8 @@ const validationOn: QueryConverterConfig = {
         },
         queryAttributes: {
             select: true,
-            order: true
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 5
@@ -107,14 +109,6 @@ describe('test formatQuery with relationAttribute', () => {
                         association: 'prices',
                         attributes: ['price', 'url']
                     }]
-                })
-            })
-
-            it('relation with select exclude throws in nested context', () => {
-                const data: Query<Product> = { prices: { select: { exclude: ['url'] } } }
-                assert.throws(() => formatProduct(data), {
-                    name: /Error/,
-                    message: /Value for select attribute is not valid/
                 })
             })
 

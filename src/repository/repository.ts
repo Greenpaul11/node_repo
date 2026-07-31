@@ -8,6 +8,7 @@ import { CreationOptional, EntityCreationAttributes } from "../types/entity/Crea
 import { OrmManagerBase } from "../ormManager/ormMenagerBase";
 import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query";
 import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
+import { ResolveManager } from "../types/entity/Repository";
 
 
 /**
@@ -64,7 +65,8 @@ import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
 export class Repository<
     E extends EntityBase,
     C extends EntityCreationAttributes<E, CreationOptional<E>>,
-    T
+    T,
+    M = ResolveManager<T>
 > {
     /** Entity metadata driving attribute lists, relations, and converters. */
     public readonly metadata: EntityMetadata<E>;
@@ -82,22 +84,23 @@ export class Repository<
      * initialization pattern as `outputFormater` / `menager` below
      * (see {@link Repository.init}).
      */
-    private queryFormater!: QueryFormaterBase<E, T>;
+    public queryFormater!: QueryFormaterBase<E, T>;
 
     /**
      * Output formatter — converts raw ORM rows returned by `menager`
      * into typed entities. Loaded by {@link Repository.init} from the
      * ORM-specific implementation directory.
      */
-    private outputFormater!: OutputFormaterBase<E, T>;
+    public outputFormater!: OutputFormaterBase<E, T>;
+
 
     /**
-     * ORM manager — performs the actual CRUD calls. Loaded by
+     * ormManager — performs the actual CRUD calls. Loaded by
      * {@link Repository.init} from the ORM-specific implementation
      * directory. *(Field name retains the legacy `menager` spelling
      * to match the {@link OrmManagerBase} import name.)*
      */
-    private menager!: OrmManagerBase<E, T>;
+    public ormManager!: OrmManagerBase<E, T, M>;
 
     /**
      * @param metadata   Entity metadata providing attribute lists,
@@ -136,7 +139,7 @@ export class Repository<
      * @param connection Live ORM connection (e.g. a Sequelize instance).
      *                    Currently only `Sequelize` is recognized.
      * @param metadata   Entity metadata.
-     * @param ormEntity  The ORM-specific model constructor (e.g. a
+     * @param ormManager  The ORM-specific model constructor (e.g. a
      *                    Sequelize `ModelStatic<T>`).
      *
      * @returns A fully initialized `Repository` ready to use.
@@ -164,16 +167,18 @@ export class Repository<
     static async init<
         E extends EntityBase,
         C extends EntityCreationAttributes<E, CreationOptional<E>>,
-        T extends Model<InferAttributes<T>, InferCreationAttributes<T>>
+        T,
+        M = ResolveManager<T>
     >(
         connection: OrmOptions,
         metadata: EntityMetadata<E>,
-        ormEntity: ModelStatic<T>
+        ormManager: M
     ): Promise<Repository<E, C, T>> {
+
         const repository = new Repository<E, C, T>(metadata, connection);
         const orm = repository._resolveOrmName(connection)
         const dialect = repository._resolveDialectName(connection);
-        
+
         // place for implementation of queryFormater
         const ormQueryModule = await import(`../layers/${orm}/query/formater`);
         const QueryFormater = ormQueryModule.QueryFormater as new (
@@ -185,12 +190,12 @@ export class Repository<
         // load proper OrmOperations class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
         const OrmManager = ormManagerModule.OrmManager as new (
-            ormEntity: ModelStatic<T>,
+            ormManager: M,
             dialect: DialectOptions,
             convertQuery: <Q extends Query<E>>(query: Q) => unknown
         ) => OrmManagerBase<E, T>
         const convertQuery = repository.queryFormater.formatQuery.bind(repository.queryFormater)
-        repository.menager = new OrmManager(ormEntity, dialect, convertQuery)
+        repository.ormManager = new OrmManager(ormManager, dialect, convertQuery)
 
         // load proper OutputFormater class for specific ORM
         const formaterModule = await import(`../layers/${orm}/output/formater`);
@@ -270,7 +275,7 @@ export class Repository<
     async createOne(data: C, native: false): Promise<E>
     async createOne(data: C, native: true): Promise<T>
     async createOne(data: C, native: boolean = false): Promise<E | T> {
-        const entityNative = await this.menager.createOne(data)
+        const entityNative = await this.ormManager.createOne(data)
         if (native) return entityNative
         return this.outputFormater.asEntity(entityNative)
     }
@@ -283,7 +288,7 @@ export class Repository<
      *          no matching record existed.
      */
     async deleteOne(id: number): Promise<boolean> {
-        return await this.menager.deleteOne(id)
+        return await this.ormManager.deleteOne(id)
     }
 
     /**
@@ -295,7 +300,7 @@ export class Repository<
      * @returns The number of records deleted.
      */
     async destroyAll(where?: EntityQueryable<E>): Promise<number> {
-        return this.menager.destroyAll(where)
+        return this.ormManager.destroyAll(where)
     }
     
     /**
@@ -327,7 +332,7 @@ export class Repository<
     async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: false }): Promise<EntityProjection<E, Q> | null>
     async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: true }): Promise<T | null>
     async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q> | T | null> {
-        const entityRaw = await this.menager.getOneBy(query, control)
+        const entityRaw = await this.ormManager.getOneBy(query, control)
         if (control.native) return entityRaw
         return this.outputFormater.asEntity(entityRaw, query)
     }
@@ -364,7 +369,7 @@ export class Repository<
     async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: false }): Promise<EntityProjection<E, Q>[]>
     async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> & { native: true }): Promise<T[]>
     async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q>[] | T[]> {
-        const entityRaw = await this.menager.getManyBy(query, control)
+        const entityRaw = await this.ormManager.getManyBy(query, control)
         if (control.native) return entityRaw
         return this.outputFormater.asEntities(entityRaw, query)
     }

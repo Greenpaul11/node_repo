@@ -32,7 +32,9 @@ const validationOff = {
             date: false
         },
         queryAttributes: {
-            select: false
+            select: false,
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 2
@@ -111,7 +113,9 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
                 }
 
                 return converted
-            }
+            },
+            order: {} as never,
+            group: {} as never
         },
         relationAttributes: {
             relations: <E extends EntityBase, K extends keyof ExternalReferences<E>>(

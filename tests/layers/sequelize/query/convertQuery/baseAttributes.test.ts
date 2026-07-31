@@ -19,7 +19,9 @@ const validationOff: QueryConverterConfig = {
             date: false
         },
         queryAttributes: {
-            select: false
+            select: false,
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 0
@@ -38,7 +40,9 @@ const validationOn: QueryConverterConfig = {
             date: true
         },
         queryAttributes: {
-            select: true
+            select: true,
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 0

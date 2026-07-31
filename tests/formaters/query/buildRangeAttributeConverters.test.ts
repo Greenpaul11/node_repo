@@ -8,6 +8,7 @@ import { EntityBase } from '../../../src/types/entity/Root'
 import { PickByType } from '../../../src/types/Global'
 import { validateRangeNumber, validateRangeDate } from '../../../src/formaters/query/validators'
 
+
 type OrmQuery = {
     where: Record<string, unknown>
 }
@@ -25,7 +26,9 @@ const validationOn = {
             date: true
         },
         queryAttributes: {
-            select: true
+            select: true,
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 2
@@ -45,7 +48,9 @@ export const validationOff = {
             date: false
         },
         queryAttributes: {
-            select: false
+            select: false,
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 2

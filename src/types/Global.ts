@@ -118,6 +118,9 @@ export type Exact<T, Shape> =
       : never
     : never;
 
+export type DeepStringTuple = string | [string, DeepStringTuple]
+
+export type DeepStringArray = string | DeepStringArray[]
 
 
 

@@ -1,16 +1,17 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
 import { buildQueryAttributeConverters } from '../../../src/formaters/query/buildConverters'
-import { ConvertersBuild, QueryOrderValidator, QuerySelectValidator } from '../../../src/types/entity/Query'
+import { ConvertersBuild, QuerySelectValidator, QuerySortValidator } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
 import { EntityBase } from '../../../src/types/entity/Root'
-import { validateSelect, validateOrder } from '../../../src/formaters/query/validators'
+import { validateSelect, validateSort } from '../../../src/formaters/query/validators'
 import { EntityMetadata, SortOptions } from '../../../src/types/entity/Metadata'
 
 type OrmQuery= {
     attributes: (string | unknown[])[]
     order?: unknown[]
+    group?: unknown[]
 }
 
 const validationOn = {
@@ -27,7 +28,8 @@ const validationOn = {
         },
         queryAttributes: {
             select: true,
-            order: true
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 2
@@ -47,7 +49,8 @@ export const validationOff = {
         },
         queryAttributes: {
             select: false,
-            order: false
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 2
@@ -91,7 +94,7 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
                 converted: F,
                 options: SortOptions<E>,
                 _nested: boolean,
-                validate?: QueryOrderValidator<E>
+                validate?: QuerySortValidator
             ) => {
                 if (validate) {
                     validate(value)
@@ -112,6 +115,34 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
                     }
                 } else {
                     throw new Error('Invalid type for order value where expected string or array!')
+                }
+                return converted
+            },
+            group: <E extends EntityBase>(
+                value: unknown,
+                converted: F,
+                _options: SortOptions<E>,
+                validate?: QuerySortValidator
+            ) => {
+                if (validate) {
+                    validate(value)
+                }
+                if (!converted.group) converted.group = []
+                if (typeof value === 'string') {
+                    converted.group.push(value)
+                } else if (Array.isArray(value)) {
+                    for (let i = 0; i < value.length; i++) {
+                        const item = value[i]
+                        if (typeof item === 'string') {
+                            converted.group.push(item)
+                        } else if (Array.isArray(item)) {
+                            converted.group.push(item)
+                        } else {
+                            throw new Error('Invalid type for group item!')
+                        }
+                    }
+                } else {
+                    throw new Error('Invalid type for group value where expected string or array!')
                 }
                 return converted
             }
@@ -231,7 +262,7 @@ describe('buildQueryAttributeConverters', () => {
             )
 
             const converted = result.select.convert(
-                [['$count', '*']] as any,
+                [['$count', '*']],
                 {} as OrmQuery
             )
             assert.deepStrictEqual(converted.attributes[0], ['$count', '*'])
@@ -477,61 +508,182 @@ describe('buildQueryAttributeConverters', () => {
 
             assert.throws(
                 () => result.order.convert(['by brand asc', 123] as any, {} as OrmQuery),
-                /can not be used as order value/
+                /Array item at index 1 at depth: 0 is not valid/
             )
         })
     })
 
     describe('validators work correctly', () => {
-        it('validateOrder does not throw for valid string', () => {
-            assert.doesNotThrow(() => validateOrder<Product>('by brand asc'))
+        it('validateSort does not throw for valid string', () => {
+            assert.doesNotThrow(() => validateSort('by brand asc'))
         })
 
-        it('validateOrder does not throw for array of strings', () => {
+        it('validateSort does not throw for array of strings', () => {
             assert.doesNotThrow(
-                () => validateOrder<Product>(['by brand asc', 'by model desc'])
+                () => validateSort(['by brand asc', 'by model desc'])
             )
         })
 
-        it('validateOrder does not throw for nested relation tuple', () => {
+        it('validateSort does not throw for nested relation tuple', () => {
             assert.doesNotThrow(
-                () => validateOrder<Product>(['by brand asc', ['prices', ['by amount asc']]])
+                () => validateSort(['by brand asc', ['prices', ['by amount asc']]])
             )
         })
 
-        it('validateOrder throws for numeric value', () => {
+        it('validateSort throws for numeric value', () => {
             assert.throws(
-                () => validateOrder<Product>(123),
+                () => validateSort(123),
                 /can not be used as order value/
             )
         })
 
-        it('validateOrder throws for null', () => {
+        it('validateSort throws for null', () => {
             assert.throws(
-                () => validateOrder<Product>(null),
+                () => validateSort(null),
                 /can not be used as order value/
             )
         })
 
-        it('validateOrder throws for object value', () => {
+        it('validateSort throws for object value', () => {
             assert.throws(
-                () => validateOrder<Product>({}),
+                () => validateSort({}),
                 /can not be used as order value/
             )
         })
 
-        it('validateOrder throws for array with non-string, non-array item', () => {
+        it('validateSort throws for array with non-string, non-array item', () => {
             assert.throws(
-                () => validateOrder<Product>(['by brand asc', true]),
-                /can not be used as order value/
+                () => validateSort(['by brand asc', true]),
+                /Array item at index 1 at depth: 0 is not valid/
             )
         })
 
-        it('validateOrder throws for malformed nested tuple (non-string relation name)', () => {
+        it('validateSort throws for malformed nested tuple (non-string relation name)', () => {
             assert.throws(
-                () => validateOrder<Product>(['by brand asc', [123, ['by amount asc']]]),
+                () => validateSort(['by brand asc', [123, ['by amount asc']]]),
                 /Expected.*relationName/
             )
+        })
+    })
+
+    describe('group converter', () => {
+        it('creates group converter with convert function', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            assert.ok(result.group)
+            assert.strictEqual(typeof result.group.convert, 'function')
+        })
+
+        it('validate=false => passes string value as-is', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            const converted = result.group.convert('by brand', {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: ['by brand'] })
+        })
+
+        it('validate=true => valid string value passes', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOn,
+                productMetadata
+            )
+
+            const converted = result.group.convert('by brand', {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: ['by brand'] })
+        })
+
+        it('validate=false => array of strings passes through', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            const input = ['by brand', 'by model']
+            const converted = result.group.convert(input, {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: input })
+        })
+
+        it('validate=true => array of valid strings passes', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOn,
+                productMetadata
+            )
+
+            const input = ['by brand', 'by model']
+            const converted = result.group.convert(input, {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: input })
+        })
+
+        it('validate=true => passes with nested relation tuple', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOn,
+                productMetadata
+            )
+
+            const input = ['by brand', ['prices', ['by amount']]]
+            const converted = result.group.convert(input, {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: input })
+        })
+
+        it('validate=false => nested relation tuple passes through', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            const input = ['by brand', ['prices', ['by amount']]]
+            const converted = result.group.convert(input, {} as OrmQuery)
+            assert.deepStrictEqual(converted, { group: input })
+        })
+
+        it('validate=true => throws Error for non-string, non-array value', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOn,
+                productMetadata
+            )
+
+            assert.throws(
+                () => result.group.convert(123, {} as OrmQuery),
+                /can not be used as order value/
+            )
+        })
+
+        it('validate=false => throws Error for non-string, non-array value', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            assert.throws(
+                () => result.group.convert(123, {} as OrmQuery),
+                /Invalid type for group value/
+            )
+        })
+
+        it('returns the converted object to allow chaining', () => {
+            const result = buildQueryAttributeConverters<Product, OrmQuery>(
+                convertersBuild,
+                validationOff,
+                productMetadata
+            )
+
+            const obj = {} as OrmQuery
+            const returned = result.group.convert('by brand', obj)
+            assert.strictEqual(returned, obj)
         })
     })
 })

@@ -21,7 +21,8 @@ const validationOff: QueryConverterConfig = {
         },
         queryAttributes: {
             select: false,
-            order: false
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 0
@@ -41,7 +42,8 @@ const validationOn: QueryConverterConfig = {
         },
         queryAttributes: {
             select: true,
-            order: true
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 0
@@ -169,6 +171,14 @@ describe('test formatQuery with order attribute', async () => {
             })
         })
 
+        it('deep nested relation sort with desc', () => {
+            const data: Query<Product> = { order: ['by brand asc', ['prices', [['shop', ['by name asc']]]]] }
+            const result = formatProduct(data)
+            assert.deepStrictEqual(result, {
+                order: [[col('brand'), 'ASC'], [col('prices.shop.name'), 'ASC']]
+            })
+        })
+
         it('multiple nested relations', () => {
             const data: Query<Product> = {
                 order: [
@@ -207,7 +217,7 @@ describe('test formatQuery with order attribute', async () => {
             const data = { order: null }
             assert.throws(() => formatProduct(data as any), {
                 name: /Error/,
-                message: /Typeof for order is not valid/
+                message: /Typeof for sort option is not valid/
             })
         })
 
@@ -215,7 +225,7 @@ describe('test formatQuery with order attribute', async () => {
             const data = { order: 123 }
             assert.throws(() => formatProduct(data as any), {
                 name: /Error/,
-                message: /Typeof for order is not valid/
+                message: /Typeof for sort option is not valid/
             })
         })
     })
@@ -336,7 +346,7 @@ describe('test formatQuery with order attribute', async () => {
             const data = { order: null }
             assert.throws(() => formatProduct(data as any), {
                 name: /Error/,
-                message: /can not be used as order value/
+                message: /Value type for order attribute is not valid/
             })
         })
 
@@ -344,7 +354,7 @@ describe('test formatQuery with order attribute', async () => {
             const data = { order: 123 }
             assert.throws(() => formatProduct(data as any), {
                 name: /Error/,
-                message: /can not be used as order value/
+                message: /Value type for order attribute is not valid/
             })
         })
     })

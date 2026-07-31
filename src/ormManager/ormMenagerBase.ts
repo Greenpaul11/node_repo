@@ -2,6 +2,7 @@ import type { EntityBase } from '../types/entity/Root'
 import type { CreationOptional, EntityCreationAttributes } from '../types/entity/Creation'
 import type { DialectOptions } from '../types/Config'
 import type { EntityQueryable, Query, QueryControl } from '../types/entity/Query'
+import { ResolveManager } from '../types/entity/Repository'
 
 
 /**
@@ -53,7 +54,7 @@ import type { EntityQueryable, Query, QueryControl } from '../types/entity/Query
 export abstract class OrmManagerBase<
     E extends EntityBase,
     T,
-    M = unknown,
+    M = ResolveManager<T>,
     F = unknown
 > {
     /**

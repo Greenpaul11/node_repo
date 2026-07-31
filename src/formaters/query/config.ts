@@ -1,3 +1,5 @@
+import { group } from "node:console"
+
 export const defaultConfig = {
     validation: {
         baseAttributes: {
@@ -12,7 +14,8 @@ export const defaultConfig = {
         },
         queryAttributes: {
             select: true,
-            order: true
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 5
@@ -31,7 +34,8 @@ export const validationOn = {
     },
     queryAttributes: {
         select: true,
-        order: true
+        order: true,
+        group: true
     }
 }
 
@@ -48,7 +52,8 @@ export const validationOff = {
     },
     queryAttributes: {
         select: false,
-        order: false
+        order: false,
+        group: false
     }
     
 }

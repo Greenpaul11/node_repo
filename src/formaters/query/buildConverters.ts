@@ -15,7 +15,7 @@ import { PickByType } from '../../types/Global'
 import { 
     validateString, validateNumber, validateDate, 
     validateBoolean, validateRangeDate, validateRangeNumber,
-    validateSelect, validateOrder 
+    validateSelect, validateSort 
 } from './validators'
 import { EntityMetadata } from '../../types/entity/Metadata'
 
@@ -251,6 +251,16 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
             ? converterOrder(value, converted, orderOptions, nested, assignQueryValidator('order'))
             : converterOrder(value, converted, orderOptions, nested)
     }
+
+    // create group converter
+    const converterGroup = convertersBuild['queryAttributes']['group']
+    validationOn = validation['group']
+    const groupOptions = metadata.groupOptions
+    transform['group'] = {
+        convert: (value: unknown, converted: F) => validationOn
+            ? converterGroup(value, converted, groupOptions, assignQueryValidator('group'))
+            : converterGroup(value, converted, groupOptions)
+    }
     
     return transform
 }
@@ -473,13 +483,15 @@ function assignRangeValidator<K extends keyof QueryRangeAttributeTypes>(type: K)
  * @returns validation function
  */
 function assignQueryValidator(type: 'select'): typeof validateSelect
-function assignQueryValidator(type: 'order'): typeof validateOrder
+function assignQueryValidator(type: 'order'): typeof validateSort
+function assignQueryValidator(type: 'group'): typeof validateSort
 function assignQueryValidator(type: string) {
     switch (type) {
         case 'select':
             return validateSelect
         case 'order':
-            return validateOrder
+        case 'group':
+            return validateSort
         default: 
             throw new Error('Type value is not assignable!')
     }    

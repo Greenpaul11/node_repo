@@ -1,11 +1,14 @@
-import { NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, DeepPartial
+import { 
+    NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, 
+    DeepPartial, DeepStringArray,
+    DeepStringTuple
 } from '../Global'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
-import { EntityMetadata, EntityRelationTree, SortOptions } from './Metadata'
+import { EntityMetadata, SortOptions } from './Metadata'
 import { EntityTransform } from './Converters'
 import { ConfigTypes } from '../Config'
 import Decimal from 'decimal.js'
-import type { Model, InferAttributes, InferCreationAttributes, ModelStatic, FindOptions } from 'sequelize'
+import type { Model, InferAttributes, InferCreationAttributes } from 'sequelize'
 
 
 /**
@@ -113,6 +116,7 @@ export type QueryConverterConfig = {
         queryAttributes: {
             select: boolean
             order: boolean
+            group: boolean
         }
     }
     subEntityRelationDepth: number
@@ -176,6 +180,9 @@ export type QueryAttributeTransform<F> = {
     order: {
         convert: (value: unknown, converted: F) => F
     }
+    group: {
+        convert: (value: unknown, converted: F) => F
+    }
 }
 
 
@@ -188,11 +195,8 @@ export type QueryRangeValidator<E extends EntityBase> =
 export type QuerySelectValidator<E extends EntityBase> = 
     (value: unknown, attributes: Array<keyof EntityNoExternal<E>>) => void 
 
-export type QueryOrderValidator<E extends EntityBase> = 
+export type QuerySortValidator = 
     (value: unknown, depth?: number) => void 
-
-
-
 
 
 export type QueryRelationTransform<E extends EntityBase, F> = {
@@ -238,7 +242,13 @@ export type ConvertersBuild<F> = {
             converted: F, 
             options: SortOptions<E>,
             nested: boolean,
-            validate?: QueryOrderValidator<E>
+            validate?: QuerySortValidator
+        ) => F
+        group: <E extends EntityBase>(
+            value: unknown, 
+            converted: F, 
+            options: SortOptions<E>,
+            validate?: QuerySortValidator
         ) => F
     },
     relationAttributes: {
@@ -259,8 +269,8 @@ export type ConvertersBuild<F> = {
 export type QueryAttributes<E extends EntityBase> = {
     select?: QuerySelect<E>
     search_in?: Partial<PickByType<E, string>>
-    order?: QuerySort<E>
-    group?: QuerySort<E>
+    order?: QueryOrderOptions<E>
+    group?: QueryGroupOptions<E>
 }
 
 /**
@@ -280,44 +290,35 @@ export type QuerySelect<E extends EntityBase> =
     (keyof EntityNoExternal<E> | QueryFunctions<E>)[] | { exclude: (keyof EntityNoExternal<E>)[]}
 
 /**
- * Maps aggregate functions into a tuple form.
- * The resulting type is a union of tuples where:
- * - the first element is the function name
- * - the second element is the function target
+ * QueryFunctions maps aggregate functions into a tuple form.  
+ * Each tuple pairs:
+ * - the aggregate function name (e.g., "$count", "$sum")
+ * - the function target, which may be a field of the current entity or a
+ *   recursively nested path into related entities.
+ *
+ * This structure allows expressing simple aggregates as well as deeply nested
+ * aggregation chains across multiple relations.
  *
  * @example
- *  - ['$count', '*'] => apply COUNT for all columns
- *  - ['$sum', 'price'] => apply SUM for column price
- *  - ['$count', ['shop', 'id']] 
- *      => apply COUNT to the related entity "shop", counting its "id" field.
- *  - ['$min', ['user', ['product', ['prices', 'price']]]] 
- *      =>  apply MIN to "price" inside "prices" inside "product" inside "user"
- *      (arbitrarily deep nested relation).
- */
-export type QueryFunctions<E extends EntityBase> = {
-   [Key in keyof AggregateFunctions<E>]: [Key, AggregateFunctions<E>[Key]] 
-}[keyof AggregateFunctions<E>]
-
-/**
- * AggregateFunctions defines aggregate functions that
- * can be applied to an entity query.
+ * // Count all rows:
+ * ["$count", "*"]
  *
- * Available functions:
- * - $count: counts rows or related entities
- * - $sum: sums numeric fields
- * - $avg: averages numeric fields
- * - $min: minimum numeric value or earliest date
- * - $max: maximum numeric value or latest date
+ * // Sum a numeric field:
+ * ["$sum", "price"]
  *
- * Used in {@link QuerySelect}.
+ * // Count a related entity:
+ * ["$count", ["shop", "id"]]
+ *
+ * // Deeply nested aggregation:
+ * // MIN(price) inside prices → inside product → inside user
+ * ["$min", ["user", ["product", ["prices", "price"]]]]
  */
-export type AggregateFunctions<E extends EntityBase> = {
-    $count: FnCount<E>
-    $sum: FnNumber<E>
-    $avg: FnNumber<E>
-    $min: FnNumber<E>
-    $max: FnNumber<E>
-}
+export type QueryFunctions<E extends EntityBase> =
+    | ["$count", FnCount<E>]
+    | ["$sum", FnNumber<E>]
+    | ["$avg", FnNumber<E>]
+    | ["$min", FnNumber<E>]
+    | ["$max", FnNumber<E>]
 
 /**
  * FnCount defines what can be counted(options accepted by COUNT):
@@ -342,18 +343,61 @@ export type FnNumber<E extends EntityBase> =
     FnMapper<E, keyof PickByType<E, number> >
 
 /**
- * Allows to assign Fn rules(T) to root entity and
- * recursively to related entities. 
+ * FnExternal defines function‑compatible rules applied to related (external)
+ * entities. Each key corresponds to a relation of the current entity, and the
+ * value is a {@link DeepStringTuple} describing the function target within that
+ * relation.
+ *
+ * A {@link DeepStringTuple} may be:
+ * - a single string, representing a field of the related entity
+ * - a nested tuple structure, representing deeper traversal through multiple
+ *   related entities until reaching the final target field
+ *
+ * This enables COUNT, SUM, AVG, MIN, MAX, and similar functions to be applied
+ * recursively across external relations, forming deep aggregation chains.
+ *
+ * @example
+ * // Count all related "prices":
+ * ["prices", "*"]
+ *
+ * // Count a nested relation:
+ * ["orders", ["items", "*"]]
+ *
+ * // Deeply nested aggregation:
+ * // MIN(price) inside prices → inside product → inside user
+ * ["user", ["product", ["prices", "price"]]]
  */
-export type FnMapper<E extends EntityBase, T> = 
-  T | {[Key in keyof ExternalReferences<E>]?: FnPack<E, Key, T>}[keyof ExternalReferences<E>] 
+export type FnExternal<E extends EntityBase> =
+    { [Key in keyof ExternalReferences<E>]?: [Key, DeepStringTuple] }[keyof ExternalReferences<E>];
 
 /**
- * Pack Entity external attribute(K) at first index of tuple.
- * At second index pack FnMapper with Fn rules(T)
+ * FnMapper assigns a function rule (`T`) to the root entity and optionally to
+ * any of its related entities. It supports both direct function inputs and
+ * recursive aggregation rules across external relations.
+ *
+ * A value may be either:
+ * - `T`, representing the function input applied directly to the current entity.
+ * - A {@link FnExternal} mapping that applies function rules to related entities,
+ *   allowing nested, multi‑level aggregation.
+ *
+ * This structure provides a unified way to express COUNT, SUM, AVG, MIN, MAX,
+ * and similar function inputs across both the primary entity and its relations.
+ *
+ * @example
+ * // Direct function input:
+ * "id"
+ *
+ * // Count all rows:
+ * "*"
+ *
+ * // Count related entities:
+ * ["prices", "*"]
+ *
+ * // Deeply nested aggregation:
+ * ["orders", ["items", ["*"]]]
  */
-export type FnPack<E extends EntityBase, K extends keyof ExternalReferences<E>, T> = 
-    [K, FnMapper<ExternalReferences<E>[K], T>]
+export type FnMapper<E extends EntityBase, T> =
+    T | FnExternal<E>;
 
 /**
  * Recursively builds a dotted-notation key from nested function targets.
@@ -414,56 +458,94 @@ export type EntityAggregateAttributes<
     F extends QueryFunctions<E>[] = QueryFunctions<E>[]
 > = {[Key in F[number] as AggregateAsKey<Key>]?: AggregateBase[Key[0]]}
 
-
 /**
- * QuerySort defines the possible sort options for a query.
- * 
- * It can be:
- * - A fully nested `QuerySortOptions` array (supporting recursive relations)
- * - A single `OrderOptions` string (ordering fields or aggregates)
- * - A single `GroupOptions` string (grouping fields)
- * 
- * @example
- * ["by name asc", "by id desc"]
- * or in relation
- * ["user", ["by active desc"]]
- */
-export type QuerySort<E extends EntityBase> = 
-    QuerySortOptions<E> | OrderOptions<E> | GroupOptions<E>
-
-/**
- * QuerySortOptions is an array of sorting options for a query.
- * 
- * Each element can be:
- * - An OrderOptions string as field, aggregate, or null-aware ordering
- * - A GroupOptions string as field
+ * QueryGroupOptions defines the grouping rules that can be applied to an
+ * entity query. It supports both simple single‑field grouping and complex,
+ * multi‑level grouping across related entities.
+ *
+ * A value may be either:
+ * - A single {@link GroupOptions} string, when only one entity field is used
+ *   for grouping.
+ * - An array containing any mix of:
+ *     - {@link GroupOptions} strings for grouping by fields of the current entity.
+ *     - {@link QuerySortExternal} tuples for grouping by related (external)
+ *       entities, including deeply nested grouping chains.
+ *
+ * This flexible structure allows queries to express anything from a simple
+ * “group by field” to a fully hierarchical grouping strategy spanning multiple
+ * related entities.
  *
  * @example
+ * // Simple grouping:
+ * "by category"
+ *
+ * // Multi‑level grouping across related entities:
  * [
- *   "by name asc",
- *   [price: ["by created desc", "by price_count desc"]]
+ *   "by category",
+ *   ["prices", ["shop", ["by founded"]]]
  * ]
  */
-export type QuerySortOptions<E extends EntityBase> = 
+export type QueryGroupOptions<E extends EntityBase> =
+    GroupOptions<E> |
     Array<
-    | OrderOptions<E>
-    | GroupOptions<E>
-    | QuerySortExternal<E>
-    >
+        | GroupOptions<E>
+        | QuerySortExternal<E>
+    >;
 
 /**
- * Tuple where item at index 0 is the name of related entity, item at 
- * index 1 is QuerySortOption for this entiy. 
- * This allows recursive sorting on related entities.
- * 
+ * QueryOrderOptions defines the ordering rules that can be applied to an
+ * entity query. It supports both simple single‑field ordering and complex,
+ * multi‑level ordering across related entities.
+ *
+ * A value may be either:
+ * - A single {@link OrderOptions} string, when only one ordering rule
+ *   is required.
+ * - An array containing any mix of:
+ *     - {@link OrderOptions} strings describing attribute, nullable‑aware,
+ *       or aggregate ordering on the current entity.
+ *     - {@link QuerySortExternal} tuples describing ordering applied to
+ *       related (external) entities, including deeply nested sort chains.
+ *
+ * This flexible structure allows queries to express anything from a simple
+ * “order by field” to a fully hierarchical ordering strategy spanning multiple
+ * related entities.
+ *
  * @example
- * [price: ["by created desc", "by price_count desc"]]
+ * // Simple ordering:
+ * "by name asc"
+ *
+ * // Multi‑level ordering across related entities:
+ * [
+ *   "by name asc",
+ *   ["prices", ["by price",["shop", ["by founded", "by created"]]]],
+ *   "by $avg_price desc"
+ * ]
+ */
+export type QueryOrderOptions<E extends EntityBase> =
+    OrderOptions<E> |
+    Array<
+        | OrderOptions<E>
+        | QuerySortExternal<E>
+    >;
+
+/**
+ * A tuple describing the sorting configuration for an external (related) entity.
+ *
+ * - The first element is the related entity key (`Key`).
+ * - The second element is a {@link DeepStringArray}, representing deeply nested
+ *   {@link QuerySortOptions}. This recursive structure is used as a safe
+ *   replacement for nested tuples, which cause key‑widening issues when
+ *   distributed over mapped types.
+ *
+ * @example
+ * // Nested sort rules applied to the "price" related entity:
+ * ["prices", ["shop", ["by founded", "by created"]]]
  */
 export type QuerySortExternal<
     E extends EntityBase
 > = {
-    [Key in keyof ExternalReferences<E>]: [Key, QuerySortOptions<ExternalReferences<E>[Key]>]
-}[keyof ExternalReferences<E>]
+    [Key in keyof ExternalReferences<E>]: [Key, DeepStringArray]
+}[keyof ExternalReferences<E>];
 
 /**
  * OrderOptions is the union of all possible ordering expressions.

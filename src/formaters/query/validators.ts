@@ -119,9 +119,8 @@ export const validateSelect = <
     }
 }
 
-export const validateOrder = <
-    E extends EntityBase
->(value: unknown, depth: number = 0): void => {
+export const validateSort = 
+(value: unknown,  depth: number = 0): void => {
     if (typeof value === 'string') {
         return
     }
@@ -138,12 +137,12 @@ export const validateOrder = <
                         `Expected [relationName, sortOptions] tuple.`
                     )
                 }
-                validateOrder(item[1], depth + 1)
+                validateSort(item[1], depth + 1)
                 continue
             }
             throw new Error(
                 `Array item at index ${i} at depth: ${depth} is not valid! ` +
-                `Type "${typeof item}" can not be used as order value.`
+                `Type "${typeof item}" can not be used as sort value.`
             )
         }
         return

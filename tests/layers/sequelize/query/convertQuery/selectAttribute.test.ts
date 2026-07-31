@@ -20,7 +20,9 @@ const validationOff: QueryConverterConfig = {
             date: false
         },
         queryAttributes: {
-            select: true
+            select: true,
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 0
@@ -40,7 +42,9 @@ const validationOn: QueryConverterConfig = {
             date: true
         },
         queryAttributes: {
-            select: true
+            select: true,
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 0
@@ -297,8 +301,8 @@ describe('test formatQuery with selectAttribute', async () => {
         })
 
         it('aggregate with deep nested relation (2 levels)', () => {
-            const data = {
-                select: [['$count', ['prices', ['shop', 'id']]]] as Query<Product>['select']
+            const data: Query<Product> = {
+                select: [['$count', ['prices', ['shop', 'id']]]] 
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
@@ -308,8 +312,8 @@ describe('test formatQuery with selectAttribute', async () => {
         })
 
         it('aggregate with deep nested relation (3 levels)', () => {
-            const data = {
-                select: [['$count', ['comments', ['user', ['rates', 'id']]]]] as Query<Product>['select']
+            const data: Query<Product> = {
+                select: [['$count', ['comments', ['user', ['rates', 'id']]]]]
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
@@ -356,8 +360,8 @@ describe('test formatQuery with selectAttribute', async () => {
         })
 
         it('$count with valid attribute passes validation', () => {
-            const data = {
-                select: [['$count', 'brand']] as Query<Product>['select']
+            const data: Query<Product> = {
+                select: [['$count', 'brand']] 
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
@@ -366,8 +370,8 @@ describe('test formatQuery with selectAttribute', async () => {
         })
 
         it('deep nested relation aggregate passes validation', () => {
-            const data = {
-                select: [['$count', ['prices', ['shop', 'id']]]] as Query<Product>['select']
+            const data: Query<Product> = {
+                select: [['$count', ['prices', ['shop', 'id']]]] 
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
@@ -377,8 +381,8 @@ describe('test formatQuery with selectAttribute', async () => {
         })
 
         it('deep nested relation aggregate (3 levels) passes validation', () => {
-            const data = {
-                select: [['$count', ['comments', ['user', ['rates', 'id']]]]] as Query<Product>['select']
+            const data: Query<Product> = {
+                select: [['$count', ['comments', ['user', ['rates', 'id']]]]] 
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {

@@ -25,7 +25,9 @@ const validationOn = {
             date: true
         },
         queryAttributes: {
-            select: true
+            select: true,
+            order: true,
+            group: true
         }
     },
     subEntityRelationDepth: 2
@@ -45,7 +47,9 @@ export const validationOff = {
             date: false
         },
         queryAttributes: {
-            select: false
+            select: false,
+            order: false,
+            group: false
         }
     },
     subEntityRelationDepth: 2
