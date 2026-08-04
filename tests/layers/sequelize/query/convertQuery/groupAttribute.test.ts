@@ -76,7 +76,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['brand']
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['brand'])
+            assert.deepStrictEqual(result.group, ['Product.brand'])
             assert.deepStrictEqual(result.attributes, ['brand'])
         })
 
@@ -87,7 +87,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['brand', 'active']
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['brand', 'active'])
+            assert.deepStrictEqual(result.group, ['Product.brand', 'Product.active'])
             assert.deepStrictEqual(result.attributes, ['brand', 'active'])
         })
 
@@ -101,7 +101,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['id']
             }
             const result = formatPrice(data)
-            assert.deepStrictEqual(result.group, ['id', 'shop.id'])
+            assert.deepStrictEqual(result.group, ['Price.id', 'shop.id'])
             assert.deepStrictEqual(result.attributes, ['id'])
             assert.deepStrictEqual(result.include[0].attributes, ['id'])
         })
@@ -114,7 +114,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['id', 'price']
             }
             const result = formatPrice(data)
-            assert.deepStrictEqual(result.group, ['id', 'price', 'shop.id', 'shop.name'])
+            assert.deepStrictEqual(result.group, ['Price.id', 'Price.price', 'shop.id', 'shop.name'])
             assert.deepStrictEqual(result.attributes, ['id', 'price'])
             assert.deepStrictEqual(result.include[0].attributes, ['id', 'name'])
         })
@@ -130,7 +130,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['id', 'brand', 'model']
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['id', 'brand', 'model', 'prices.id', 'prices.shop.id', 'prices.shop.name'])
+            assert.deepStrictEqual(result.group, ['Product.id', 'Product.brand', 'Product.model', 'prices.id', 'prices.shop.id', 'prices.shop.name'])
             assert.deepStrictEqual(result.attributes, ['id', 'brand', 'model'])
             assert.deepStrictEqual(result.include[0].attributes, ['id'])
             assert.deepStrictEqual(result.include[0].include[0].attributes, ['id', 'name'])
@@ -145,8 +145,8 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['brand', ['$count', 'brand']]
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['brand'])
-            assert.deepStrictEqual(result.attributes, ['brand', [fn('COUNT', col('brand')), '$count_brand']])
+            assert.deepStrictEqual(result.group, ['Product.brand'])
+            assert.deepStrictEqual(result.attributes, ['brand', [fn('COUNT', col('Product.brand')), '$count_brand']])
         })
 
         it('group by fields with aggregate operator in select', () => {
@@ -156,8 +156,8 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['brand', 'active', ['$count', 'brand']]
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['brand', 'active'])
-            assert.deepStrictEqual(result.attributes, ['brand', 'active', [fn('COUNT', col('brand')), '$count_brand']])
+            assert.deepStrictEqual(result.group, ['Product.brand', 'Product.active'])
+            assert.deepStrictEqual(result.attributes, ['brand', 'active', [fn('COUNT', col('Product.brand')), '$count_brand']])
         })
 
         it('group by related field - primary key of root entity must be present', () => {
@@ -168,7 +168,7 @@ describe('test formatQuery with group attribute', async () => {
                 select: ['id', ['$count', ['prices', ['shop', 'id']]]]
             }
             const result = formatProduct(data)
-            assert.deepStrictEqual(result.group, ['id', 'prices.shop.id'])
+            assert.deepStrictEqual(result.group, ['Product.id', 'prices.shop.id'])
             assert.deepStrictEqual(result.attributes, ['id', [fn('COUNT', col('prices.shop.id')), '$count_prices_shop_id']])
         })
 
@@ -225,7 +225,7 @@ describe('test formatQuery with group attribute', async () => {
             const data: Query<Product> = { group: 'by brand' }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                group: ['brand']
+                group: ['Product.brand']
             })
         })
 
@@ -233,7 +233,7 @@ describe('test formatQuery with group attribute', async () => {
             const data: Query<Product> = { group: ['by brand', 'by model'] }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                group: ['brand', 'model']
+                group: ['Product.brand', 'Product.model']
             })
         })
 
@@ -257,7 +257,7 @@ describe('test formatQuery with group attribute', async () => {
             const data: Query<Product> = { group: ['by brand', ['prices', ['by price']]] }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                group: ['brand', 'prices.price']
+                group: ['Product.brand', 'prices.price']
             })
         })
 

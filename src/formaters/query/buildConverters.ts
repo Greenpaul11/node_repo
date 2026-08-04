@@ -245,11 +245,10 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
     // create order converter
     const converterOrder = convertersBuild['queryAttributes']['order']
     validationOn = validation['order']
-    const orderOptions = metadata.orderOptions
     transform['order'] = {
         convert: (value: unknown, converted: F) => validationOn
-            ? converterOrder(value, converted, orderOptions, nested, assignQueryValidator('order'))
-            : converterOrder(value, converted, orderOptions, nested)
+            ? converterOrder(value, converted, metadata, nested, assignQueryValidator('order'))
+            : converterOrder(value, converted, metadata, nested)
     }
 
     // create group converter
@@ -258,8 +257,8 @@ export function buildQueryAttributeConverters<E extends EntityBase, F>(
     const groupOptions = metadata.groupOptions
     transform['group'] = {
         convert: (value: unknown, converted: F) => validationOn
-            ? converterGroup(value, converted, groupOptions, assignQueryValidator('group'))
-            : converterGroup(value, converted, groupOptions)
+            ? converterGroup(value, converted, metadata, assignQueryValidator('group'))
+            : converterGroup(value, converted, metadata)
     }
     
     return transform

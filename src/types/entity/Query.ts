@@ -6,7 +6,7 @@ import {
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
 import { EntityMetadata, SortOptions } from './Metadata'
 import { EntityTransform } from './Converters'
-import { ConfigTypes } from '../Config'
+import { ConfigTypes, NumberLike } from '../Config'
 import Decimal from 'decimal.js'
 import type { Model, InferAttributes, InferCreationAttributes } from 'sequelize'
 
@@ -240,14 +240,14 @@ export type ConvertersBuild<F> = {
         order: <E extends EntityBase>(
             value: unknown, 
             converted: F, 
-            options: SortOptions<E>,
+            metadata: EntityMetadata<E>,
             nested: boolean,
             validate?: QuerySortValidator
         ) => F
         group: <E extends EntityBase>(
             value: unknown, 
             converted: F, 
-            options: SortOptions<E>,
+            metadata: EntityMetadata<E>,
             validate?: QuerySortValidator
         ) => F
     },
@@ -340,7 +340,7 @@ export type FnCount<E extends EntityBase> =
  * - 'id' | 'price' | etc..
  */
 export type FnNumber<E extends EntityBase> = 
-    FnMapper<E, keyof PickByType<E, number> >
+    FnMapper<E, keyof PickByType<E, NumberLike> >
 
 /**
  * FnExternal defines function‑compatible rules applied to related (external)
@@ -456,7 +456,7 @@ export type AggregateAsKey<T extends [string, unknown]> =
 export type EntityAggregateAttributes<
     E extends EntityBase,
     F extends QueryFunctions<E>[] = QueryFunctions<E>[]
-> = {[Key in F[number] as AggregateAsKey<Key>]?: AggregateBase[Key[0]]}
+> = {[Key in F[number] as AggregateAsKey<Key>]: AggregateBase[Key[0]]}
 
 /**
  * QueryGroupOptions defines the grouping rules that can be applied to an

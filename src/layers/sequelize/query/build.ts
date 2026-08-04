@@ -221,9 +221,12 @@ function convertToSequelizeTuple<
                 `Available attributes: [${metadata.baseAttributesList.join(', ')}]`
             )
         }
+        // capitalize first letter for Sequelize alias compatibility
+        const name = metadata.aliases.singular.charAt(0).toUpperCase() 
+            + metadata.aliases.singular.slice(1)
         const column = deepEntity.length
             ? `${deepEntity.join('.')}.${String(item)}`
-            : item
+            : `${name}.${String(item)}`
         
         return [[fn(AGGREGATE_OPERATORS[on], col(column)), alias], deepEntity]
     }
@@ -340,27 +343,28 @@ function buildRelationConverter<
 //======================================== SORT CONVERTERS =================================================
 
 function convertSortOptions<E extends EntityBase, A extends OrderItem[] | (string | Fn | Col)[]>(
+    name: string,
     sortOptions: SortOptions<E>,
     querySort: QueryGroupOptions<E> | QueryOrderOptions<E>,
     acc: A,
-    valueFormater: <F extends EntityBase>(acc: A, value: SortOption<F>, relAsString?: string) => void,
+    valueFormater: <F extends EntityBase>(name: string, acc: A, value: SortOption<F>, relAsString?: string) => void,
     fnFormater?: (<F extends EntityBase>(acc: A, value: SortFunction<F>) => void) | undefined,
     relAsString?: string
 ): void {
     if (typeof querySort === "string") {
-        applaySortOption(acc, sortOptions, querySort, valueFormater, fnFormater, relAsString)
+        applaySortOption(name, acc, sortOptions, querySort, valueFormater, fnFormater, relAsString)
     } else if (Array.isArray(querySort)) {
         for (let i=0; i < querySort.length; i++) {
             const option = querySort[i]
             if (typeof option === "string") {
-                applaySortOption(acc, sortOptions, option, valueFormater, fnFormater, relAsString)
+                applaySortOption(name, acc, sortOptions, option, valueFormater, fnFormater, relAsString)
             } else if (Array.isArray(option)) {
                 const entity = option[0]
                 const subOptions = option[1] as any // for deep relation type is changed
                 const relationAsString = relAsString ? `${relAsString}.${String(entity)}` : entity
                 const relSortOptions = sortOptions.related[entity]
                 if (!relSortOptions) throw new Error('Related order options are undefined!')
-                convertSortOptions(relSortOptions, subOptions, acc, valueFormater, fnFormater, relationAsString)
+                convertSortOptions(name, relSortOptions, subOptions, acc, valueFormater, fnFormater, relationAsString)
             }
         }
     } else {
@@ -369,17 +373,18 @@ function convertSortOptions<E extends EntityBase, A extends OrderItem[] | (strin
 }
 
 const applaySortOption = <E extends EntityBase, A extends OrderItem[] | (string | Fn | Col)[]>(
+    name: string,
     acc: A,
     sortOptions: SortOptions<E>,
     option: string,
-    valueFormater: <F extends EntityBase>(acc: A, value: SortOption<F>, subEntity?: string) => void,
-    fnFormater?: (<F extends EntityBase>(acc: A, value: SortFunction<F>, subEntity?: string) => void),
-    subEntity?: string
+    valueFormater: <F extends EntityBase>(name: string, acc: A, value: SortOption<F>, subEntity?: string) => void,
+    fnFormater?: (<F extends EntityBase>(acc: A, value: SortFunction<F>, relAsString?: string) => void),
+    relAsString?: string
 ): void => {
     if (sortOptions.options[option]) {
-        valueFormater(acc, sortOptions.options[option], subEntity)
+        valueFormater(name, acc, sortOptions.options[option], relAsString)
     } else if (fnFormater && sortOptions.fns[option]) {
-        fnFormater(acc, sortOptions.fns[option], subEntity)
+        fnFormater(acc, sortOptions.fns[option], relAsString)
     } else {
         throw new Error(`${sortOptions.sortType} has no "${option}"`)
     }
@@ -404,7 +409,7 @@ function buildOrderConverter<F extends FindOptions<InferAttributes<any>> | Inclu
     return <E extends EntityBase>(
         value: unknown,
         converted: F,
-        options: SortOptions<E>,
+        metadata: EntityMetadata<E>,
         nested: boolean,
         validate?: QuerySortValidator
     ): F => {
@@ -412,15 +417,20 @@ function buildOrderConverter<F extends FindOptions<InferAttributes<any>> | Inclu
         if (validate) {
             validate(value)
         }
+        const options = metadata.orderOptions
+        // capitalize first letter for Sequelize alias compatibility
+        const name = metadata.aliases.singular.charAt(0).toUpperCase() 
+            + metadata.aliases.singular.slice(1)
         const accumulated: OrderItem[] = []
         const asOrder = value as QueryOrderOptions<E>
-        convertSortOptions(options, asOrder, accumulated, orderOptionToSequelize, fnOptionToSequelize)
+        convertSortOptions(name, options, asOrder, accumulated, orderOptionToSequelize, fnOptionToSequelize)
         converted.order = accumulated
         return converted
     }
 }
 
 const orderOptionToSequelize = <E extends EntityBase>(
+    name: string,
     acc: OrderItem[],
     option: SortOption<E>,
     entity?: string
@@ -458,28 +468,34 @@ function buildGroupConverter<F extends FindOptions<InferAttributes<any>>>() {
     return <E extends EntityBase>(
         value: unknown,
         converted: F,
-        options: SortOptions<E>,
+        metadata: EntityMetadata<E>,
         validate?: QuerySortValidator
     ): F => {
         if (validate) {
             validate(value)
         }
+        
+        const options = metadata.groupOptions
+        // capitalize first letter for Sequelize alias compatibility
+        const name = metadata.aliases.singular.charAt(0).toUpperCase() 
+            + metadata.aliases.singular.slice(1)
         const accumulated: (string | Fn | Col)[] = []
         const asGroup = value as QueryGroupOptions<E>
-        convertSortOptions(options, asGroup, accumulated, groupOptionToSequlize)
+        convertSortOptions(name, options, asGroup, accumulated, groupOptionToSequlize)
         converted.group = accumulated
         return converted
     }
 }
 
 const groupOptionToSequlize = <E extends EntityBase>(
+    name: string, // capitalized alias of sequelize model
     acc: (string | Fn | Col)[],
     option: SortOption<E>, 
     entity?: string
 ): void => {
     const converted = entity 
         ? `${String(entity)}.${String(option.name)}` 
-        : `${String(option.name)}` 
+        : `${name}.${String(option.name)}` 
     acc.push(converted)
 }
 

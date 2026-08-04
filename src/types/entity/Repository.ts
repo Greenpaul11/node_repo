@@ -7,4 +7,11 @@ export type ResolveManager<T> =
         : unknown
         
         
-        
+export type ManagerMetadata<T> =
+    T extends ModelStatic<any>
+        ? ManagerMetadataSequelize
+        : unknown
+
+export type ManagerMetadataSequelize = {
+    name: string
+}

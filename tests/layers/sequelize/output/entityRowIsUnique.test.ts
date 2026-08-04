@@ -16,13 +16,13 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     const mapSelects = formater.mapSelects.bind(formater)
 
     let query: Query<Product>
-    let select: MapEntitySelect<Product>['select']
+    let select: MapEntitySelect<Product>
     let accumulator: SequelizeRawEntity<Product> | SequelizeRawEntity<Product>[]
     let notGrouped: SequelizeRawEntityNotGrouped<Product>
     
     it ('accumulator and notGrouped have identical base attributes - row is not unique', () => {
         query = {}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             id: 2,
             type: 'smartphone',
@@ -55,7 +55,7 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     })
     it ('accumulator and notGrouped have different base attributes - row is unique', () => {
         query = {}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             id: 3,
             type: 'smartphone',
@@ -89,7 +89,7 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     
     it ('partial select with same values - row is not unique', () => {
         query = {select: ['type', 'brand', 'model', 'image', 'description']}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             type: 'smartphone',
             brand: 'Samsung',
@@ -110,7 +110,7 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     })
     it ('partial select with different values - row is unique', () => {
         query = {select: ['type', 'brand', 'model', 'image', 'description']}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             type: 'smartphone',
             brand: 'Samsung',
@@ -131,7 +131,7 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     })
     it ('related entity differences ignored when comparing base attributes - row is not unique', () => {
         query = {select: ['type', 'brand', 'model', 'image', 'description']}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             type: 'smartphone',
             brand: 'Samsung',
@@ -155,7 +155,7 @@ describe('entityRowIsUnique: Checks if row is unique at root entity level', () =
     
     it ('base attribute difference makes row unique even with related entity differences', () => {
         query = {select: ['type', 'brand', 'model', 'image', 'description']}
-        select = mapSelects(query)['select']
+        select = mapSelects(query)
         accumulator = {
             type: 'smartphone',
             brand: 'Samsung',

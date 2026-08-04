@@ -35,3 +35,5 @@ export type ConfigTypes = {
 export type OrmOptions = Sequelize | Decimal // Decimal is for test purpose
 
 export type DialectOptions = 'mysql' | 'sqlite'
+
+export type NumberLike = number | Decimal

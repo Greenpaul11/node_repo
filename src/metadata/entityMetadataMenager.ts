@@ -7,8 +7,10 @@ import {
     SubEntitiesReferences,
     SortOptions
 } from '../types/entity/Metadata'
+import { MetadataConfig } from '../types/entity/Metadata';
 import { NullableFromObject, PickByType } from '../types/Global'
 import Decimal from 'decimal.js';
+import metadataConfig from './config';
 
 
 /**
@@ -52,6 +54,7 @@ export class EntityMetadataManager<E extends EntityBase>
     private _subEntities?: SubEntitiesReferences<E>;
     private _orderOptions?: SortOptions<E>;
     private _groupOptions?: SortOptions<E>;
+    private _metadatConfig: MetadataConfig
 
     /** Singular / plural reference names used in joins and queries. */
     public readonly aliases: EntityAliases;
@@ -109,6 +112,7 @@ export class EntityMetadataManager<E extends EntityBase>
         config: EntityConfig<E>,
         private readonly lazySubEntities: () => SubEntitiesReferences<E>
     ) {
+        this._metadatConfig = metadataConfig
 
         const baseConfig = config.base
         const attributesList = Object.entries(config.attributes
@@ -229,24 +233,11 @@ export class EntityMetadataManager<E extends EntityBase>
      * The function then recurses into every sub-entity, attaching the
      * generated tree under `related[<relationKey>]`.
      *
-     * @param included Stack of already-visited singular aliases. Used
-     *                 internally to break cycles in cyclic relation
-     *                 graphs. **Pass `undefined` on the first call**;
-     *                 the function manages the stack itself.
+     * @param depth Recursion depth for creation of related order options.
+     *              It is controlled by {@link MetadataConfig}['orderRecursionDepth']
      * @returns The generated {@link SortOptions}`<E>` tree, or
      *          `undefined` if a cycle was detected at this entity (the
      *          parent's `related[...]` entry is then skipped).
-     *
-     * @remarks
-     * The current implementation contains two known issues that may
-     * produce empty or incorrect options for certain attribute types:
-     *
-     * 1. The numeric-aggregate branch only runs for `'number'` typed
-     *    attributes, but `decimal` and `text` columns could also
-     *    legitimately support `SUM`/`AVG`/`MIN`/`MAX`.
-     * 2. The date-aggregate branch gates on `'object'` instead of
-     *    `'date'` (see source line ~164). As a result, no `MIN`/`MAX`
-     *    options are generated for `'date'` attributes.
      *
      * @example
      * ```ts
@@ -255,12 +246,8 @@ export class EntityMetadataManager<E extends EntityBase>
      * // => { sortType: 'order', options: {...}, fns: {...}, related: {...} }
      * ```
      */
-    generateOrderOptions(included?: string[]) {
-        if (included && included.some((a) => this.aliases.singular === a
-            || this.aliases.plural === a)) return // prevent circular loading
-        const include: string[] = included ? included : []
-        include.push(this.aliases.singular)
-
+    generateOrderOptions(depth: number = 0) {
+        if (depth > this._metadatConfig.orderRecursionDepth) return undefined
         const orderObject = <SortOptions<E>>{
             sortType: 'order',
             fns: {},
@@ -309,7 +296,7 @@ export class EntityMetadataManager<E extends EntityBase>
         // recurse into related entities, attaching each generated tree under `related[...]`
         for (const entity in this.subEntities) {
             const entityKey = entity as keyof SubEntitiesReferences<E>
-            const generated = (this.subEntities[entityKey]['metadata'] as unknown as EntityMetadataManager<ExternalReferences<E>[typeof entityKey]>).generateOrderOptions(include)
+            const generated = (this.subEntities[entityKey]['metadata'] as unknown as EntityMetadataManager<ExternalReferences<E>[typeof entityKey]>).generateOrderOptions(depth + 1)
             if (generated) {
                 orderObject['related'][entityKey] = generated
             }
@@ -323,29 +310,17 @@ export class EntityMetadataManager<E extends EntityBase>
      * every related entity.
      *
      * For each base attribute a single key `by <attr>` is emitted
-     * (group options have no direction — `value` is intentionally
+     * (group options have no sort value — `value` is intentionally
      * omitted, matching the {@link SortOptions} `sortType: 'group'`
      * variant).
      *
-     * @param included Stack of already-visited singular aliases. Used
-     *                 internally to break cycles. **Pass `undefined` on
-     *                 the first call**.
+     * @param depth Recursion depth for creation of related group options.
+     *              It is controlled by {@link MetadataConfig}['groupRecursionDepth']
      * @returns The generated {@link SortOptions}`<E>` tree, or
      *          `undefined` if a cycle was detected.
-     *
-     * @remarks
-     * The current implementation contains a known duplication bug: the
-     * same key `by <attr>` is written twice in the options map with
-     * the same value `{ name: attribute }`. The second write is a
-     * no-op at runtime but indicates an incomplete implementation —
-     * `asc` / `desc` variants (or equivalent) were likely intended.
      */
-    generateGroupOptions(included?: string[]) {
-        if (included && included.some((a) => this.aliases.singular === a
-            || this.aliases.plural === a)) return // prevent circular loading
-        const include: string[] = included ? included : []
-        include.push(this.aliases.singular)
-
+    generateGroupOptions(depth: number = 0) {
+        if (depth > this._metadatConfig.groupRecursionDepth) return undefined
         const groupObject = <SortOptions<E>>{
             sortType: 'group',
             fns: {},
@@ -362,7 +337,7 @@ export class EntityMetadataManager<E extends EntityBase>
         // recurse into related entities, attaching each generated tree under `related[...]`
         for (const entity in this.subEntities) {
             const entityKey = entity as keyof SubEntitiesReferences<E>
-            const generated = (this.subEntities[entityKey]['metadata'] as unknown as EntityMetadataManager<ExternalReferences<E>[typeof entityKey]>).generateGroupOptions(include)
+            const generated = (this.subEntities[entityKey]['metadata'] as unknown as EntityMetadataManager<ExternalReferences<E>[typeof entityKey]>).generateGroupOptions(depth + 1)
             if (generated) {
                 groupObject['related'][entityKey] = generated
             }

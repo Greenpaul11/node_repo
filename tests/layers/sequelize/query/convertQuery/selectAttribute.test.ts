@@ -239,7 +239,7 @@ describe('test formatQuery with selectAttribute', async () => {
             const data: Query<Product> = { select: [['$count', 'brand']] }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('brand')), '$count_brand']]
+                attributes: [[fn('COUNT', col('Product.brand')), '$count_brand']]
             })
         })
 
@@ -247,7 +247,7 @@ describe('test formatQuery with selectAttribute', async () => {
             const data: Query<Price> = { select: [['$sum', 'id']] }
             const result = formatPrice(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('SUM', col('id')), '$sum_id']]
+                attributes: [[fn('SUM', col('Price.id')), '$sum_id']]
             })
         })
 
@@ -255,7 +255,7 @@ describe('test formatQuery with selectAttribute', async () => {
             const data: Query<Price> = { select: [['$avg', 'id']] }
             const result = formatPrice(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('AVG', col('id')), '$avg_id']]
+                attributes: [[fn('AVG', col('Price.id')), '$avg_id']]
             })
         })
 
@@ -263,7 +263,7 @@ describe('test formatQuery with selectAttribute', async () => {
             const data: Query<Price> = { select: [['$min', 'id']] }
             const result = formatPrice(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('MIN', col('id')), '$min_id']]
+                attributes: [[fn('MIN', col('Price.id')), '$min_id']]
             })
         })
 
@@ -271,7 +271,7 @@ describe('test formatQuery with selectAttribute', async () => {
             const data: Query<Price> = { select: [['$max', 'id']] }
             const result = formatPrice(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('MAX', col('id')), '$max_id']]
+                attributes: [[fn('MAX', col('Price.id')), '$max_id']]
             })
         })
 
@@ -284,7 +284,7 @@ describe('test formatQuery with selectAttribute', async () => {
                 attributes: [
                     'brand',
                     [fn('COUNT', col('*')), '$count_*'],
-                    [fn('COUNT', col('model')), '$count_model']
+                    [fn('COUNT', col('Product.model')), '$count_model']
                 ]
             })
         })
@@ -365,7 +365,7 @@ describe('test formatQuery with selectAttribute', async () => {
             }
             const result = formatProduct(data)
             assert.deepStrictEqual(result, {
-                attributes: [[fn('COUNT', col('brand')), '$count_brand']]
+                attributes: [[fn('COUNT', col('Product.brand')), '$count_brand']]
             })
         })
 

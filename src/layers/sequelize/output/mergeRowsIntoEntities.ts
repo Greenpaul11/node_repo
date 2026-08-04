@@ -3,6 +3,7 @@ import { MapEntitySelect, SubMapSelect} from '../../../types/entity/Query';
 import { EntityRelationTree } from '../../../types/entity/Metadata';
 import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../types'
 import { extractFnToString } from '../../../formaters/output/convertRow';
+import { fn } from 'sequelize';
 
 
 /**
@@ -10,10 +11,12 @@ import { extractFnToString } from '../../../formaters/output/convertRow';
  * accumulator(row) attributes or its items(rows) attributes. If entity is unique return true.
  */ 
 export function entityRowIsUnique<E extends EntityBase>(
-    select: MapEntitySelect<E>['select'],
+    mapSelect: MapEntitySelect<E>,
     row: SequelizeRawEntityNotGrouped<E> | null,
     accumulator: SequelizeRawEntity<E> | null | SequelizeRawEntity<E>[]
 ): boolean {
+    const { select, fns } = mapSelect
+
     // normalize accumulator to array
     const accArray = accumulator
         ? Array.isArray(accumulator) ? accumulator : [accumulator]
@@ -31,24 +34,39 @@ export function entityRowIsUnique<E extends EntityBase>(
     if (accArray.length === 0) return true;
 
     // compare row against each accumulator item
-    for (const acc of accArray) {
+    for (let i = 0; i < accArray.length; i++) {
+        const acc = accArray[i]
         let allMatch = true;
-
-        for (const attribute of select) {
+        
+        // compare base attributes
+        for (let j = 0; j < select.length; j++) {
+            const attribute = select[j]
             if (toComparable(row[attribute]) !== toComparable(acc[attribute])) {
                 allMatch = false;
                 break;
             }
         }
 
-        if (allMatch) return false // duplicate found
+        // compare aggregates
+        if (fns) {
+            for (let j = 0; j < fns.length; j++) {
+                const fnKey = extractFnToString(fns[j]) as keyof SequelizeRawEntityNotGrouped<E>
+                if (row[fnKey] !== acc[fnKey as keyof SequelizeRawEntity<E>]) {
+                    allMatch = false
+                    break
+                }
+            }
+        }
+
+        if (allMatch) return false // all duplicates 
     }
+
 
     return true // no duplicates
 }
 
 
-function toComparable(value: any) {
+function toComparable(value: unknown) {
     if (value instanceof Date) {
         return value.toISOString();
     }
@@ -235,10 +253,8 @@ export function rowIsUniqueOrNotMerged<E extends EntityBase>(
     accumulator: SequelizeRawEntity<E> | SequelizeRawEntity<E>[]
 ): boolean {
 
-    const { select, subEntities } = mapSelect;
-
     // check base attributes
-    const isBaseUnique = entityRowIsUnique(select, row, accumulator);
+    const isBaseUnique = entityRowIsUnique(mapSelect, row, accumulator);
     if (isBaseUnique) {
         return true; // no need to check sub-entities
     }
@@ -252,6 +268,7 @@ export function rowIsUniqueOrNotMerged<E extends EntityBase>(
         return false; // nothing to compare -> treat as merged
     }
 
+    const subEntities = mapSelect.subEntities
     // if subEntities undefined -> target as merged
     if (!subEntities) {
         return false

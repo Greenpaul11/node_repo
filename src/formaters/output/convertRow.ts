@@ -80,7 +80,7 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
 ): E[keyof ExternalReferences<E>]
 export function convertRow<E extends EntityBase, T extends EntityTransformRules>(
     row: EntityTransform<E, T>, mappedSelect: MapEntitySelect<E>, converters: ConverterFunctionsInfer<E>,
-    nested?: true
+    nested?: boolean
 ): EntityExtend<E, EntityAggregateAttributes<E>> | E[keyof ExternalReferences<E>] {
     const { select, fns, subEntities } = mappedSelect
     const converted = row as E

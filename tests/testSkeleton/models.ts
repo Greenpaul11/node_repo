@@ -993,6 +993,13 @@ Price.belongsTo(Shop, {
     as: 'shop',
     onDelete: 'CASCADE'
 })
+// One-To-Many: Shop -> Price
+Shop.hasMany(Price, {
+    foreignKey: {
+      name: 'shop_id'
+    },
+    as: 'prices'
+})
 // One-To-Many: Category -> Category
 Category.hasMany(Category, {
     foreignKey: {

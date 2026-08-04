@@ -264,3 +264,11 @@ export type EntityConfigAttributes<E extends EntityBase> = {
  */
 type RelationTypeOptions = 'one to one' | 'one to many' | 'many to one' | 'many to many'
 
+/**
+ * Controll configurations for creating metadata
+ */
+export type MetadataConfig = {
+    orderRecursionDepth: number,
+    groupRecursionDepth: number
+}
+

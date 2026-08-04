@@ -19,10 +19,10 @@ export default {
             boolean: (value: number | null) => value === null ? null : Boolean(value) 
         }, 
         fns: {
-            $sum: (value: string) => new Decimal(value),
-            $avg: (value: string) => new Decimal(value),
-            $min: (value: string) => new Decimal(value),
-            $max: (value: string) => new Decimal(value)
+            $sum: (value: string | null)  => value === null ? null : new Decimal(value),
+            $avg: (value: string | null)  => value === null ? null : new Decimal(value),
+            $min: (value: string | null)  => value === null ? null : new Decimal(value),
+            $max: (value: string | null)  => value === null ? null : new Decimal(value)
         }
     }
 } 
