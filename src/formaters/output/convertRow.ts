@@ -122,7 +122,7 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
     }
 
     // Recursive calls return immediately — aggregates only apply at the root
-    if (nested) return converted
+    if (nested) return converted as E[keyof ExternalReferences<E>]
     
     // 3. Convert aggregate function attributes (root level only)
     const convertedWithFns = converted as E & EntityAggregateAttributes<E>

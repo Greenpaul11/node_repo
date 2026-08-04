@@ -53,7 +53,17 @@ Now you have a repository with these available calls:
 - `deleteOne(id)` — deletes a record by id. Returns `true` if a record was removed.
 - `destroyAll(where?)` — deletes all records matching the condition. Returns the number of deleted records.
 
-These calls will always stay the same regardless of the ORM underneath. The
+These repository APIs cover the majority of common use cases. However, they are not intended to be restrictive. 
+If you need functionality that is not exposed through the repository interface, 
+you can access the underlying ORM manager directly. For example:
+
+```ts
+repo.ormManager.manager.findAll() // SequelizeModel.findAll()
+```
+
+Use the native ORM manager only when the repository APIs cannot satisfy your requirements.
+
+Repository calls will always stay the same regardless of the ORM underneath. The
 query parameter uses its own query language that is independent of the ORM.
 Currently you can use in your queries:
 
@@ -82,16 +92,27 @@ Currently you can use in your queries:
   ```
 
 - **order attribute** — single string for one field, array for multi-field composite sorts, 
-  `nulls first`/`nulls last` for null placement. Use tuple syntax for relation ordering 
+  `nulls first`/`nulls last` for null placement. Use tuple for relation ordering, first item
+  in tuple refers always to related entity name 
   (`['prices', ['by price asc']]`) or deep nested ordering
-  (`['prices', [['shop', ['by name desc']]]]`).
+  (`['prices', ['by price asc', ['shop', ['by name desc']]]]`).
   ```
   { order: 'by brand asc' }
-  { order: ['by brand asc', 'by model desc', 'by id asc'] }
   { order: 'by created desc nulls last' }
+  { order: ['by brand asc', 'by model desc', 'by id asc'] }
   { order: ['by brand asc', ['prices', ['by price desc']]] }
   { order: ['by brand asc', ['prices', [['shop', ['by name asc']]]]] }
   ```
+
+- **group attribute** - single string for one field, array for multi-field. Use tuple for
+  relation grouping, first item in tuple refers always to related entity name
+  (`['prices', ['by price']]`) or deep nested ordering
+  (`['prices', [['shop', ['by name']]]]`).
+  ```
+  { group: 'by price' }
+  { group: ['by price', 'by created'] }
+  { group: ['by price', ['shop', ['by name']]] }
+  { group: ['by price', ['product', ['by brand', ['importer', ['by name']]]]] }
 
 The domain query language is converted to the ORM-specific query language
 internally. When entities are returned by the ORM manager, they are converted
@@ -119,29 +140,33 @@ dynamic imports. The abstract contracts live in `src/formaters/` and
 implementations under `src/layers/<orm>/`.
 
 ```
-                        ┌──────────────────────────────┐
-                        │        Repository            │
-                        │     src/repository/          │  ← user-facing
-                        └──────────┬───────────────────┘
-                                   │ wires via dynamic import
-              ┌────────────────────┼────────────────────┐
-              ▼                    ▼                    ▼
- ┌────────────────────┐ ┌──────────────────┐ ┌────────────────────┐
- │   QueryFormater    │ │   OrmManager     │ │   OutputFormater   │
- │  ┌──────────────┐  │ │  ┌────────────┐  │ │  ┌──────────────┐  │
- │  │ abstract base│  │ │  │abstract    │  │ │  │ abstract base│  │
- │  │ src/formaters│  │ │  │base        │  │ │  │ src/formaters│  │
- │  │ /query/      │  │ │  │src/orm     │  │ │  │ /output/     │  │
- │  │              │  │ │  │Manager/    │  │ │  │              │  │
- │  └──────┬───────┘  │ │  └─────┬──────┘  │ │  └──────┬───────┘  │
- │  ┌──────┴───────┐  │ │  ┌─────┴──────┐  │ │  ┌──────┴───────┐  │
- │  │  Sequelize   │  │ │  │ Sequelize  │  │ │  │  Sequelize   │  │
- │  │  layers/     │  │ │  │ layers/    │  │ │  │  layers/     │  │
- │  │  sequelize/  │  │ │  │ sequelize/ │  │ │  │  sequelize/  │  │
- │  │  query/      │  │ │  │ manager/   │  │ │  │  output/     │  │
- │  └──────────────┘  │ │  └────────────┘  │ │  └──────────────┘  │
- └────────────────────┘ └──────────────────┘ └────────────────────┘
+                                      ┌─────────────────────────────┐
+                                      │         Repository          │
+                                      │      src/repository/        │
+                                      │        (user-facing)        │
+                                      └─────────────┬───────────────┘
+                                                    │
+                                      wires via dynamic import
+                                                    │
+                    ┌───────────────────────────────┼──────────────────────────────────┐
+                    │                               │                                  │
+                    ▼                               ▼                                  ▼
+
+  ┌────────────────────────────┐      ┌────────────────────────────┐      ┌────────────────────────────┐
+  │      QueryFormatter        │      │        OrmManager          │      │      OutputFormatter       │
+  ├────────────────────────────┤      ├────────────────────────────┤      ├────────────────────────────┤
+  │      Abstract Base         │      │      Abstract Base         │      │      Abstract Base         │
+  │   src/formatters/query/    │      │     src/ormManager/        │      │  src/formatters/output/    │
+  └─────────────┬──────────────┘      └─────────────┬──────────────┘      └─────────────┬──────────────┘
+                │                                   │                                   │
+                ▼                                   ▼                                   ▼
+  ┌────────────────────────────┐      ┌────────────────────────────┐      ┌────────────────────────────┐
+  │     Sequelize Layer        │      │     Sequelize Manager      │      │     Sequelize Layer        │
+  │ src/layers/sequelize/      │      │ src/layers/sequelize/      │      │ src/layers/sequelize/      │
+  │        query/              │      │        manager/            │      │        output/             │
+  └────────────────────────────┘      └────────────────────────────┘      └────────────────────────────┘
 ```
+
 
 - **Repository** (`src/repository/repository.ts`) — what application code
   calls. Constructed synchronously; the async `Repository.init()` factory

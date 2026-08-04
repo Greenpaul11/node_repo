@@ -33,7 +33,7 @@ describe('test formatQueryBaseAttributes - expected output from database (sqlite
             productRepository = await Repository.init(connection, productMetadata, ProductModel)
             priceRepository = await Repository.init(connection, priceMetadata, PriceModel)
             shopRepository = await Repository.init(connection, shopMetadata, ShopModel)
-
+          
             await ProductImporterModel.bulkCreate(productImporterData)
 
             for (const shop of shopList) {

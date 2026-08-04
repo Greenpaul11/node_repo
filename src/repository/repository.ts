@@ -167,13 +167,12 @@ export class Repository<
     static async init<
         E extends EntityBase,
         C extends EntityCreationAttributes<E, CreationOptional<E>>,
-        T,
-        M = ResolveManager<T>
+        T
     >(
         connection: OrmOptions,
         metadata: EntityMetadata<E>,
-        ormManager: M
-    ): Promise<Repository<E, C, T>> {
+        ormManager: ResolveManager<T>
+    ): Promise<Repository<E, C, T, ResolveManager<T>>> {
 
         const repository = new Repository<E, C, T>(metadata, connection);
         const orm = repository._resolveOrmName(connection)
@@ -190,7 +189,7 @@ export class Repository<
         // load proper OrmOperations class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
         const OrmManager = ormManagerModule.OrmManager as new (
-            ormManager: M,
+            ormManager: ResolveManager<T>,
             dialect: DialectOptions,
             convertQuery: <Q extends Query<E>>(query: Q) => unknown
         ) => OrmManagerBase<E, T>

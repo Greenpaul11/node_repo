@@ -229,7 +229,8 @@ describe('convertRow', () => {
                         }
                     }
                 ]
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'active', 'created'],
@@ -367,7 +368,8 @@ describe('convertRow', () => {
                 model: 'ThinkPad X1',
                 active: 1,
                 '$count_prices_id': '8'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -386,7 +388,8 @@ describe('convertRow', () => {
                 model: 'XPS 15',
                 active: 1,
                 '$sum_prices_id': '25'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -406,7 +409,8 @@ describe('convertRow', () => {
                 model: 'XPS 15',
                 active: 1,
                 '$avg_prices_id': '15'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -426,7 +430,8 @@ describe('convertRow', () => {
                 model: 'XPS 15',
                 active: 1,
                 '$min_prices_id': '1'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -446,7 +451,8 @@ describe('convertRow', () => {
                 model: 'XPS 15',
                 active: 1,
                 '$max_prices_id': '100'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -505,7 +511,8 @@ describe('convertRow', () => {
                 brand: 'TestBrand',
                 model: 'TestModel',
                 active: 1
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -526,7 +533,8 @@ describe('convertRow', () => {
                 model: 'TestModel',
                 active: 1,
                 '$sum_prices_id': '12345.678'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -547,7 +555,8 @@ describe('convertRow', () => {
                 active: 1,
                 '$sum_prices_id': '0',
                 '$count_prices_id': '0'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -568,7 +577,8 @@ describe('convertRow', () => {
                 model: 'TestModel',
                 active: 1,
                 '$sum_prices_id': '999999999'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -604,7 +614,8 @@ describe('convertRow', () => {
                     }
                 ],
                 '$count_prices_shop_id': '1'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -637,7 +648,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_prices_id': '10'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -656,7 +668,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_comments_id': '25'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -675,7 +688,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$sum_prices_shop_id': '25'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -695,7 +709,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_comments_user_id': '15'
-            } as ProductRow
+            } as unknown as ProductRow
+
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -714,7 +729,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_prices_shop_prices_id': '7'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -733,7 +749,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$sum_comments_user_rates_id': '120'
-            }as unknown as ProductRow // retriving keys is limited to 2 depth
+            }as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -753,7 +770,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$avg_prices_shop_id': '50'
-            }as unknown as ProductRow // retriving keys is limited to 2 depth
+            }as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -773,7 +791,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$min_comments_user_rates_id': '3'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -793,7 +812,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$max_comments_user_rates_id': '95'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -813,7 +833,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_prices_shop_prices_shop_id': '3'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -832,7 +853,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$sum_comments_user_rates_comment_id': '45'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -852,7 +874,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$avg_prices_shop_prices_shop_id': '50'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -872,7 +895,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$min_comments_user_rates_comment_id': '5'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -892,7 +916,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$max_comments_user_rates_comment_id': '80'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -912,7 +937,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$count_prices_shop_prices_shop_prices_id': '2'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -931,7 +957,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$sum_comments_user_rates_comment_user_id': '60'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -951,7 +978,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$avg_prices_shop_prices_shop_prices_id': '37.5'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -971,7 +999,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$min_comments_user_rates_comment_user_id': '10'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -991,7 +1020,8 @@ describe('convertRow', () => {
                 model: 'Model',
                 active: 1,
                 '$max_comments_user_rates_comment_user_id': '150'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const mappedSelect: MapEntitySelect<Product> = {
                 select: ['id', 'brand', 'model', 'active'],
@@ -1015,7 +1045,8 @@ describe('convertRow', () => {
                 '$avg_comments_user_rates_comment_user_id': '50',
                 '$min_comments_user_rates_comment_user_id': '20',
                 '$max_comments_user_rates_comment_user_id': '80'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const commentsUserRatesCommentUserId: ['comments', ['user', ['rates', ['comment', ['user', 'id']]]]] = 
                 ['comments', ['user', ['rates', ['comment', ['user', 'id']]]]]
@@ -1054,7 +1085,8 @@ describe('convertRow', () => {
                 '$avg_prices_shop_prices_shop_prices_id': '50',
                 '$min_prices_shop_prices_shop_prices_id': '10',
                 '$max_prices_shop_prices_shop_prices_id': '90'
-            } as unknown as ProductRow // retriving keys is limited to 2 depth
+            } as unknown as ProductRow
+ // retriving keys is limited to 2 depth
 
             const priceShopPricesShopPricesId: ['prices', ['shop', ['prices', ['shop', ['prices', 'id']]]]] = 
                 ['prices', ['shop', ['prices', ['shop', ['prices', 'id']]]]]

@@ -92,7 +92,7 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
             order: <E extends EntityBase>(
                 value: unknown,
                 converted: F,
-                options: SortOptions<E>,
+                options: EntityMetadata<E>,
                 _nested: boolean,
                 validate?: QuerySortValidator
             ) => {
@@ -121,7 +121,7 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
             group: <E extends EntityBase>(
                 value: unknown,
                 converted: F,
-                _options: SortOptions<E>,
+                _options: EntityMetadata<E>,
                 validate?: QuerySortValidator
             ) => {
                 if (validate) {
