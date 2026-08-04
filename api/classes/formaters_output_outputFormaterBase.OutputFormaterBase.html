@@ -1,0 +1,405 @@
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>OutputFormaterBase | node_repo</title><meta name="description" content="Documentation for node_repo"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container"><a href="../index.html" class="title">node_repo</a>
+<div id="tsd-toolbar-links"><a href="https://github.com/Greenpaul11/node_repo">GitHub</a></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
+<ul role="listbox" id="tsd-search-results"></ul>
+<div id="tsd-search-status" aria-live="polite" aria-atomic="true">
+<div>Preparing search index...</div></div></dialog><a href="#" class="tsd-widget menu" id="tsd-toolbar-menu-trigger" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-menu"></use></svg></a></div></header>
+<div class="container container-main">
+<div class="col-content">
+<div class="tsd-page-title">
+<ul class="tsd-breadcrumb" aria-label="Breadcrumb">
+<li><a href="../modules/formaters_output_outputFormaterBase.html">formaters/output/outputFormaterBase</a></li>
+<li><a href="" aria-current="page">OutputFormaterBase</a></li></ul>
+<h1>Class OutputFormaterBase&lt;E, T, C&gt;<code class="tsd-tag">Abstract</code></h1></div>
+<section class="tsd-panel tsd-comment">
+<div class="tsd-comment tsd-typography"><p>Base class that defines the main properties and methods for converting
+ORM-level rows into fully typed domain entities.</p>
+<p>Subclasses derived from this class provide the implementation for a
+specific ORM layout (e.g. Sequelize, Prisma). Every subclass is named
+<code>OutputFormater</code>; what distinguishes one subclass from another is the
+directory tree it is imported from.</p>
+<p><code>OutputFormaterBase</code> sits between the data layer — which returns raw,
+ORM-specific representations of an entity (or partially transformed
+rows) — and the application layer, which expects the <a href="../types/types_entity_Root.EntityBase.html" class="tsd-kind-type-alias">EntityBase</a>
+shape. It owns three responsibilities:</p>
+<ol>
+<li><strong>Select mapping</strong> — retrieves the <code>select</code> attribute from a
+<a href="../types/types_entity_Query.Query.html" class="tsd-kind-type-alias">Query</a> and turns it into a flat per-attribute selection map
+covering the root entity, its nested relations, and aggregate
+functions. The result is a <a href="../types/types_entity_Query.MapEntitySelect.html" class="tsd-kind-type-alias">MapEntitySelect</a>.</li>
+<li><strong>Converter construction</strong> — builds a family-keyed set of type
+converters (e.g. <code>&quot;raw&quot;</code>, <code>&quot;native&quot;</code>) from the dialect's build
+configuration.</li>
+<li><strong>Row conversion</strong> — exposes abstract hooks that subclasses
+implement to map one or many transformed rows into typed entities.</li>
+</ol>
+<p>Concrete subclasses (e.g. the Sequelize <code>OutputFormater</code>) implement
+<code>asEntity</code> and <code>asEntities</code> using the converters and select map exposed
+by this base.</p>
+</div>
+<div class="tsd-comment tsd-typography">
+<div class="tsd-tag-example">
+<h4 class="tsd-anchor-link" id="example">Example<a href="#example" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h4><p>Subclassing for the Sequelize ORM:</p>
+<pre><code class="ts"><span class="hl-0">class</span><span class="hl-1"> </span><span class="hl-6">OutputFormater</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1"> </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">EntityBase</span><span class="hl-1">, </span><span class="hl-6">T</span><span class="hl-1"> </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">Model</span><span class="hl-1">&lt;...&gt;&gt; </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">OutputFormaterBase</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">, </span><span class="hl-6">T</span><span class="hl-1">&gt; {</span><br/><br/><span class="hl-1">    </span><span class="hl-5">// ... Sequelize-specific implementation ...</span><br/><br/><span class="hl-1">    </span><span class="hl-3">asEntity</span><span class="hl-1">&lt;</span><span class="hl-6">Q</span><span class="hl-1"> </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">Query</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">&gt;&gt;(</span><span class="hl-4">row</span><span class="hl-1">: </span><span class="hl-6">T</span><span class="hl-1"> | </span><span class="hl-6">null</span><span class="hl-1">, </span><span class="hl-4">query</span><span class="hl-1">?: </span><span class="hl-6">Q</span><span class="hl-1">): </span><span class="hl-6">any</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-8">return</span><span class="hl-1"> </span><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-3">convertRow</span><span class="hl-1">(</span><span class="hl-4">row</span><span class="hl-1">, </span><span class="hl-4">query</span><span class="hl-1">);</span><br/><span class="hl-1">    }</span><br/><br/><span class="hl-1">    </span><span class="hl-3">asEntities</span><span class="hl-1">&lt;</span><span class="hl-6">Q</span><span class="hl-1"> </span><span class="hl-0">extends</span><span class="hl-1"> </span><span class="hl-6">Query</span><span class="hl-1">&lt;</span><span class="hl-6">E</span><span class="hl-1">&gt;&gt;(</span><span class="hl-4">rows</span><span class="hl-1">: </span><span class="hl-6">T</span><span class="hl-1">[], </span><span class="hl-4">query</span><span class="hl-1">?: </span><span class="hl-6">Q</span><span class="hl-1">): </span><span class="hl-6">any</span><span class="hl-1">[] {</span><br/><span class="hl-1">        </span><span class="hl-8">return</span><span class="hl-1"> </span><span class="hl-4">rows</span><span class="hl-1">.</span><span class="hl-3">map</span><span class="hl-1">(</span><span class="hl-4">r</span><span class="hl-1"> </span><span class="hl-0">=&gt;</span><span class="hl-1"> </span><span class="hl-0">this</span><span class="hl-1">.</span><span class="hl-3">convertRow</span><span class="hl-1">(</span><span class="hl-4">r</span><span class="hl-1">, </span><span class="hl-4">query</span><span class="hl-1">));</span><br/><span class="hl-1">    }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+</div></div></section>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="e"><span class="tsd-kind-type-parameter">E</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Root.EntityBase.html" class="tsd-signature-type tsd-kind-type-alias">EntityBase</a></span>
+<div class="tsd-comment tsd-typography"><p>The typed entity shape returned to callers
+(must extend <a href="../types/types_entity_Root.EntityBase.html" class="tsd-kind-type-alias">EntityBase</a>).</p>
+</div></li>
+<li><span id="t"><span class="tsd-kind-type-parameter">T</span></span>
+<div class="tsd-comment tsd-typography"><p>The transformed row type produced by the ORM layer
+(e.g. a Sequelize <code>Model</code> instance).</p>
+</div></li>
+<li><span id="c"><span class="tsd-kind-type-parameter">C</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span> = <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The dialect build configuration type. Defaults to
+<a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-kind-type-alias">ConverterDialectsBuild</a> of <code>any</code>. Each key of <code>C</code>
+corresponds to a supported dialect (e.g. <code>&quot;mysql&quot;</code>,
+<code>&quot;sqlite&quot;</code>).</p>
+</div></li></ul></section><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L68">formaters/output/outputFormaterBase.ts:68</a></li></ul></aside>
+<section class="tsd-panel-group tsd-index-group">
+<section class="tsd-panel tsd-index-panel">
+<details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h5 class="tsd-index-heading uppercase">Index</h5></summary>
+<div class="tsd-accordion-details">
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="constructors">Constructors<a href="#constructors" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="properties">Properties<a href="#properties" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#converterdialectsbuild" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Dialects<wbr/>Build</span></a>
+<a href="#converterfunctiondialects" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Function<wbr/>Dialects</span></a>
+<a href="#converterfunctions" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Functions</span></a>
+<a href="#converters" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converters</span></a>
+<a href="#dialect" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dialect</span></a>
+<a href="#metadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata</span></a>
+<a href="#relationtree" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>relation<wbr/>Tree</span></a>
+</div></section>
+<section class="tsd-index-section">
+<h3 class="tsd-index-heading tsd-anchor-link" id="methods">Methods<a href="#methods" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-index-list"><a href="#asentities" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>as<wbr/>Entities</span></a>
+<a href="#asentity" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>as<wbr/>Entity</span></a>
+<a href="#converterfactory" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>converter<wbr/>Factory</span></a>
+<a href="#mapselects" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>map<wbr/>Selects</span></a>
+</div></section></div></details></section></section>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="constructors-1">Constructors<a href="#constructors-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="constructor"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="constructoroutputformaterbase"><span class="tsd-signature-keyword">new</span> <span class="tsd-kind-constructor-signature">OutputFormaterBase</span><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructoroutputformaterbasee">E</a> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructoroutputformaterbaset">T</a><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#constructoroutputformaterbasec">C</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">=</span> <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">metadata</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/types_entity_Metadata.EntityMetadata.html" class="tsd-signature-type tsd-kind-interface">EntityMetadata</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">relationTree</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-signature-type tsd-kind-type-alias">EntityRelationTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">dialect</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="" class="tsd-signature-type tsd-kind-class">OutputFormaterBase</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span><a href="#constructoroutputformaterbase" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="constructoroutputformaterbasee"><span class="tsd-kind-type-parameter">E</span> <span class="tsd-signature-keyword">extends</span> <span class="tsd-signature-symbol">{</span> <span class="tsd-kind-property">active</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">created</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span> <span class="tsd-kind-property">updated</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Date</span> <span class="tsd-signature-symbol">}</span></span>
+<div class="tsd-comment tsd-typography"><p>The typed entity shape returned to callers
+(must extend <a href="../types/types_entity_Root.EntityBase.html" class="tsd-kind-type-alias">EntityBase</a>).</p>
+</div></li>
+<li><span id="constructoroutputformaterbaset"><span class="tsd-kind-type-parameter">T</span></span>
+<div class="tsd-comment tsd-typography"><p>The transformed row type produced by the ORM layer
+(e.g. a Sequelize <code>Model</code> instance).</p>
+</div></li>
+<li><span id="constructoroutputformaterbasec"><span class="tsd-kind-type-parameter">C</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span> = <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>The dialect build configuration type. Defaults to
+<a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-kind-type-alias">ConverterDialectsBuild</a> of <code>any</code>. Each key of <code>C</code>
+corresponds to a supported dialect (e.g. <code>&quot;mysql&quot;</code>,
+<code>&quot;sqlite&quot;</code>).</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">metadata</span>: <a href="../interfaces/types_entity_Metadata.EntityMetadata.html" class="tsd-signature-type tsd-kind-interface">EntityMetadata</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Entity metadata describing base attributes and
+relations.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">relationTree</span>: <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-signature-type tsd-kind-type-alias">EntityRelationTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Relation tree derived from <code>metadata</code>; controls
+nested select mapping.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">dialect</span>: <span class="tsd-signature-keyword">keyof</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a></span>
+<div class="tsd-comment tsd-typography"><p>Active dialect key. Must be a key of <code>C</code>
+(e.g. <code>&quot;mysql&quot;</code>).</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="" class="tsd-signature-type tsd-kind-class">OutputFormaterBase</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L107">formaters/output/outputFormaterBase.ts:107</a></li></ul></aside></div></li></ul></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="properties-1">Properties<a href="#properties-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="converterdialectsbuild"><span>converter<wbr/>Dialects<wbr/>Build</span><a href="#converterdialectsbuild" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">converterDialectsBuild</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a></div>
+<div class="tsd-comment tsd-typography"><p>The full dialect build configuration passed into the constructor.
+Exposed so subclasses can introspect available converters.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L97">formaters/output/outputFormaterBase.ts:97</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="converterfunctiondialects"><span>converter<wbr/>Function<wbr/>Dialects</span><a href="#converterfunctiondialects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">converterFunctionDialects</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Converters.ConverterFunctionDialects.html" class="tsd-signature-type tsd-kind-type-alias">ConverterFunctionDialects</a><span class="tsd-signature-symbol">&lt;</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span><br/>    <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span><br/>    <a href="" class="tsd-signature-type tsd-kind-class">OutputFormaterBase</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Dialect-keyed view of <a href="#converterfunctions" class="tsd-kind-property">converterFunctions</a>. Each key is a
+dialect name and its value is the converter pair for that dialect.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L91">formaters/output/outputFormaterBase.ts:91</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="converterfunctions"><span>converter<wbr/>Functions</span><a href="#converterfunctions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">converterFunctions</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Converters.ConverterFunctions.html" class="tsd-signature-type tsd-kind-type-alias">ConverterFunctions</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">,</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Inferred converter function set derived from the entity and dialect
+types. Drives the runtime behavior of <code>asEntity</code> and <code>asEntities</code>
+in subclasses.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L85">formaters/output/outputFormaterBase.ts:85</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="converters"><span>converters</span><a href="#converters" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">converters</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Converters.ConverterFamilesInfer.html" class="tsd-signature-type tsd-kind-type-alias">ConverterFamilesInfer</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Family-keyed set of converters, populated by <a href="#converterfactory" class="tsd-kind-method">converterFactory</a>.
+Each key is a transform family (e.g. <code>&quot;raw&quot;</code>, <code>&quot;native&quot;</code>) and each
+value is a <a href="../types/types_entity_Converters.ConverterFunctions.html" class="tsd-kind-type-alias">ConverterFunctions</a>-shaped object.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L78">formaters/output/outputFormaterBase.ts:78</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="dialect"><span>dialect</span><a href="#dialect" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">dialect</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-keyword">keyof</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a></div>
+<div class="tsd-comment tsd-typography"><p>Active dialect key. Must be a key of <code>C</code>
+(e.g. <code>&quot;mysql&quot;</code>).</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L110">formaters/output/outputFormaterBase.ts:110</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="metadata"><span>metadata</span><a href="#metadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">metadata</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/types_entity_Metadata.EntityMetadata.html" class="tsd-signature-type tsd-kind-interface">EntityMetadata</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Entity metadata describing base attributes and
+relations.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L108">formaters/output/outputFormaterBase.ts:108</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="relationtree"><span>relation<wbr/>Tree</span><a href="#relationtree" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">relationTree</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Metadata.EntityRelationTree.html" class="tsd-signature-type tsd-kind-type-alias">EntityRelationTree</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></div>
+<div class="tsd-comment tsd-typography"><p>Relation tree derived from <code>metadata</code>; controls
+nested select mapping.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L109">formaters/output/outputFormaterBase.ts:109</a></li></ul></aside></section></section></details>
+<details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h2 class="tsd-anchor-link" id="methods-1">Methods<a href="#methods-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h2></summary>
+<section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="asentities"><code class="tsd-tag">Abstract</code><span>as<wbr/>Entities</span><a href="#asentities" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="asentities-1"><span class="tsd-kind-call-signature">asEntities</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#asentitiesq">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">row</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span> <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentitiesq">Q</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentitiesq">Q</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><a href="#asentities-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Convert an array of transformed rows into an array of typed entities.</p>
+<p>Implemented by subclasses. Each element follows the same projection
+rules as <a href="#asentity" class="tsd-kind-method">asEntity</a>.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="asentitiesq"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Query subtype narrowing each returned projection.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">row</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a><span class="tsd-signature-symbol">[]</span></span></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">query</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentitiesq">Q</a></span>
+<div class="tsd-comment tsd-typography"><p>Optional query describing the desired selection
+shape.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentitiesq">Q</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h4><p>Array of typed entities (possibly projected via <code>query</code>).</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L196">formaters/output/outputFormaterBase.ts:196</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="asentity"><code class="tsd-tag">Abstract</code><span>as<wbr/>Entity</span><a href="#asentity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="asentity-1"><span class="tsd-kind-call-signature">asEntity</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">row</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><a href="#asentity-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Convert a single transformed row into a typed entity (or projection
+of it).</p>
+<p>Implemented by subclasses. The return shape depends on whether
+<code>query</code> is supplied: without a query the full entity <code>E</code> is
+returned, with a query the entity is projected to
+<a href="../types/types_entity_Query.EntityProjection.html" class="tsd-kind-type-alias">EntityProjection</a> of <code>E</code> according to the requested
+selection.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="asentityq"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Query subtype narrowing the returned projection.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">row</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
+<div class="tsd-comment tsd-typography"><p>The transformed row from the ORM layer, or <code>null</code>
+if no row was found.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a></h4><p>The typed entity, a projected entity, or <code>null</code> when
+<code>row</code> is <code>null</code>.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L180">formaters/output/outputFormaterBase.ts:180</a></li></ul></aside></div></li>
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="asentity-2"><span class="tsd-kind-call-signature">asEntity</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-1">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">row</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-1">Q</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-1">Q</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#asentity-2" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Convert a single transformed row into a typed entity (or projection
+of it).</p>
+<p>Implemented by subclasses. The return shape depends on whether
+<code>query</code> is supplied: without a query the full entity <code>E</code> is
+returned, with a query the entity is projected to
+<a href="../types/types_entity_Query.EntityProjection.html" class="tsd-kind-type-alias">EntityProjection</a> of <code>E</code> according to the requested
+selection.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="asentityq-1"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Query subtype narrowing the returned projection.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">row</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
+<div class="tsd-comment tsd-typography"><p>The transformed row from the ORM layer, or <code>null</code>
+if no row was found.</p>
+</div></li>
+<li><span><span class="tsd-kind-parameter">query</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-1">Q</a></span>
+<div class="tsd-comment tsd-typography"><p>Optional query describing the desired selection
+shape.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-1">Q</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>The typed entity, a projected entity, or <code>null</code> when
+<code>row</code> is <code>null</code>.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L181">formaters/output/outputFormaterBase.ts:181</a></li></ul></aside></div></li>
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="asentity-3"><span class="tsd-kind-call-signature">asEntity</span><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-2">Q</a> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">row</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">?:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-2">Q</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a> <span class="tsd-signature-symbol">|</span> <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-2">Q</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span><a href="#asentity-3" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Convert a single transformed row into a typed entity (or projection
+of it).</p>
+<p>Implemented by subclasses. The return shape depends on whether
+<code>query</code> is supplied: without a query the full entity <code>E</code> is
+returned, with a query the entity is projected to
+<a href="../types/types_entity_Query.EntityProjection.html" class="tsd-kind-type-alias">EntityProjection</a> of <code>E</code> according to the requested
+selection.</p>
+</div>
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li><span id="asentityq-2"><span class="tsd-kind-type-parameter">Q</span> <span class="tsd-signature-keyword">extends</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></span>
+<div class="tsd-comment tsd-typography"><p>Query subtype narrowing the returned projection.</p>
+</div></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">row</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#t">T</a> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></span>
+<div class="tsd-comment tsd-typography"><p>The transformed row from the ORM layer, or <code>null</code>
+if no row was found.</p>
+</div></li>
+<li><span><code class="tsd-tag">Optional</code><span class="tsd-kind-parameter">query</span>: <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-2">Q</a></span>
+<div class="tsd-comment tsd-typography"><p>Optional query describing the desired selection
+shape.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a> <span class="tsd-signature-symbol">|</span> <a href="../types/types_entity_Query.EntityProjection.html" class="tsd-signature-type tsd-kind-type-alias">EntityProjection</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">,</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#asentityq-2">Q</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">null</span></h4><p>The typed entity, a projected entity, or <code>null</code> when
+<code>row</code> is <code>null</code>.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L182">formaters/output/outputFormaterBase.ts:182</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="converterfactory"><span>converter<wbr/>Factory</span><a href="#converterfactory" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="converterfactory-1"><span class="tsd-kind-call-signature">converterFactory</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">typeConverters</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-keyword">keyof</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Converters.ConverterFamilesInfer.html" class="tsd-signature-type tsd-kind-type-alias">ConverterFamilesInfer</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><a href="#converterfactory-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Build a family-keyed converter object for the given dialect.</p>
+<p>Iterates the configured transform families (e.g. <code>&quot;raw&quot;</code>, <code>&quot;native&quot;</code>)
+in <code>typeConverters</code> and, for each one, produces an attribute-level
+converter set via <a href="../functions/formaters_output_buildConverters.buildConverters.html" class="tsd-kind-function">buildConverters</a>.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">typeConverters</span>: <a href="../types/types_entity_Converters.ConverterDialectsBuild.html" class="tsd-signature-type tsd-kind-type-alias">ConverterDialectsBuild</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-keyword">keyof</span> <a class="tsd-signature-type tsd-kind-type-parameter" href="#c">C</a><span class="tsd-signature-symbol">]</span></span>
+<div class="tsd-comment tsd-typography"><p>The build configuration for the current
+dialect, indexed by transform family.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/types_entity_Converters.ConverterFamilesInfer.html" class="tsd-signature-type tsd-kind-type-alias">ConverterFamilesInfer</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="../types/types_entity_Converters.ConverterFamilesInfer.html" class="tsd-kind-type-alias">ConverterFamilesInfer</a> keyed by family name.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L151">formaters/output/outputFormaterBase.ts:151</a></li></ul></aside></div></li></ul></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="mapselects"><span>map<wbr/>Selects</span><a href="#mapselects" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="">
+<div class="tsd-signature tsd-anchor-link" id="mapselects-1"><span class="tsd-kind-call-signature">mapSelects</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">query</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../types/types_entity_Query.MapEntitySelect.html" class="tsd-signature-type tsd-kind-type-alias">MapEntitySelect</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span><a href="#mapselects-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Build a flat per-attribute selection map from the <code>select</code> attribute
+of a <a href="../types/types_entity_Query.Query.html" class="tsd-kind-type-alias">Query</a>.</p>
+<p>Combines the root-entity select (resolved against
+<code>metadata.baseAttributesList</code>) with the nested select map produced by
+<a href="../functions/formaters_output_mapSelects.mapNestedSelects.html" class="tsd-kind-function">mapNestedSelects</a> for each relation in <code>relationTree</code>.</p>
+</div>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li><span><span class="tsd-kind-parameter">query</span>: <a href="../types/types_entity_Query.Query.html" class="tsd-signature-type tsd-kind-type-alias">Query</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span> <span class="tsd-signature-symbol">|</span> <span class="tsd-signature-type">undefined</span></span>
+<div class="tsd-comment tsd-typography"><p>Query that may carry a <code>select</code> attribute.
+- If <code>query.select</code> is defined, attributes of the
+entity and its related entities are selected
+accordingly.
+- If <code>query.select</code> is undefined, all base
+attributes of the root entity are selected by
+default, nested selects still apply if provided.</p>
+</div></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../types/types_entity_Query.MapEntitySelect.html" class="tsd-signature-type tsd-kind-type-alias">MapEntitySelect</a><span class="tsd-signature-symbol">&lt;</span><a class="tsd-signature-type tsd-kind-type-parameter" href="#e">E</a><span class="tsd-signature-symbol">&gt;</span></h4><p>A <a href="../types/types_entity_Query.MapEntitySelect.html" class="tsd-kind-type-alias">MapEntitySelect</a> keyed by attribute path, marking
+which fields are requested at the root and at each relation
+level.</p>
+<aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/Greenpaul11/node_repo/blob/e3e446a1daa4cad899fd5290766d8742abe80901/src/formaters/output/outputFormaterBase.ts#L133">formaters/output/outputFormaterBase.ts:133</a></li></ul></aside></div></li></ul></section></section></details></div>
+<div class="col-sidebar">
+<div class="page-menu">
+<div class="tsd-navigation settings">
+<details class="tsd-accordion"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div>
+<div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
+<h3>On This Page</h3></summary>
+<div class="tsd-accordion-details">
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Constructors"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Constructors</summary>
+<div><a href="#constructor"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Constructor"><use href="../assets/icons.svg#icon-512"></use></svg><span>constructor</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
+<div><a href="#converterdialectsbuild"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Dialects<wbr/>Build</span></a><a href="#converterfunctiondialects"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Function<wbr/>Dialects</span></a><a href="#converterfunctions"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converter<wbr/>Functions</span></a><a href="#converters"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>converters</span></a><a href="#dialect"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>dialect</span></a><a href="#metadata"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>metadata</span></a><a href="#relationtree"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>relation<wbr/>Tree</span></a></div></details>
+<details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Methods"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Methods</summary>
+<div><a href="#asentities"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>as<wbr/>Entities</span></a><a href="#asentity"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>as<wbr/>Entity</span></a><a href="#converterfactory"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>converter<wbr/>Factory</span></a><a href="#mapselects"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Method"><use href="../assets/icons.svg#icon-2048"></use></svg><span>map<wbr/>Selects</span></a></div></details></div></details></div>
+<div class="site-menu">
+<nav id="tsd-sidebar-links" class="tsd-navigation"><a href="https://github.com/Greenpaul11/node_repo" class="tsd-nav-link">GitHub</a></nav>
+<nav class="tsd-navigation"><a href="../index.html">node_repo</a>
+<ul class="tsd-small-nested-navigation" id="tsd-nav-container">
+<li>Loading...</li></ul></nav></div></div></div><footer>
+<p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer>
+<div class="overlay"></div></body></html>
