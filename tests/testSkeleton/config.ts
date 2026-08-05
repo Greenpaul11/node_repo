@@ -1,4 +1,4 @@
-import { EntityConfig, EntityMetadata } from "../../src/types/entity/Metadata"
+import { EntityConstructor, EntityMetadata } from "../../src/types/entity/Metadata"
 import { EntityMetadataManager } from "../../src/metadata/entityMetadataMenager"
 import { Product, ProductImporter, Price, Shop, Comment, Category, 
     ProductCategory, SpecificationTree, Specification, 
@@ -22,7 +22,7 @@ import { Product, ProductImporter, Price, Shop, Comment, Category,
 
 
 //  1.  SHOP METADATA
-const shopAttributesConfig: EntityConfig<Shop> = {
+const shopAttributesConfig: EntityConstructor<Shop> = {
     base: {
         referenceNames: {
             singularName: 'shop',
@@ -34,8 +34,7 @@ const shopAttributesConfig: EntityConfig<Shop> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -44,8 +43,7 @@ const shopAttributesConfig: EntityConfig<Shop> = {
         name: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -54,18 +52,16 @@ const shopAttributesConfig: EntityConfig<Shop> = {
         founded: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -74,21 +70,19 @@ const shopAttributesConfig: EntityConfig<Shop> = {
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -100,7 +94,7 @@ const shopMetadata = new EntityMetadataManager(
 )
 
 //  2.  PRICE METADATA
-const priceAttributesConfig: EntityConfig<Price> = {
+const priceAttributesConfig: EntityConstructor<Price> = {
     base: {
         referenceNames: {
             singularName: 'price',
@@ -112,8 +106,7 @@ const priceAttributesConfig: EntityConfig<Price> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -122,30 +115,25 @@ const priceAttributesConfig: EntityConfig<Price> = {
         price: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            setAttributes: '{ "step": "0.01" }',
             fieldType: 'decimal',
             type: 'decimal'
         },
         shop_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
-            type: 'number',
-            as: 'laptop'
+            type: 'number'
         },
         url: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -154,19 +142,16 @@ const priceAttributesConfig: EntityConfig<Price> = {
         product_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             type: 'number',
-            fieldType: 'number',
-            as: 'laptop'
+            fieldType: 'number'
         },
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -175,21 +160,19 @@ const priceAttributesConfig: EntityConfig<Price> = {
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -204,7 +187,7 @@ const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager<Price>(
 )
 
 //  3.  PRODUCT METADATA
-const productAttributesConfig: EntityConfig<Product> = {
+const productAttributesConfig: EntityConstructor<Product> = {
     base: {
         referenceNames: {
             singularName: 'product',
@@ -216,8 +199,7 @@ const productAttributesConfig: EntityConfig<Product> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: true,
             searchIn: null,
             fieldType: 'number',
@@ -226,8 +208,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         importer_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -236,8 +217,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         type: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -246,8 +226,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         brand: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -256,8 +235,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         model: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -266,8 +244,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         image: {
             required: false,
             allowNull: true,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -276,18 +253,16 @@ const productAttributesConfig: EntityConfig<Product> = {
         description: {
             required: true,
             allowNull: true,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
-            fieldType: 'text',
+            fieldType: 'string',
             type: 'string'
         },
         variant: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -296,8 +271,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         variant_second: {
             required: false,
             allowNull: true,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -306,8 +280,7 @@ const productAttributesConfig: EntityConfig<Product> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -316,21 +289,19 @@ const productAttributesConfig: EntityConfig<Product> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -348,7 +319,7 @@ const productMetadata: EntityMetadata<Product> = new EntityMetadataManager<Produ
 )
 
 //  14. COMMENT METADATA 
-const commentAttributesConfig: EntityConfig<Comment> = {
+const commentAttributesConfig: EntityConstructor<Comment> = {
     base: {
         referenceNames: {
             singularName: 'comment',
@@ -360,8 +331,7 @@ const commentAttributesConfig: EntityConfig<Comment> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -370,8 +340,7 @@ const commentAttributesConfig: EntityConfig<Comment> = {
         product_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -380,8 +349,7 @@ const commentAttributesConfig: EntityConfig<Comment> = {
         user_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -390,18 +358,16 @@ const commentAttributesConfig: EntityConfig<Comment> = {
         content: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
-            fieldType: 'text',
+            fieldType: 'string',
             type: 'string'
         },
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -410,21 +376,19 @@ const commentAttributesConfig: EntityConfig<Comment> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -440,7 +404,7 @@ const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager<Comme
 )
 
 //  5.  CATEGORY METADATA
-const categoryAttributesConfig: EntityConfig<Category> = {
+const categoryAttributesConfig: EntityConstructor<Category> = {
     base: {
         referenceNames: {
             singularName: 'category',
@@ -452,8 +416,7 @@ const categoryAttributesConfig: EntityConfig<Category> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -462,8 +425,7 @@ const categoryAttributesConfig: EntityConfig<Category> = {
         name: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -472,8 +434,7 @@ const categoryAttributesConfig: EntityConfig<Category> = {
         slug: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -482,8 +443,7 @@ const categoryAttributesConfig: EntityConfig<Category> = {
         parent_id: {
             required: false,
             allowNull: true,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -492,8 +452,7 @@ const categoryAttributesConfig: EntityConfig<Category> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -502,21 +461,19 @@ const categoryAttributesConfig: EntityConfig<Category> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -532,7 +489,7 @@ const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager<Cat
 )
 
 //  6.  PRODUCT CATEGORY METADATA
-const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
+const productCategoryAttributesConfig: EntityConstructor<ProductCategory> = {
     base: {
         referenceNames: {
             singularName: 'product_category',
@@ -544,8 +501,7 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -554,8 +510,7 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
         product_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -564,8 +519,7 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
         category_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -574,8 +528,7 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
         is_primary: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -584,8 +537,7 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -594,21 +546,19 @@ const productCategoryAttributesConfig: EntityConfig<ProductCategory> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -623,7 +573,7 @@ const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetad
 )
 
 //  7.  SPECIFICATION TREE METADATA
-const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
+const specificationTreeAttributesConfig: EntityConstructor<SpecificationTree> = {
     base: {
         referenceNames: {
             singularName: 'specification_tree',
@@ -635,8 +585,7 @@ const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -645,8 +594,7 @@ const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
         product_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -655,8 +603,7 @@ const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
         specification_type: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -665,8 +612,7 @@ const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -675,21 +621,19 @@ const specificationTreeAttributesConfig: EntityConfig<SpecificationTree> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -704,7 +648,7 @@ const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityM
 )
 
 //  8.  SPECIFICATION METADATA
-const specificationAttributesConfig: EntityConfig<Specification> = {
+const specificationAttributesConfig: EntityConstructor<Specification> = {
     base: {
         referenceNames: {
             singularName: 'specification',
@@ -716,8 +660,7 @@ const specificationAttributesConfig: EntityConfig<Specification> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -726,8 +669,7 @@ const specificationAttributesConfig: EntityConfig<Specification> = {
         specification_tree_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -736,8 +678,7 @@ const specificationAttributesConfig: EntityConfig<Specification> = {
         specification: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -746,8 +687,7 @@ const specificationAttributesConfig: EntityConfig<Specification> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -756,21 +696,19 @@ const specificationAttributesConfig: EntityConfig<Specification> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -783,7 +721,7 @@ const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataM
 
 
 //  13.  USER METADATA
-const userAttributesConfig: EntityConfig<User> = {
+const userAttributesConfig: EntityConstructor<User> = {
     base: {
         referenceNames: {
             singularName: 'user',
@@ -795,8 +733,7 @@ const userAttributesConfig: EntityConfig<User> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -805,8 +742,7 @@ const userAttributesConfig: EntityConfig<User> = {
         name: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -815,8 +751,7 @@ const userAttributesConfig: EntityConfig<User> = {
         login: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -825,8 +760,7 @@ const userAttributesConfig: EntityConfig<User> = {
         email: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: true,
             fieldType: 'string',
@@ -835,8 +769,7 @@ const userAttributesConfig: EntityConfig<User> = {
         password: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -845,8 +778,7 @@ const userAttributesConfig: EntityConfig<User> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -855,21 +787,19 @@ const userAttributesConfig: EntityConfig<User> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -884,7 +814,7 @@ const userMetadata: EntityMetadata<User> = new EntityMetadataManager<User>(
 )
 
 //  14. RATE METADATA
-const rateAttributesConfig: EntityConfig<Rate> = {
+const rateAttributesConfig: EntityConstructor<Rate> = {
     base: {
         referenceNames: {
             singularName: 'rate',
@@ -896,8 +826,7 @@ const rateAttributesConfig: EntityConfig<Rate> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -906,8 +835,7 @@ const rateAttributesConfig: EntityConfig<Rate> = {
         comment_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -916,8 +844,7 @@ const rateAttributesConfig: EntityConfig<Rate> = {
         user_id: {
             required: true,
             allowNull: false,
-            associated: 'inside',
-            locked: true,
+            associated: true,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -926,19 +853,16 @@ const rateAttributesConfig: EntityConfig<Rate> = {
         rate: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            setAttributes: '{ "step": "1", "min": "1", "max": "5" }',
             fieldType: 'number',
             type: 'number'
         },
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -947,21 +871,19 @@ const rateAttributesConfig: EntityConfig<Rate> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }
@@ -977,7 +899,7 @@ const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager<Rate>(
 )
 
 
-export const productImporterAttributesConfig: EntityConfig<ProductImporter> = {
+export const productImporterAttributesConfig: EntityConstructor<ProductImporter> = {
     base: {
         referenceNames: {
             singularName: 'product_importer',
@@ -989,8 +911,7 @@ export const productImporterAttributesConfig: EntityConfig<ProductImporter> = {
             primaryKey: true,
             required: false,
             allowNull: false,
-            associated: null,
-            locked: true,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'number',
@@ -999,8 +920,7 @@ export const productImporterAttributesConfig: EntityConfig<ProductImporter> = {
         name: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: false,
             fieldType: 'string',
@@ -1009,8 +929,7 @@ export const productImporterAttributesConfig: EntityConfig<ProductImporter> = {
         active: {
             required: true,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: false,
             searchIn: null,
             fieldType: 'boolean',
@@ -1019,21 +938,19 @@ export const productImporterAttributesConfig: EntityConfig<ProductImporter> = {
         created: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         },
         updated: {
             required: false,
             allowNull: false,
-            associated: null,
-            locked: false,
+            associated: false,
             asRange: true,
             searchIn: null,
-            fieldType: 'object',
+            fieldType: 'datetime',
             type: 'date'
         }
     }

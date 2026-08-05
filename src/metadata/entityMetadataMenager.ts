@@ -1,8 +1,8 @@
 import { EntityBase, EntityNoExternal, ExternalReferences } from '../types/entity/Root'
 import {
     EntityMetadata,
-    EntityConfigAttributes,
-    EntityConfig,
+    EntityAttributes,
+    EntityConstructor,
     EntityAliases,
     SubEntitiesReferences,
     SortOptions
@@ -17,7 +17,7 @@ import metadataConfig from './config';
  * Concrete implementation of {@link EntityMetadata} for a single entity.
  *
  * `EntityMetadataManager` is built once per entity from an
- * {@link EntityConfig} and exposes:
+ * {@link EntityConstructor} and exposes:
  *
  *  1. **Pre-computed attribute lists** — primary keys, base attributes,
  *     typed slices (string / number / boolean / date / range /
@@ -60,7 +60,7 @@ export class EntityMetadataManager<E extends EntityBase>
     public readonly aliases: EntityAliases;
 
     /** Per-attribute configuration: types, nullability, primary keys, etc. */
-    public readonly attributesConfig: EntityConfigAttributes<E>;
+    public readonly attributesConfig: EntityAttributes<E>;
 
     /** Attributes marked as primary keys in `attributesConfig`. */
     public readonly primaryKeys: Array<keyof E>;
@@ -109,14 +109,14 @@ export class EntityMetadataManager<E extends EntityBase>
      *                        lazy / cyclic relation resolution.
      */
     constructor(
-        config: EntityConfig<E>,
+        config: EntityConstructor<E>,
         private readonly lazySubEntities: () => SubEntitiesReferences<E>
     ) {
         this._metadatConfig = metadataConfig
 
         const baseConfig = config.base
         const attributesList = Object.entries(config.attributes
-            ) as [keyof EntityNoExternal<E>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]][];
+            ) as [keyof EntityNoExternal<E>, EntityAttributes<E>[keyof EntityNoExternal<E>]][];
 
         this.aliases = {
             singular: baseConfig.referenceNames.singularName,
@@ -132,41 +132,40 @@ export class EntityMetadataManager<E extends EntityBase>
         this.entityAttributesList = attributesList.map(([key]) => key);
 
         this.baseAttributesList = attributesList
-            .filter((e) => e[1].associated !== 'outside')
             .map(([key]) => key);
 
         this.baseAttributesListNullable = attributesList
-            .filter((e): e is [keyof NullableFromObject<EntityNoExternal<E>>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof NullableFromObject<EntityNoExternal<E>>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 !!e[1].allowNull)
             .map(([key]) => key)
 
         this.stringAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, string>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, string>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 e[1].type === 'string')
             .map(([key]) => key);
 
         this.numberAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Decimal>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Decimal>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 e[1].type === 'number' || e[1].type === 'decimal')
             .map(([key]) => key);
 
         this.booleanAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, boolean>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, boolean>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 e[1].type === 'boolean')
             .map(([key]) => key);
 
         this.dateAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, Date>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, Date>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 e[1].type === 'date')
             .map(([key]) => key);
 
         this.rangeAttributesList = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Date>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
-                ['number', 'date', 'decimal'].includes(e[1].type) && e[1].associated !== 'outside'
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, number | Date>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
+                ['number', 'date', 'decimal'].includes(e[1].type) 
             )
             .map(([key]) => key);
         this.fullTextSearchAttributes = attributesList
-            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, string>, EntityConfigAttributes<E>[keyof EntityNoExternal<E>]] =>
+            .filter((e): e is [keyof PickByType<EntityNoExternal<E>, string>, EntityAttributes<E>[keyof EntityNoExternal<E>]] =>
                 !!e[1].searchIn)
             .map(([key]) => key);
     }
@@ -285,7 +284,7 @@ export class EntityMetadataManager<E extends EntityBase>
             }
 
             // MIN / MAX — currently gates on 'object' instead of 'date' (see @remarks)
-            if (this.attributesConfig[attribute]['type'] === 'object' && this.attributesConfig[attribute].associated !== 'outside') {
+            if (this.attributesConfig[attribute]['type'] === 'object') {
                 orderObject['fns'][`by $min_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MIN' }
                 orderObject['fns'][`by $min_${String(attribute)} desc`] = { name: attribute, value: 'DESC', fn: 'MIN' }
                 orderObject['fns'][`by $max_${String(attribute)} asc`] = { name: attribute, value: 'ASC', fn: 'MAX' }

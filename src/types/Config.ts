@@ -37,3 +37,11 @@ export type OrmOptions = Sequelize | Decimal // Decimal is for test purpose
 export type DialectOptions = 'mysql' | 'sqlite'
 
 export type NumberLike = number | Decimal
+
+/**
+ * Constructor configurations
+ */
+export type ConstructorConfg = {
+    connection: OrmOptions,
+    path: string
+}

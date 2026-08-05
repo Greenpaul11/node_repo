@@ -1,9 +1,11 @@
 import { Dialect, Sequelize } from 'sequelize'
 import dotenv from 'dotenv'
 
-
+dotenv.config({
+    path: 'config/.env' 
+});
 const mode = process.env.NODE_ENV
-dotenv.config({path: `src/config/${mode}`})
+//dotenv.config({path: `src/config/${mode}`})
 
 const orm = process.env.ORM
 const dialect = process.env.DIALECT

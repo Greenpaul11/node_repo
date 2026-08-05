@@ -18,7 +18,7 @@ export interface EntityMetadata<E extends EntityBase> {
     /**
      * Configurations for each attribute.
      */
-    attributesConfig: EntityConfigAttributes<E>
+    attributesConfig: EntityAttributes<E>
     /**
      * List of all attributes available in the entity model.
      * Used for validation and query building.
@@ -180,15 +180,15 @@ export type SortOptions<E extends EntityBase> =
  * - base: {@link EntityConfigBase}
  * - attributes: {@link EntityConfigAttributes}
  */
-export type EntityConfig<E extends EntityBase> = {
-    base: EntityConfigBase
-    attributes: EntityConfigAttributes<E>
+export type EntityConstructor<E extends EntityBase> = {
+    base: EntityBaseInfo
+    attributes: EntityAttributes<E>
 }
 
 /**
  * Base configuration interface for entity metadata.
  */
-export type EntityConfigBase = {
+export type EntityBaseInfo = {
     referenceNames: {
         /**
         * Defines singular reference name
@@ -205,7 +205,7 @@ export type EntityConfigBase = {
  * Configuration interface for entity attributes metadata.
  * Defines how entities should be processed, validated, and displayed in the application.
  */
-export type EntityConfigAttributes<E extends EntityBase> = {
+export type EntityAttributes<E extends EntityBase> = {
     /**
      * Configuration for each attribute of the entity.
      * Defines validation rules, UI behavior, and relationships.
@@ -223,11 +223,7 @@ export type EntityConfigAttributes<E extends EntityBase> = {
         /**
          * Reference to another entity if this is a foreign key.
          */
-        associated: null | string
-        /**
-         * Whether the field can be edited by users.
-         */
-        locked: boolean
+        associated: boolean
         /**
          * Whether the field can be used as range attributes, look at {@link EntityQueryExtendedAttributes}
          */
@@ -239,7 +235,7 @@ export type EntityConfigAttributes<E extends EntityBase> = {
         /**
          * Database field type
          */
-        fieldType: 'string' | 'number' | 'boolean' | 'object' | 'text' | 'float' | 'decimal' | 'none'
+        fieldType: DatabaseAttributeTypes
         /**
          * Repository attributes types
          */
@@ -248,21 +244,22 @@ export type EntityConfigAttributes<E extends EntityBase> = {
          * Determine if field is primary key
          */
         primaryKey?: true,
-        /**
-         * Alternative name for display purposes.
-            */
-        as?: string
-        /**
-         * Additional attributes for HTML elements.
-         */
-        setAttributes?: string
+        
     } 
 }
 
 /**
  * Defines relation of entity.
  */
-type RelationTypeOptions = 'one to one' | 'one to many' | 'many to one' | 'many to many'
+export type RelationTypeOptions = 'one to one' | 'one to many' | 'many to one' | 'many to many'
+
+/**
+ * Normalized database field types.
+ * These represent common database column types across different ORMs/databases.
+ */
+export type DatabaseAttributeTypes =
+    | "string" | "number" | "boolean" | "date" | "datetime" | "decimal" | "time" | "json" 
+    | "binary" | "array" | "enum" | "uuid" | "geometry" | "relation" | "unknown";
 
 /**
  * Controll configurations for creating metadata
