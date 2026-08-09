@@ -1,6 +1,6 @@
-import { EntityBase, EntityNoExternal } from '../../types/entity/Root'
-import { MapEntitySelect, SubMapSelect, Query, QuerySelect, QueryFunctions } from '../../types/entity/Query'
-import { EntityRelationTree } from '../../types/entity/Metadata'
+import { EntityBase, EntityNoExternal } from '../../types/entity/Root.js'
+import { MapEntitySelect, SubMapSelect, Query, QuerySelect, QueryFunctions } from '../../types/entity/Query.js'
+import { EntityRelationTree } from '../../types/entity/Metadata.js'
 
 
 /**

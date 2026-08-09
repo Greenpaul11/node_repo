@@ -1,8 +1,8 @@
-import { EntityBase, ExternalReferences } from "../../types/entity/Root";
-import { EntityTransform, TransformNoExternal, FunctionsToTransformRules } from "../../types/entity/Converters";
+import { EntityBase, ExternalReferences } from "../../types/entity/Root.js";
+import { EntityTransform, TransformNoExternal, FunctionsToTransformRules } from "../../types/entity/Converters.js";
 import { FindOptions, Model, InferAttributes, InferCreationAttributes, WhereAttributeHash } from "sequelize"
-import { converterDialectsBuild } from "./output/converter";
-import { EntityQueryable } from "../../types/entity/Query";
+import { converterDialectsBuild } from "./output/converter.js";
+import { EntityQueryable } from "../../types/entity/Query.js";
 
 
 /**

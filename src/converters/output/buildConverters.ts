@@ -1,12 +1,11 @@
-import { EntityBase } from '../../types/entity/Root'
+import { EntityBase } from '../../types/entity/Root.js'
 import {
     BaseAttributeConvertersInfer,
     ExternalConvertersInfer,
     ConverterFunctionsBuild,
     ConverterFunctionsInfer
-} from '../../types/entity/Converters'
-import { EntityMetadata } from '../../types/entity/Metadata'
-
+} from '../../types/entity/Converters.js'
+import { EntityMetadata } from '../../types/entity/Metadata.js'
 
 /**
  * Build a complete set of attribute converters for an entity and its

@@ -1,10 +1,10 @@
-import { QueryConverterBase } from "../../../converters/query/base";
-import { EntityBase } from "../../../types/entity/Root";
-import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata";
+import { QueryConverterBase } from "../../../converters/query/base.js";
+import { EntityBase } from "../../../types/entity/Root.js";
+import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata.js";
 import { Model, InferAttributes, InferCreationAttributes, FindOptions } from "sequelize"
-import sequelizeConvertersBuild from "./build"
-import { Query, QueryConvertObject, OverridesQueryConverterConfig } from "../../../types/entity/Query";
-import { queryConvertObjectFactory } from "../../../converters/query/buildConverters";
+import sequelizeConvertersBuild from "./build.js"
+import { Query, QueryConvertObject, OverridesQueryConverterConfig } from "../../../types/entity/Query.js";
+import { queryConvertObjectFactory } from "../../../converters/query/buildConverters.js";
 
 
 export class QueryConverter< 

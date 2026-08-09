@@ -1,14 +1,14 @@
-import { EntityBase } from '../../types/entity/Root'
-import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
-import { Query, MapEntitySelect, EntityProjection } from '../../types/entity/Query'
+import { EntityBase } from '../../types/entity/Root.js'
+import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata.js'
+import { Query, MapEntitySelect, EntityProjection } from '../../types/entity/Query.js'
 import {
     ConverterFunctions,
     ConverterFunctionDialects,
     ConverterFamilesInfer,
     ConverterDialectsBuild
-} from '../../types/entity/Converters'
-import { buildConverters } from './buildConverters'
-import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects'
+} from '../../types/entity/Converters.js'
+import { buildConverters } from './buildConverters.js'
+import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects.js'
 
 
 /**

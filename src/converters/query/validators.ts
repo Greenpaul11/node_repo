@@ -1,5 +1,5 @@
-import { EntityBase, EntityNoExternal } from "../../types/entity/Root"
-import { EntityQueryable, EntityQueryRangeAttributes} from "../../types/entity/Query"
+import { EntityBase, EntityNoExternal } from "../../types/entity/Root.js"
+import { EntityQueryable, EntityQueryRangeAttributes} from "../../types/entity/Query.js"
 import { it } from "node:test"
 
 

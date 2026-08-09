@@ -1,11 +1,11 @@
 import type { Model, InferAttributes, InferCreationAttributes } from 'sequelize'
-import type { EntityBase } from '../../../../types/entity/Root'
-import type { Query } from '../../../../types/entity/Query'
-import type { ConverterFunctions } from '../../../../types/entity/Converters'
-import { OutputConverterBase } from '../../../../converters/output/base'
-import { SequelizeEntity, SequelizeRawEntityNotGrouped } from '../../types'
-import { mergeRowsIntoEntities } from '../../output/mergeRowsIntoEntities'
-import { convertRow } from '../../../../converters/output/convertRow'
+import type { EntityBase } from '../../../../types/entity/Root.js'
+import type { Query } from '../../../../types/entity/Query.js'
+import type { ConverterFunctions } from '../../../../types/entity/Converters.js'
+import { OutputConverterBase } from '../../../../converters/output/base.js'
+import { SequelizeEntity, SequelizeRawEntityNotGrouped } from '../../types.js'
+import { mergeRowsIntoEntities } from '../../output/mergeRowsIntoEntities.js'
+import { convertRow } from '../../../../converters/output/convertRow.js'
 
 
 export default function extract<

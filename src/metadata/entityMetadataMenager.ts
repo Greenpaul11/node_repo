@@ -1,4 +1,4 @@
-import { EntityBase, EntityNoExternal, ExternalReferences } from '../types/entity/Root'
+import { EntityBase, EntityNoExternal, ExternalReferences } from '../types/entity/Root.js'
 import {
     EntityMetadata,
     EntityAttributes,
@@ -6,11 +6,11 @@ import {
     EntityAliases,
     SubEntitiesReferences,
     SortOptions
-} from '../types/entity/Metadata'
-import { MetadataConfig } from '../types/entity/Metadata';
-import { NullableFromObject, PickByType } from '../types/Global'
-import Decimal from 'decimal.js';
-import metadataConfig from './config';
+} from '../types/entity/Metadata.js'
+import { MetadataConfig } from '../types/entity/Metadata.js';
+import { NullableFromObject, PickByType } from '../types/Global.js'
+import { Decimal } from 'decimal.js';
+import metadataConfig from './config.js';
 
 
 /**

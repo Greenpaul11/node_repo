@@ -1,5 +1,5 @@
-import { EntityBase } from '../types/entity/Root'
-import { EntityMetadata, EntityRelationTree } from '../types/entity/Metadata'
+import { EntityBase } from '../types/entity/Root.js'
+import { EntityMetadata, EntityRelationTree } from '../types/entity/Metadata.js'
 
 
 /**

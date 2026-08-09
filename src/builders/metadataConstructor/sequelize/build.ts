@@ -1,6 +1,6 @@
 import { DataType, Model, ModelStatic, Sequelize } from "sequelize";
-import { DatabaseAttributeTypes, MetadataConstructor } from "../../../types/entity/Metadata";
-import { toAttributeTypes } from "../../unified";
+import { DatabaseAttributeTypes, MetadataConstructor } from "../../../types/entity/Metadata.js";
+import { toAttributeTypes } from "../../unified.js";
 import fs from "node:fs";
 import { join } from "node:path";
 
@@ -132,7 +132,7 @@ export function createConstructor<T extends Model>(
             }
         },
 
-        attributes: generated
+        attributes: generated as any
     };
 }
 

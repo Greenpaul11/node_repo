@@ -1,6 +1,6 @@
-import Decimal from 'decimal.js'
-import { NullableFromObject, PickByType } from '../Global'
-import { EntityBase, ExternalReferences, EntityNoExternal, AttributeTypes } from './Root'
+import { Decimal } from 'decimal.js'
+import { NullableFromObject, PickByType } from '../Global.js'
+import { EntityBase, ExternalReferences, EntityNoExternal, AttributeTypes } from './Root.js'
 
 /**
  * Configuration options for formatting database queries.

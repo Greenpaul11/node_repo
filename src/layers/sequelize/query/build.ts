@@ -9,20 +9,19 @@ import { EntityQueryable, ConvertersBuild,
     QueryOrderOptions,
     QueryGroupOptions,
     QuerySortValidator
-} from "../../../types/entity/Query"
-import { EntityBase, EntityNoExternal, AggregateOperators, ExternalReferences } from "../../../types/entity/Root"
-import { PickByType } from "../../../types/Global"
+} from "../../../types/entity/Query.js"
+import { EntityBase, EntityNoExternal, AggregateOperators, ExternalReferences } from "../../../types/entity/Root.js"
+import { PickByType } from "../../../types/Global.js"
 import { 
-    FindOptions, Model, InferAttributes, InferCreationAttributes, 
+    FindOptions, InferAttributes, 
     Op, col, fn, OrderItem,
     FindAttributeOptions,
-    Includeable,
     IncludeOptions
 } from "sequelize"
 import { Col, Fn } from 'sequelize/types/utils'
-import { WhereValue } from "../types"
-import { EntityMetadata, SortFunction, SortOption, SortOptions } from "../../../types/entity/Metadata"
-import { ref } from "node:process"
+import { WhereValue } from "../types.js"
+import { EntityMetadata, SortFunction, SortOption, SortOptions } from "../../../types/entity/Metadata.js"
+
 
 
 export default function sequelizeConvertersBuild<

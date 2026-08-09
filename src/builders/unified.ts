@@ -1,5 +1,5 @@
-import { DatabaseAttributeTypes } from "../types/entity/Metadata";
-import { AttributeTypes } from "../types/entity/Root";
+import { DatabaseAttributeTypes } from "../types/entity/Metadata.js";
+import { AttributeTypes } from "../types/entity/Root.js";
 
 export const toAttributeTypes: Record<DatabaseAttributeTypes, AttributeTypes> = {
     string: 'string',

@@ -1,7 +1,6 @@
-import { TransformRule } from "./entity/Converters"
-import Decimal from "decimal.js"
+import { TransformRule } from "./entity/Converters.js"
+import { Decimal } from "decimal.js"
 import { Sequelize } from "sequelize"
-
 
 /**
  * Define domain level base configuration types

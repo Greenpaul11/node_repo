@@ -1,14 +1,14 @@
 import { Sequelize } from "sequelize";
-import { EntityMetadata, EntityRelationTree } from "../types/entity/Metadata";
-import { EntityBase } from "../types/entity/Root";
-import { createRelationTree } from "../tree/treeBuilders";
-import { OutputConverterBase } from "../converters/output/base";
-import { OrmOptions, DialectOptions } from "../types/Config";
-import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation";
-import { OrmManagerBase } from "../ormManager/base";
-import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query";
-import { QueryConverterBase } from "../converters/query/base";
-import { ResolveManager } from "../types/entity/Repository";
+import { EntityMetadata, EntityRelationTree } from "../types/entity/Metadata.js";
+import { EntityBase } from "../types/entity/Root.js";
+import { createRelationTree } from "../tree/treeBuilders.js";
+import { OutputConverterBase } from "../converters/output/base.js";
+import { OrmOptions, DialectOptions } from "../types/Config.js";
+import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation.js";
+import { OrmManagerBase } from "../ormManager/base.js";
+import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query.js";
+import { QueryConverterBase } from "../converters/query/base.js";
+import { ResolveManager } from "../types/entity/Repository.js";
 
 
 /**

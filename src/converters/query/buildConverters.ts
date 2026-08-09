@@ -1,4 +1,4 @@
-import { EntityBase } from '../../types/entity/Root'
+import { EntityBase } from '../../types/entity/Root.js'
 import { 
     QueryEntityAttributeTypes, 
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
@@ -10,14 +10,14 @@ import {
     QueryConvertObject,
     QueryEntityAttributeTransform,
     QueryRangeAttributeTransform} 
-from '../../types/entity/Query'
-import { PickByType } from '../../types/Global'
+from '../../types/entity/Query.js'
+import { PickByType } from '../../types/Global.js'
 import { 
     validateString, validateNumber, validateDate, 
     validateBoolean, validateRangeDate, validateRangeNumber,
     validateSelect, validateSort 
-} from './validators'
-import { EntityMetadata } from '../../types/entity/Metadata'
+} from './validators.js'
+import { EntityMetadata } from '../../types/entity/Metadata.js'
 
 
 /**

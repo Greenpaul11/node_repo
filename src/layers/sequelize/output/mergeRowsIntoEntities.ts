@@ -1,8 +1,8 @@
-import { EntityBase, EntityNoExternal, ExternalReferences } from '../../../types/entity/Root';
-import { MapEntitySelect, SubMapSelect} from '../../../types/entity/Query';
-import { EntityRelationTree } from '../../../types/entity/Metadata';
-import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../types'
-import { extractFnToString } from '../../../converters/output/convertRow';
+import { EntityBase, EntityNoExternal, ExternalReferences } from '../../../types/entity/Root.js';
+import { MapEntitySelect, SubMapSelect} from '../../../types/entity/Query.js';
+import { EntityRelationTree } from '../../../types/entity/Metadata.js';
+import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../types.js'
+import { extractFnToString } from '../../../converters/output/convertRow.js';
 
 
 /**

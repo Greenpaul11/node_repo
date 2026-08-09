@@ -1,7 +1,7 @@
-import { TransformNullishToOptional } from '../Global'
-import { EntityBase, EntityNoExternal, ExternalReferences } from './Root'
-import { EntityTransform } from './Converters'
-import { ConfigTypes } from '../Config'
+import { TransformNullishToOptional } from '../Global.js'
+import { EntityBase, EntityNoExternal, ExternalReferences } from './Root.js'
+import { EntityTransform } from './Converters.js'
+import { ConfigTypes } from '../Config.js'
 
 
 /**

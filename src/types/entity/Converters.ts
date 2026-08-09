@@ -1,9 +1,9 @@
 import { EntityBase, ExternalReferences, EntityNoExternal, AttributeTypes, 
-    AggregateOperators, AggregateBase, EntityExtend } from './Root'
-import { SwitchType } from '../Global'
-import { AggregateAsKey, Query, EntityAggregateAttributes, QueryFunctions} from './Query'
-import { OutputConverterBase } from '../../converters/output/base'
-import { EntityAttributes } from './Metadata'
+    AggregateOperators, AggregateBase, EntityExtend } from './Root.js'
+import { SwitchType } from '../Global.js'
+import { AggregateAsKey, Query, EntityAggregateAttributes, QueryFunctions} from './Query.js'
+import { OutputConverterBase } from '../../converters/output/base.js'
+import { EntityAttributes } from './Metadata.js'
 
 
 /**

@@ -2,12 +2,12 @@ import {
     NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, 
     DeepPartial, DeepStringArray,
     DeepStringTuple
-} from '../Global'
-import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root'
-import { EntityMetadata, SortOptions } from './Metadata'
-import { EntityTransform } from './Converters'
-import { ConfigTypes, NumberLike } from '../Config'
-import Decimal from 'decimal.js'
+} from '../Global.js'
+import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root.js'
+import { EntityMetadata } from './Metadata.js'
+import { EntityTransform } from './Converters.js'
+import { ConfigTypes, NumberLike } from '../Config.js'
+import { Decimal } from 'decimal.js'
 import type { Model, InferAttributes, InferCreationAttributes } from 'sequelize'
 
 

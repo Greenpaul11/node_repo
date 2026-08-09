@@ -1,15 +1,15 @@
-import { EntityBase, ExternalReferences, EntityExtend } from '../../types/entity/Root'
+import { EntityBase, ExternalReferences, EntityExtend } from '../../types/entity/Root.js'
 import {
     AggregateAttributesTransform,
     ConverterFunctionsInfer,
     EntityTransform,
     EntityTransformRules
-} from '../../types/entity/Converters'
+} from '../../types/entity/Converters.js'
 import {
     MapEntitySelect,
     QueryFunctions,
     EntityAggregateAttributes
-} from '../../types/entity/Query'
+} from '../../types/entity/Query.js'
 
 
 /**

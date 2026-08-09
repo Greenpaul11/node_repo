@@ -1,13 +1,26 @@
 {
   "name": "node_repo",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts"
+    }
+  },
   "scripts": {
     "start": "node --env-file=config/.env",
     "test": "node --trace-uncaught --env-file=config/.env.sequelize_sqlite --import tsx --import ./config/testSetup.ts --test --test-concurrency=1 --test-force-exit \"**/*.test.ts\"",
     "docs": "typedoc",
-    "docs:watch": "typedoc --watch"
+    "docs:watch": "typedoc --watch",
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
   },
   "author": "",
   "license": "MIT",

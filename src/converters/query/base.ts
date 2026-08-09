@@ -1,10 +1,10 @@
-import { EntityBase } from '../../types/entity/Root'
-import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata'
+import { EntityBase } from '../../types/entity/Root.js'
+import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata.js'
 import { Query, ConvertersBuild,  
     QueryConvertObject, QueryConverterConfig, OverridesQueryConverterConfig 
-} from '../../types/entity/Query'
-import { overrideObject } from '../../lib/override'
-import { defaultConfig, validationOn, validationOff } from './config'
+} from '../../types/entity/Query.js'
+import { overrideObject } from '../../lib/override.js'
+import { defaultConfig, validationOn, validationOff } from './config.js'
 
 export abstract class QueryConverterBase<
     E extends EntityBase,

@@ -1,16 +1,16 @@
-import { EntityBase } from '../../../types/entity/Root'
-import { EntityMetadata, EntityRelationTree } from '../../../types/entity/Metadata'
-import { EntityProjection, Query } from '../../../types/entity/Query'
-import { ConverterDialectsBuild } from '../../../types/entity/Converters'
-import { OutputConverterBase } from '../../../converters/output/base'
+import { EntityBase } from '../../../types/entity/Root.js'
+import { EntityMetadata, EntityRelationTree } from '../../../types/entity/Metadata.js'
+import { EntityProjection, Query } from '../../../types/entity/Query.js'
+import { ConverterDialectsBuild } from '../../../types/entity/Converters.js'
+import { OutputConverterBase } from '../../../converters/output/base.js'
 import { 
     Model, InferAttributes, InferCreationAttributes 
 } from 'sequelize'
 
-import mysqlConverterBuild from '../dialects/mysql/build'
-import sqliteConverterBuild from '../dialects/sqlite/build'
-import extractMysqlFuntions from '../dialects/mysql/functions'
-import extractSqliteFuntions from '../dialects/sqlite/functions'
+import mysqlConverterBuild from '../dialects/mysql/build.js'
+import sqliteConverterBuild from '../dialects/sqlite/build.js'
+import extractMysqlFuntions from '../dialects/mysql/functions.js'
+import extractSqliteFuntions from '../dialects/sqlite/functions.js'
 
 // define dialect converters build
 export const converterDialectsBuild = {
