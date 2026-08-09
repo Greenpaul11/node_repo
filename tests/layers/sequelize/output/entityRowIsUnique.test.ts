@@ -7,12 +7,12 @@ import { MapEntitySelect, Query } from '../../../../src/types/entity/Query';
 import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types';
 import { entityRowIsUnique } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
 import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputFormater } from '../../../../src/layers/sequelize/output/formater';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
 
 describe('entityRowIsUnique: Checks if row is unique at root entity level', () => {
     const metadata = productMetadata
     const tree: EntityRelationTree<Product> = createRelationTree(metadata)
-    const formater = new OutputFormater(metadata, tree, 'mysql')
+    const formater = new OutputConverter(metadata, tree, 'mysql')
     const mapSelects = formater.mapSelects.bind(formater)
 
     let query: Query<Product>

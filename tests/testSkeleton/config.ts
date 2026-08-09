@@ -1,4 +1,4 @@
-import { EntityConstructor, EntityMetadata } from "../../src/types/entity/Metadata"
+import { MetadataConstructor, EntityMetadata } from "../../src/types/entity/Metadata"
 import { EntityMetadataManager } from "../../src/metadata/entityMetadataMenager"
 import { Product, ProductImporter, Price, Shop, Comment, Category, 
     ProductCategory, SpecificationTree, Specification, 
@@ -22,7 +22,7 @@ import { Product, ProductImporter, Price, Shop, Comment, Category,
 
 
 //  1.  SHOP METADATA
-const shopAttributesConfig: EntityConstructor<Shop> = {
+const shopAttributesConfig: MetadataConstructor<Shop> = {
     base: {
         referenceNames: {
             singularName: 'shop',
@@ -88,13 +88,13 @@ const shopAttributesConfig: EntityConstructor<Shop> = {
     }
 }
 
-const shopMetadata = new EntityMetadataManager(
+const shopMetadata = new EntityMetadataManager<Shop>(
     shopAttributesConfig, 
     () => ( { prices: { metadata: priceMetadata, relation: 'one to many' } })
 )
 
 //  2.  PRICE METADATA
-const priceAttributesConfig: EntityConstructor<Price> = {
+const priceAttributesConfig: MetadataConstructor<Price> = {
     base: {
         referenceNames: {
             singularName: 'price',
@@ -187,7 +187,7 @@ const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager<Price>(
 )
 
 //  3.  PRODUCT METADATA
-const productAttributesConfig: EntityConstructor<Product> = {
+const productAttributesConfig: MetadataConstructor<Product> = {
     base: {
         referenceNames: {
             singularName: 'product',
@@ -319,7 +319,7 @@ const productMetadata: EntityMetadata<Product> = new EntityMetadataManager<Produ
 )
 
 //  14. COMMENT METADATA 
-const commentAttributesConfig: EntityConstructor<Comment> = {
+const commentAttributesConfig: MetadataConstructor<Comment> = {
     base: {
         referenceNames: {
             singularName: 'comment',
@@ -404,7 +404,7 @@ const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager<Comme
 )
 
 //  5.  CATEGORY METADATA
-const categoryAttributesConfig: EntityConstructor<Category> = {
+const categoryAttributesConfig: MetadataConstructor<Category> = {
     base: {
         referenceNames: {
             singularName: 'category',
@@ -489,7 +489,7 @@ const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager<Cat
 )
 
 //  6.  PRODUCT CATEGORY METADATA
-const productCategoryAttributesConfig: EntityConstructor<ProductCategory> = {
+const productCategoryAttributesConfig: MetadataConstructor<ProductCategory> = {
     base: {
         referenceNames: {
             singularName: 'product_category',
@@ -573,7 +573,7 @@ const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetad
 )
 
 //  7.  SPECIFICATION TREE METADATA
-const specificationTreeAttributesConfig: EntityConstructor<SpecificationTree> = {
+const specificationTreeAttributesConfig: MetadataConstructor<SpecificationTree> = {
     base: {
         referenceNames: {
             singularName: 'specification_tree',
@@ -648,7 +648,7 @@ const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityM
 )
 
 //  8.  SPECIFICATION METADATA
-const specificationAttributesConfig: EntityConstructor<Specification> = {
+const specificationAttributesConfig: MetadataConstructor<Specification> = {
     base: {
         referenceNames: {
             singularName: 'specification',
@@ -721,7 +721,7 @@ const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataM
 
 
 //  13.  USER METADATA
-const userAttributesConfig: EntityConstructor<User> = {
+const userAttributesConfig: MetadataConstructor<User> = {
     base: {
         referenceNames: {
             singularName: 'user',
@@ -814,7 +814,7 @@ const userMetadata: EntityMetadata<User> = new EntityMetadataManager<User>(
 )
 
 //  14. RATE METADATA
-const rateAttributesConfig: EntityConstructor<Rate> = {
+const rateAttributesConfig: MetadataConstructor<Rate> = {
     base: {
         referenceNames: {
             singularName: 'rate',
@@ -899,7 +899,7 @@ const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager<Rate>(
 )
 
 
-export const productImporterAttributesConfig: EntityConstructor<ProductImporter> = {
+export const productImporterAttributesConfig: MetadataConstructor<ProductImporter> = {
     base: {
         referenceNames: {
             singularName: 'product_importer',

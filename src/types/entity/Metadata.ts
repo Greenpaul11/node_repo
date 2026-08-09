@@ -177,18 +177,18 @@ export type SortOptions<E extends EntityBase> =
 /**
  * Configuration interface for entity metadata.
  * Configurations consists of two parts:
- * - base: {@link EntityConfigBase}
- * - attributes: {@link EntityConfigAttributes}
+ * - base: {@link BaseConstructor}
+ * - attributes: {@link EntityAttributes}
  */
-export type EntityConstructor<E extends EntityBase> = {
-    base: EntityBaseInfo
+export type MetadataConstructor<E extends EntityBase> = {
+    base: BaseConstructor
     attributes: EntityAttributes<E>
 }
 
 /**
  * Base configuration interface for entity metadata.
  */
-export type EntityBaseInfo = {
+export type BaseConstructor = {
     referenceNames: {
         /**
         * Defines singular reference name

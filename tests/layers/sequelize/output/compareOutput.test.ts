@@ -53,7 +53,7 @@ import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
 import { Query } from '../../../../src/types/entity/Query';
 import Decimal from 'decimal.js'
 import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputFormater } from '../../../../src/layers/sequelize/output/formater';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
 
 
 
@@ -72,15 +72,15 @@ const productCategoryTree: EntityRelationTree<ProductCategory> = createRelationT
 const priceTree: EntityRelationTree<Price> = createRelationTree(priceMetadata)
 
 // FORMATERS
-const productFormater = new OutputFormater(productMetadata, productTree, dialect)
-const commentFormater = new OutputFormater(commentMetadata, commentTree, dialect)
-const productImporterFormater = new OutputFormater(productImporterMetadata, productImporterTree, dialect)
-const userFormater = new OutputFormater(userMetadata, userTree, dialect)
-const rateFormater = new OutputFormater(rateMetadata, rateTree, dialect)
-const specificationTreeFormater = new OutputFormater(specificationTreeMetadata, specificationTreeTree, dialect)
-const categoryFormater = new OutputFormater(categoryMetadata, categoryTree, dialect)
-const productCategoryFormater = new OutputFormater(productCategoryMetadata, productCategoryTree, dialect)
-const priceFormater = new OutputFormater(priceMetadata, priceTree, dialect)
+const productFormater = new OutputConverter(productMetadata, productTree, dialect)
+const commentFormater = new OutputConverter(commentMetadata, commentTree, dialect)
+const productImporterFormater = new OutputConverter(productImporterMetadata, productImporterTree, dialect)
+const userFormater = new OutputConverter(userMetadata, userTree, dialect)
+const rateFormater = new OutputConverter(rateMetadata, rateTree, dialect)
+const specificationTreeFormater = new OutputConverter(specificationTreeMetadata, specificationTreeTree, dialect)
+const categoryFormater = new OutputConverter(categoryMetadata, categoryTree, dialect)
+const productCategoryFormater = new OutputConverter(productCategoryMetadata, productCategoryTree, dialect)
+const priceFormater = new OutputConverter(priceMetadata, priceTree, dialect)
 
 
 

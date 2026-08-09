@@ -1,16 +1,11 @@
-import { DataType, InferAttributes, InferCreationAttributes, Model, ModelStatic, Sequelize } from "sequelize";
-import { DatabaseAttributeTypes, EntityConstructor } from "../../../types/entity/Metadata";
+import { DataType, Model, ModelStatic, Sequelize } from "sequelize";
+import { DatabaseAttributeTypes, MetadataConstructor } from "../../../types/entity/Metadata";
 import { toAttributeTypes } from "../../unified";
-import { useInflection } from "sequelize";
-import e from "express";
 import fs from "node:fs";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 
 
-const toCamelCase = (name: string): string => name.charAt(0).toLowerCase() + name.slice(1)
-
-
-export function createAll(
+export function createConstructors(
     outputPath: string, // related path
     connection: Sequelize
 
@@ -20,27 +15,24 @@ export function createAll(
     // get connection
     const direction = join(repoRoot, outputPath)
     
-
     const models = connection.modelManager.models
     
-    const metadataModule = join(repoRoot, 'src', 'types', 'entity', 'Metadata')
-
     const header = [
         '//  *************************************************',
-        ...models.map((model, index) => `//  ${index + 1}.  ${model.name} ATTRIBUTES CONFIG`),
+        ...models.map((model, index) => `//  ${index + 1}.  ${model.name} METADATA CONSTRUCTOR`),
         '//  *************************************************'
     ].join('\n')
 
     const blocks = models.map((model, index) => {
         const name = model.name
-        const constName = `${toCamelCase(name)}AttributesConfig`
+        const constName = `${toCamelCase(name)}Constructor`
         const body = serializeObject(
-            createEntityConstructor(model as ModelStatic<Model>) as unknown as Record<string, unknown>,
+            createConstructor(model as ModelStatic<Model>) as unknown as Record<string, unknown>,
             ''
         )
         return [
             `//  ${index + 1}.  ${name} ATTRIBUTES CONFIG`,
-            `const ${constName}: EntityConstructor<${name}> = ${body}`
+            `const ${constName} = ${body}`
         ].join('\n')
     })
 
@@ -51,11 +43,7 @@ export function createAll(
         '}'
     ].join('\n')
 
-    const importPath = relative(outputPath, metadataModule).replace(/\\/g, '/')
-    const normalizedImport = importPath.startsWith('.') ? importPath : `./${importPath}`
-
     const fileContent = [
-        `import { EntityConstructor } from "${normalizedImport}"`,
         '',
         '',
         header,
@@ -67,7 +55,7 @@ export function createAll(
     ].join('\n')
 
     fs.mkdirSync(direction, { recursive: true })
-    fs.writeFileSync(join(direction, 'entityConstructors.ts'), fileContent)
+    fs.writeFileSync(join(direction, 'MetadataConstructors.ts'), fileContent)
 }
 
 
@@ -105,9 +93,9 @@ function serializeObject(
 }
 
 
-export function createEntityConstructor<T extends Model>(
+export function createConstructor<T extends Model>(
     model: ModelStatic<T>
-): EntityConstructor<any> {
+): MetadataConstructor<any> {
     const attributes = model.getAttributes();
 
     // generate name references
@@ -148,7 +136,7 @@ export function createEntityConstructor<T extends Model>(
     };
 }
 
-
+const toCamelCase = (name: string): string => name.charAt(0).toLowerCase() + name.slice(1)
 
 const toDatabaseAttributeType: Record<string, DatabaseAttributeTypes> = {
     // strings

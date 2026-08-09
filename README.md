@@ -64,10 +64,10 @@ repo.ormManager.manager.findAll() // SequelizeModel.findAll()
 Use the native ORM manager only when the repository APIs cannot satisfy your requirements.
 
 Repository calls will always stay the same regardless of the ORM underneath. The
-query parameter uses its own query language that is independent of the ORM.
+query parameter uses its own query language that is independent of the ORM. 
 Currently you can use in your queries:
 
-- **base attributes** — the entity's own fields like `id`, `name`, `brand`
+- **base attributes** — the entity's own fields like `id`, `name`, `brand`  
   ```
   { brand: 'Apple', active: true }
   ```
@@ -116,12 +116,12 @@ Currently you can use in your queries:
 
 The domain query language is converted to the ORM-specific query language
 internally. When entities are returned by the ORM manager, they are converted
-by `asEntity`/`asEntities` in `OutputFormater` into domain typed entities.
+by `asEntity`/`asEntities` in `OutputConverter` into domain typed entities.
 
 ## How the query conversion works
 
-1. A `Query<E>` object is passed to `QueryFormater.formatQuery()`.
-2. The formater uses a `QueryConvertObject` — a flat dispatch table built by
+1. A `Query<E>` object is passed to `QueryConverter.convertQuery()`.
+2. The converter uses a `QueryConvertObject` — a flat dispatch table built by
    `queryConvertObjectFactory()` — to convert each key/value pair.
 3. The dispatch table contains converters for:
    - **base attributes** (string, number, date, boolean)
@@ -135,7 +135,7 @@ by `asEntity`/`asEntities` in `OutputFormater` into domain typed entities.
 ## Architecture
 
 `Repository` sits at the top and wires three parallel collaborators through
-dynamic imports. The abstract contracts live in `src/formaters/` and
+dynamic imports. The abstract contracts live in `src/converters/` and
 `src/ormManager/`; each ORM (Sequelize, and later Prisma) provides concrete
 implementations under `src/layers/<orm>/`.
 
@@ -153,17 +153,17 @@ implementations under `src/layers/<orm>/`.
                     ▼                               ▼                                  ▼
 
   ┌────────────────────────────┐      ┌────────────────────────────┐      ┌────────────────────────────┐
-  │      QueryFormatter        │      │        OrmManager          │      │      OutputFormatter       │
+  │     QueryConverter         │      │        OrmManager          │      │     OutputConverter        │
   ├────────────────────────────┤      ├────────────────────────────┤      ├────────────────────────────┤
-  │      Abstract Base         │      │      Abstract Base         │      │      Abstract Base         │
-  │   src/formatters/query/    │      │     src/ormManager/        │      │  src/formatters/output/    │
+  │     Abstract Base          │      │      Abstract Base         │      │    Abstract Base           │
+  │   src/converters/query/    │      │     src/ormManager/        │      │  src/converters/output/    │
   └─────────────┬──────────────┘      └─────────────┬──────────────┘      └─────────────┬──────────────┘
                 │                                   │                                   │
                 ▼                                   ▼                                   ▼
   ┌────────────────────────────┐      ┌────────────────────────────┐      ┌────────────────────────────┐
-  │     Sequelize Layer        │      │     Sequelize Manager      │      │     Sequelize Layer        │
+  │     Sequelize Layer        │      │     Sequelize Layer        │      │     Sequelize Layer        │
   │ src/layers/sequelize/      │      │ src/layers/sequelize/      │      │ src/layers/sequelize/      │
-  │        query/              │      │        manager/            │      │        output/             │
+  │       query/               │      │        manager/            │      │        output/             │
   └────────────────────────────┘      └────────────────────────────┘      └────────────────────────────┘
 ```
 
@@ -172,18 +172,18 @@ implementations under `src/layers/<orm>/`.
   calls. Constructed synchronously; the async `Repository.init()` factory
   dynamically imports the right implementations based on the connection's
   ORM and dialect.
-- **QueryFormater** — converts domain `Query<E>` objects into ORM-specific
+- **QueryConverter** — converts domain `Query<E>` objects into ORM-specific
   query objects (e.g. Sequelize `FindOptions`). Validation is configurable
-  per attribute type. Abstract base: `src/formaters/query/queryFormaterBase.ts`.
-  Sequelize impl: `src/layers/sequelize/query/formater.ts` using converters
+  per attribute type. Abstract base: `src/converters/query/base.ts`.
+  Sequelize implementation: `src/layers/sequelize/query/converter.ts` using converters
   from `src/layers/sequelize/query/build.ts`.
 - **OrmManager** — performs actual CRUD against the database. Abstract base:
-  `src/ormManager/ormMenagerBase.ts`. Sequelize impl:
+  `src/ormManager/base.ts`. Sequelize implementation:
   `src/layers/sequelize/manager/ormManager.ts`.
-- **OutputFormater** — converts raw ORM rows into domain typed entities.
+- **OutputConverter** — converts raw ORM rows into domain typed entities.
   Handles `raw: true, nest: true` row deduplication(in Sequelize case). Abstract base:
-  `src/formaters/output/outputFormaterBase.ts`. Sequelize impl:
-  `src/layers/sequelize/output/formater.ts` with
+  `src/converters/output/base.ts`. Sequelize implementation:
+  `src/layers/sequelize/output/converter.ts` with
   `mergeRowsIntoEntities.ts`.
 
 All layers are type-parameterized on the entity shape `E` and the ORM model
@@ -196,16 +196,16 @@ type `T`, so the compiler catches mismatches between layers.
 ```
 User → Repo.createOne(data)
         → OrmManager.createOne(data) → Model.create(data)
-        → OutputFormater.asEntity(model) → typed Entity
+        → OutputConverter.asEntity(model) → typed Entity
 ```
 
 ### `getManyBy` / `getOneBy`
 
 ```
 User → Repo.getManyBy(query)
-        → QueryFormater.formatQuery(query) → ORM query object
+        → QueryConverter.convertQuery(query) → ORM query object
         → OrmManager.getManyBy(ormQuery) → raw rows
-        → OutputFormater.asEntities(rows, query) → typed Entities
+        → OutputConverter.asEntities(rows, query) → typed Entities
 ```
 
 ## Project layout
@@ -221,14 +221,14 @@ src/
       Creation.ts                 CreationOptional, EntityCreationAttributes
     Config.ts                     OrmOptions, DialectOptions
     Global.ts                     Utility types (PickByType, NonUndefined, ...)
-  formaters/
+  converters/
     output/                       Row → entity conversion
-      outputFormaterBase.ts       Abstract formater
+      base.ts                     Abstract converter
       buildConverters.ts          Type-keyed → attribute-keyed converters
       convertRow.ts               Single-row recursive transformation
       mapSelects.ts               QuerySelect → MapEntitySelect
     query/                        Domain query → ORM query conversion
-      queryFormaterBase.ts        Abstract query formater
+      base.ts                     Abstract query converter
       buildConverters.ts          Builds per-attribute converter dispatch table
       config.ts                   Default config, validation presets
       validators.ts               Type validators (string, number, date, boolean, range, select)
@@ -237,16 +237,17 @@ src/
       dialects/{mysql,sqlite}/    Per-dialect converter build + functions
       manager/ormManager.ts       Concrete OrmManager
       output/
-        formater.ts               Concrete OutputFormater
+        converter.ts              Concrete OutputConverter
         mergeRowsIntoEntities.ts   raw:true, nest:true deduplication
       query/
         build.ts                  Sequelize-specific converter functions
-        formater.ts               Sequelize QueryFormater
+        converter.ts              Sequelize QueryConverter
       types.ts                    Sequelize-specific type helpers
   metadata/
+    config.ts                     Metadata configuration
     entityMetadataMenager.ts      Attribute lists, lazy order/group trees
   ormManager/
-    ormMenagerBase.ts             Abstract CRUD contract
+    base.ts                       Abstract CRUD contract
   repository/
     repository.ts                 Polymorphic entry point (Repository.init)
   tree/
@@ -260,7 +261,7 @@ docs/api/                         Generated TypeDoc reference (npm run docs)
 ## Highlights
 
 - **Polymorphic `Repository<T>`** — one class, any ORM. Dynamic imports
-  pick the right `OrmManager` and `OutputFormater` implementations.
+  pick the right `OrmManager` and `OutputConverter` implementations.
 - **Type-level query DSL** — `Query<E>` with range filters, select
   inclusion/exclusion, aggregate functions (`$count`, `$sum`, `$avg`,
   `$min`, `$max`), all checked at compile time against your entity shape.
@@ -384,11 +385,11 @@ By default, validation is enabled for all attribute types. You can disable
 it globally or per type:
 
 ```ts
-import { QueryFormater } from 'src/layers/sequelize/query/formater'
+import { QueryConverter } from 'src/layers/sequelize/query/converter'
 import { createRelationTree } from 'src/tree/treeBuilders'
 
 const tree = createRelationTree(productMetadata)
-const formater = new QueryFormater(productMetadata, tree, {
+const converter = new QueryConverter(productMetadata, tree, {
     validation: {
         baseAttributes: { string: false, number: false },
         rangeAttributes: { number: false },
@@ -396,12 +397,12 @@ const formater = new QueryFormater(productMetadata, tree, {
     }
 })
 
-const result = formater.formatQuery({ brand: 123, prices: { price_from: 'abc' } })
+const result = converter.formatQuery({ brand: 123, prices: { price_from: 'abc' } })
 // passes without validation; with validation these would throw
 ```
 
 `Repository.init` uses default validation (all on). To use custom config,
-instantiate `QueryFormater` directly.
+instantiate `QueryConverter` directly.
 
 ## `queryControl` parameter
 
@@ -432,33 +433,28 @@ npm test
 
 The suite uses the built-in `node --test` runner with `tsx`. Coverage includes:
 
-- **Formater unit tests** — `buildEntityAttributeConverters`,
+- **Converter unit tests** — `buildEntityAttributeConverters`,
   `buildRangeAttributeConverters`, `buildQueryAttributeConverters`,
   `buildRelationAttributeConverters` — verify converter construction
   with and without validation.
 - **Query conversion tests** — `baseAttributes`, `rangeAttributes`,
-  `relationAttribute`, `selectAttribute` at both formater level and
+  `relationAttribute`, `selectAttribute` at both converter level and
   database output level (sqlite + mysql).
 - **Database output tests** — end-to-end: construct a query, run it
   against the database, assert returned entity shapes and values.
-- **Output formater tests** — `buildConverters`, `convertRow`,
-  `mapSelects`, `compareOutput` (deep equality between formater output
+- **Output converter tests** — `buildConverters`, `convertRow`,
+  `mapSelects`, `compareOutput` (deep equality between converter output
   and raw Sequelize output).
-- **Merge/deduplication tests** — `mergeRowsIntoEntities`,
-  `rowIsUniqueOrNotMerged`, `entityRowIsUnique`,
-  `subRowIsUniqueOrNotMerged`, `rowToGrouped`.
 - **Manager CRUD tests** — `createOne`, `deleteOne`, `destroyAll`
   lifecycle against test fixtures.
 - **Relation model tests** — Sequelize model relation setup and cascade
   delete behavior.
 - **Override utility tests** — `lib/override.test.ts`.
 
-All tests run against the SQLite dialect by default (`npm test`). MySQL
-tests can be run with the corresponding env file.
 
 ## Documentation
 
-- This README — entry point, architecture, usage.
+- This README.md — entry point, architecture, usage.
 - **TypeDoc API reference** — generated from TSDoc comments into
   [`docs/api/`](https://greenpaul11.github.io/node_repo/api/).
   Run `npm run docs` to regenerate.

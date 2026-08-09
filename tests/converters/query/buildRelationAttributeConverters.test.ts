@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { buildRelationAttributeConverters } from '../../../src/formaters/query/buildConverters'
+import { buildRelationAttributeConverters } from '../../../src/converters/query/buildConverters'
 import { 
     ConvertersBuild, QueryConvertObject, EntityQueryable, 
     QueryRangeAttributeTypes, QueryEntityAttributeValidator, 

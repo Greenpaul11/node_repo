@@ -2,8 +2,7 @@ import { EntityBase, EntityNoExternal, ExternalReferences } from '../../../types
 import { MapEntitySelect, SubMapSelect} from '../../../types/entity/Query';
 import { EntityRelationTree } from '../../../types/entity/Metadata';
 import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../types'
-import { extractFnToString } from '../../../formaters/output/convertRow';
-import { fn } from 'sequelize';
+import { extractFnToString } from '../../../converters/output/convertRow';
 
 
 /**

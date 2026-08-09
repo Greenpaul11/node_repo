@@ -6,7 +6,7 @@ import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
 import { Query } from '../../../../src/types/entity/Query';
 import { SequelizeRawEntity, SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types';
 import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputFormater } from '../../../../src/layers/sequelize/output/formater';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
 import { subRowIsUniqueOrNotMerged } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
 
 
@@ -14,7 +14,7 @@ describe('subRowIsUniqueOrNotMerged: Determines if subrow (nested entity) should
 
     const metadata = productMetadata
     const tree: EntityRelationTree<Product> = createRelationTree(metadata)
-    const formater = new OutputFormater(metadata, tree, 'mysql')
+    const formater = new OutputConverter(metadata, tree, 'mysql')
     const mapSelects = formater.mapSelects.bind(formater)
 
     let query: Query<Product> 

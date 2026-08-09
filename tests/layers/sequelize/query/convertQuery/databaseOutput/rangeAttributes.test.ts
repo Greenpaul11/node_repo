@@ -1,22 +1,22 @@
 import { strict as assert } from 'node:assert'
 import { it, describe, before, after } from "node:test";
 import Decimal from 'decimal.js'
-import connection from '../../../../../../../config/connection';
+import connection from '../../../../../../config/connection';
 import { 
     Product as ProductEntity, 
     Price as PriceEntity, 
     Shop as ShopEntity 
-} from '../../../../../../testSkeleton/entities'
+} from '../../../../../testSkeleton/entities'
 import { 
     Product as ProductModel, 
     Price as PriceModel, 
     Shop as ShopModel, 
     ProductImporter as ProductImporterModel 
-} from '../../../../../../testSkeleton/models'
-import { productMetadata, priceMetadata, shopMetadata } from '../../../../../../testSkeleton/config'
-import { productData, priceData, shopData, productImporterData } from '../../../../../../testSkeleton/testData/dataBase'
-import { Repository } from '../../../../../../../src/repository/repository';
-import { EntityCreationAttributes } from '../../../../../../../src/types/entity/Creation';
+} from '../../../../../testSkeleton/models'
+import { productMetadata, priceMetadata, shopMetadata } from '../../../../../testSkeleton/config'
+import { productData, priceData, shopData, productImporterData } from '../../../../../testSkeleton/testData/dataBase'
+import { Repository } from '../../../../../../src/repository/repository';
+import { EntityCreationAttributes } from '../../../../../../src/types/entity/Creation';
 
 describe('test formatQueryRangeAttributes - expected output from database (sqlite)', async () => {
 

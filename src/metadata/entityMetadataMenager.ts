@@ -2,7 +2,7 @@ import { EntityBase, EntityNoExternal, ExternalReferences } from '../types/entit
 import {
     EntityMetadata,
     EntityAttributes,
-    EntityConstructor,
+    MetadataConstructor,
     EntityAliases,
     SubEntitiesReferences,
     SortOptions
@@ -17,7 +17,7 @@ import metadataConfig from './config';
  * Concrete implementation of {@link EntityMetadata} for a single entity.
  *
  * `EntityMetadataManager` is built once per entity from an
- * {@link EntityConstructor} and exposes:
+ * {@link MetadataConstructor} and exposes:
  *
  *  1. **Pre-computed attribute lists** — primary keys, base attributes,
  *     typed slices (string / number / boolean / date / range /
@@ -109,7 +109,7 @@ export class EntityMetadataManager<E extends EntityBase>
      *                        lazy / cyclic relation resolution.
      */
     constructor(
-        config: EntityConstructor<E>,
+        config: MetadataConstructor<E>,
         private readonly lazySubEntities: () => SubEntitiesReferences<E>
     ) {
         this._metadatConfig = metadataConfig

@@ -6,7 +6,7 @@ import { Query, ConvertersBuild,
 import { overrideObject } from '../../lib/override'
 import { defaultConfig, validationOn, validationOff } from './config'
 
-export abstract class QueryFormaterBase<
+export abstract class QueryConverterBase<
     E extends EntityBase,
     T, // model class
     F = unknown // object with formated query suitable for orm specific query processing
@@ -37,7 +37,7 @@ export abstract class QueryFormaterBase<
         return overrideObject(target, normalized) as QueryConverterConfig
     }
 
-    public abstract formatQuery<Q extends Query<E>>(query: Q): F
+    public abstract convertQuery<Q extends Query<E>>(query: Q): F
 }
 
 

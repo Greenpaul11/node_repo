@@ -1,11 +1,11 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { buildQueryAttributeConverters } from '../../../src/formaters/query/buildConverters'
+import { buildQueryAttributeConverters } from '../../../src/converters/query/buildConverters'
 import { ConvertersBuild, QuerySelectValidator, QuerySortValidator } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
 import { EntityBase } from '../../../src/types/entity/Root'
-import { validateSelect, validateSort } from '../../../src/formaters/query/validators'
+import { validateSelect, validateSort } from '../../../src/converters/query/validators'
 import { EntityMetadata, SortOptions } from '../../../src/types/entity/Metadata'
 
 type OrmQuery= {

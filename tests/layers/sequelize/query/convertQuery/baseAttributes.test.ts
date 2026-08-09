@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert'
 import { it, describe, before } from "node:test";
 import { productMetadata, priceMetadata, shopMetadata } from '../../../../testSkeleton/config'
-import { QueryFormater } from '../../../../../src/layers/sequelize/query/formater'
+import { QueryConverter } from '../../../../../src/layers/sequelize/query/converter'
 import { createRelationTree } from '../../../../../src/tree/treeBuilders'
 import { Query, QueryConverterConfig } from '../../../../../src/types/entity/Query';
 import { Product, Price, Shop } from '../../../../testSkeleton/entities';
@@ -59,11 +59,11 @@ describe('test formatQuery with baseAttributes', async () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOff)
+            const productFormater = new QueryConverter(productMetadata, productRelationTree, validationOff)
+            const priceFormater = new QueryConverter(priceMetadata, priceRelationTree, validationOff)
 
-            formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
+            formatProduct = (query: Query<Product>) => productFormater.convertQuery(query)
+            formatPrice = (query: Query<Price>) => priceFormater.convertQuery(query)
         })
 
         describe('test formating fields assigned to stringAttributesList', () => {
@@ -210,13 +210,13 @@ describe('test formatQuery with baseAttributes', async () => {
             const priceRelationTree = createRelationTree(priceMetadata)
             const shopRelationTree = createRelationTree(shopMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOn)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOn)
-            const shopFormater = new QueryFormater(shopMetadata, shopRelationTree, validationOn)
+            const productFormater = new QueryConverter(productMetadata, productRelationTree, validationOn)
+            const priceFormater = new QueryConverter(priceMetadata, priceRelationTree, validationOn)
+            const shopFormater = new QueryConverter(shopMetadata, shopRelationTree, validationOn)
 
-            formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
-            formatShop = (query: Query<Shop>) => shopFormater.formatQuery(query)
+            formatProduct = (query: Query<Product>) => productFormater.convertQuery(query)
+            formatPrice = (query: Query<Price>) => priceFormater.convertQuery(query)
+            formatShop = (query: Query<Shop>) => shopFormater.convertQuery(query as any)
         })
 
         describe('test formating fields assigned to stringAttributesList', () => {

@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert'
 import { it, describe, before } from "node:test";
 import { Op } from 'sequelize'
 import { productMetadata, priceMetadata } from '../../../../testSkeleton/config'
-import { QueryFormater } from '../../../../../src/layers/sequelize/query/formater'
+import { QueryConverter } from '../../../../../src/layers/sequelize/query/converter'
 import { createRelationTree } from '../../../../../src/tree/treeBuilders'
 import { Query, QueryConverterConfig } from '../../../../../src/types/entity/Query';
 import { Product, Price } from '../../../../testSkeleton/entities';
@@ -62,11 +62,11 @@ describe('test formatQuery with relationAttribute', () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOff)
+            const productFormater = new QueryConverter(productMetadata, productRelationTree, validationOff)
+            const priceFormater = new QueryConverter(priceMetadata, priceRelationTree, validationOff)
 
-            formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
+            formatProduct = (query: Query<Product>) => productFormater.convertQuery(query)
+            formatPrice = (query: Query<Price>) => priceFormater.convertQuery(query)
         })
 
         describe('single-level relations (depth 1)', () => {
@@ -342,11 +342,11 @@ describe('test formatQuery with relationAttribute', () => {
             const productRelationTree = createRelationTree(productMetadata)
             const priceRelationTree = createRelationTree(priceMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOn)
-            const priceFormater = new QueryFormater(priceMetadata, priceRelationTree, validationOn)
+            const productFormater = new QueryConverter(productMetadata, productRelationTree, validationOn)
+            const priceFormater = new QueryConverter(priceMetadata, priceRelationTree, validationOn)
 
-            formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
-            formatPrice = (query: Query<Price>) => priceFormater.formatQuery(query)
+            formatProduct = (query: Query<Product>) => productFormater.convertQuery(query)
+            formatPrice = (query: Query<Price>) => priceFormater.convertQuery(query)
         })
 
         describe('valid attribute types in relations', () => {
@@ -494,9 +494,9 @@ describe('test formatQuery with relationAttribute', () => {
         before(() => {
             const productRelationTree = createRelationTree(productMetadata)
 
-            const productFormater = new QueryFormater(productMetadata, productRelationTree, validationOff)
+            const productFormater = new QueryConverter(productMetadata, productRelationTree, validationOff)
 
-            formatProduct = (query: Query<Product>) => productFormater.formatQuery(query)
+            formatProduct = (query: Query<Product>) => productFormater.convertQuery(query)
         })
 
         describe('invalid relation value types', () => {

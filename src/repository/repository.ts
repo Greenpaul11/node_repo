@@ -1,13 +1,13 @@
-import { Model, ModelStatic, InferAttributes, InferCreationAttributes, Sequelize } from "sequelize";
+import { Sequelize } from "sequelize";
 import { EntityMetadata, EntityRelationTree } from "../types/entity/Metadata";
 import { EntityBase } from "../types/entity/Root";
 import { createRelationTree } from "../tree/treeBuilders";
-import { OutputFormaterBase } from "../formaters/output/outputFormaterBase";
+import { OutputConverterBase } from "../converters/output/base";
 import { OrmOptions, DialectOptions } from "../types/Config";
 import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation";
-import { OrmManagerBase } from "../ormManager/ormMenagerBase";
+import { OrmManagerBase } from "../ormManager/base";
 import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query";
-import { QueryFormaterBase } from "../formaters/query/queryFormaterBase";
+import { QueryConverterBase } from "../converters/query/base";
 import { ResolveManager } from "../types/entity/Repository";
 
 
@@ -24,9 +24,9 @@ import { ResolveManager } from "../types/entity/Repository";
  *
  *  - {@link OrmManagerBase} — performs the actual CRUD calls
  *    (`createOne`, `deleteOne`, `destroyAll`).
- *  - {@link OutputFormaterBase} — converts ORM rows returned by the
+ *  - {@link OutputConverterBase} — converts ORM rows returned by the
  *    manager into fully typed {@link EntityBase} entities.
- *  - {@link QueryFormaterBase} — *(reserved, not yet implemented)* —
+ *  - {@link QueryConverterBase} — *(reserved, not yet fully implemented)* —
  *    will translate declarative {@link EntityQueryable} filters into
  *    ORM-specific queries for richer operations such as `findOne`,
  *    `findAll`, and aggregate queries.
@@ -78,20 +78,20 @@ export class Repository<
     public readonly relationTree: EntityRelationTree<E>;
 
     /**
-     * Query formatter — translates declarative queries into
+     * queryConverter — translates declarative queries into
      * ORM-specific calls. **Reserved for future implementation**;
      * currently uninitialized. Will follow the same dynamic-import
      * initialization pattern as `outputFormater` / `menager` below
      * (see {@link Repository.init}).
      */
-    public queryFormater!: QueryFormaterBase<E, T>;
+    public queryConverter!: QueryConverterBase<E, T>;
 
     /**
-     * Output formatter — converts raw ORM rows returned by `menager`
+     * outputConverter — converts raw ORM rows returned by `menager`
      * into typed entities. Loaded by {@link Repository.init} from the
      * ORM-specific implementation directory.
      */
-    public outputFormater!: OutputFormaterBase<E, T>;
+    public outputConverter!: OutputConverterBase<E, T>;
 
 
     /**
@@ -148,7 +148,7 @@ export class Repository<
      *                 `Sequelize` is currently supported).
      *
      * @remarks
-     * **Future:** once {@link QueryFormaterBase} is implemented, this
+     * **Future:** once {@link QueryConverterBase} is implemented, this
      * method will additionally load it from
      * `layers/<orm>/query/formater` and assign it to
      * `this.queryFormater`. The initialization rule will mirror the
@@ -178,32 +178,32 @@ export class Repository<
         const orm = repository._resolveOrmName(connection)
         const dialect = repository._resolveDialectName(connection);
 
-        // place for implementation of queryFormater
-        const ormQueryModule = await import(`../layers/${orm}/query/formater`);
-        const QueryFormater = ormQueryModule.QueryFormater as new (
+        // place for implementation of QueryConverter
+        const ormQueryModule = await import(`../layers/${orm}/query/converter`);
+        const QueryConverter = ormQueryModule.QueryConverter as new (
             metadata: EntityMetadata<E>,
             relationTree: EntityRelationTree<E>,
-        ) => QueryFormaterBase<E, T>
-        repository.queryFormater = new QueryFormater(repository.metadata, repository.relationTree)
+        ) => QueryConverterBase<E, T>
+        repository.queryConverter = new QueryConverter(repository.metadata, repository.relationTree)
 
-        // load proper OrmOperations class for specific ORM
+        // load proper OrmManager class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
         const OrmManager = ormManagerModule.OrmManager as new (
             ormManager: ResolveManager<T>,
             dialect: DialectOptions,
             convertQuery: <Q extends Query<E>>(query: Q) => unknown
         ) => OrmManagerBase<E, T>
-        const convertQuery = repository.queryFormater.formatQuery.bind(repository.queryFormater)
+        const convertQuery = repository.queryConverter.convertQuery.bind(repository.queryConverter)
         repository.ormManager = new OrmManager(ormManager, dialect, convertQuery)
 
-        // load proper OutputFormater class for specific ORM
-        const formaterModule = await import(`../layers/${orm}/output/formater`);
-        const OutputFormater = formaterModule.OutputFormater as new (
+        // load proper OutputConverter class for specific ORM
+        const converterModule = await import(`../layers/${orm}/output/converter`);
+        const OutputConverter = converterModule.OutputConverter as new (
             metadata: EntityMetadata<E>,
             relationTree: EntityRelationTree<E>,
             dialect: DialectOptions
-        ) => OutputFormaterBase<E, T>;
-        repository.outputFormater = new OutputFormater(repository.metadata, repository.relationTree, dialect);
+        ) => OutputConverterBase<E, T>;
+        repository.outputConverter = new OutputConverter(repository.metadata, repository.relationTree, dialect);
 
         return repository;
     }
@@ -276,7 +276,7 @@ export class Repository<
     async createOne(data: C, native: boolean = false): Promise<E | T> {
         const entityNative = await this.ormManager.createOne(data)
         if (native) return entityNative
-        return this.outputFormater.asEntity(entityNative)
+        return this.outputConverter.asEntity(entityNative)
     }
 
     /**
@@ -333,7 +333,7 @@ export class Repository<
     async getOneBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q> | T | null> {
         const entityRaw = await this.ormManager.getOneBy(query, control)
         if (control.native) return entityRaw
-        return this.outputFormater.asEntity(entityRaw, query)
+        return this.outputConverter.asEntity(entityRaw, query)
     }
 
     /**
@@ -370,7 +370,7 @@ export class Repository<
     async getManyBy<Q extends Query<E>>(query: Q, control: QueryControl<T> = { native: false }): Promise<EntityProjection<E, Q>[] | T[]> {
         const entityRaw = await this.ormManager.getManyBy(query, control)
         if (control.native) return entityRaw
-        return this.outputFormater.asEntities(entityRaw, query)
+        return this.outputConverter.asEntities(entityRaw, query)
     }
 
 }

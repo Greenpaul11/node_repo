@@ -7,7 +7,7 @@ import { Query } from '../../../../src/types/entity/Query';
 import { SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types';
 import { mergeRowsIntoEntities } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
 import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputFormater } from '../../../../src/layers/sequelize/output/formater';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
 
 
 describe('mergeRowsIntoEntities: merge rows of entity with related entities into deduplicated rows(plural relations turned into array)', () => {
@@ -20,12 +20,12 @@ describe('mergeRowsIntoEntities: merge rows of entity with related entities into
     const specificationTreeTree: EntityRelationTree<SpecificationTree> = createRelationTree(specificationTreeMetadata)
 
     // FORMATERS
-    const productFormater = new OutputFormater(productMetadata, productTree, 'mysql')
-    const commentFormater = new OutputFormater(commentMetadata, commentTree, 'mysql')
-    const productImporterFormater = new OutputFormater(productImporterMetadata, productImporterTree, 'mysql')
-    const userFormater = new OutputFormater(userMetadata, userTree, 'mysql')
-    const rateFormater = new OutputFormater(rateMetadata, rateTree, 'mysql')
-    const specificationTreeFormater = new OutputFormater(specificationTreeMetadata, specificationTreeTree, 'mysql')
+    const productFormater = new OutputConverter(productMetadata, productTree, 'mysql')
+    const commentFormater = new OutputConverter(commentMetadata, commentTree, 'mysql')
+    const productImporterFormater = new OutputConverter(productImporterMetadata, productImporterTree, 'mysql')
+    const userFormater = new OutputConverter(userMetadata, userTree, 'mysql')
+    const rateFormater = new OutputConverter(rateMetadata, rateTree, 'mysql')
+    const specificationTreeFormater = new OutputConverter(specificationTreeMetadata, specificationTreeTree, 'mysql')
 
     // SELECT MAPPERS
     const productSelect = productFormater.mapSelects.bind(productFormater)

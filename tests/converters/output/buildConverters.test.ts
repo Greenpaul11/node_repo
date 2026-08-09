@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
 import Decimal from 'decimal.js'
-import { buildConverters } from '../../../src/formaters/output/buildConverters'
+import { buildConverters } from '../../../src/converters/output/buildConverters'
 import { ConverterFunctionsBuild } from '../../../src/types/entity/Converters'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'

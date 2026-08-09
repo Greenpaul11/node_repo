@@ -1,7 +1,7 @@
 import { EntityBase, ExternalReferences } from "../../types/entity/Root";
 import { EntityTransform, TransformNoExternal, FunctionsToTransformRules } from "../../types/entity/Converters";
 import { FindOptions, Model, InferAttributes, InferCreationAttributes, WhereAttributeHash } from "sequelize"
-import { converterDialectsBuild } from "./output/formater";
+import { converterDialectsBuild } from "./output/converter";
 import { EntityQueryable } from "../../types/entity/Query";
 
 

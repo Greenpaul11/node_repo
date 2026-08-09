@@ -1,7 +1,6 @@
 import { Product, Price, Shop, Category, ProductCategory, ProductImporter } from '../entities'
 import { EntityCreationAttributes, EntityCreation } from '../../../src/types/entity/Creation';
-import { Expand } from '../../../src/types/Global';
-import { TransformNullishToOptional } from '../../../src/types/Global';
+
 
 export const productImporterData: EntityCreationAttributes<ProductImporter>[] = [
     {

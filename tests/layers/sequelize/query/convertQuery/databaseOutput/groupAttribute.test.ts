@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert'
 import { it, describe, before } from "node:test";
 import Decimal from 'decimal.js'
-import connection from '../../../../../../../config/connection';
+import connection from '../../../../../../config/connection';
 import {
     Product as ProductEntity,
     Price as PriceEntity,
     Shop as ShopEntity
-} from '../../../../../../testSkeleton/entities'
+} from '../../../../../testSkeleton/entities'
 import {
     Product as ProductModel,
     Price as PriceModel,
@@ -14,24 +14,24 @@ import {
     ProductImporter as ProductImporterModel,
     ProductCategory as ProductCategoryModel,
     Category as CategoryModel
-} from '../../../../../../testSkeleton/models'
-import { productMetadata, priceMetadata, shopMetadata } from '../../../../../../testSkeleton/config'
+} from '../../../../../testSkeleton/models'
+import { productMetadata, priceMetadata, shopMetadata } from '../../../../../testSkeleton/config'
 import { 
     productData as baseProductData, 
     priceData as basePriceData, 
     shopData, productImporterData, 
     categoryData as categoryDataBase 
-} from '../../../../../../testSkeleton/testData/dataBase'
-import { productData as extendedProductData, priceData as extendedPriceData } from '../../../../../../testSkeleton/testData/dataExtended'
+} from '../../../../../testSkeleton/testData/dataBase'
+import { productData as extendedProductData, priceData as extendedPriceData } from '../../../../../testSkeleton/testData/dataExtended'
 import { 
     priceData as extendedPriceData2, 
     shopData as extendedShopData, 
     productCategoryData,
     categoryData as extendedCategoryData
-} from '../../../../../../testSkeleton/testData/dataExtended2'
-import { Repository } from '../../../../../../../src/repository/repository';
-import { EntityCreationAttributes } from '../../../../../../../src/types/entity/Creation';
-import { Query } from '../../../../../../../src/types/entity/Query';
+} from '../../../../../testSkeleton/testData/dataExtended2'
+import { Repository } from '../../../../../../src/repository/repository';
+import { EntityCreationAttributes } from '../../../../../../src/types/entity/Creation';
+import { Query } from '../../../../../../src/types/entity/Query';
 
 const allProductData = [...baseProductData, ...extendedProductData]
 const allPriceData = [...basePriceData, ...extendedPriceData, ...extendedPriceData2]

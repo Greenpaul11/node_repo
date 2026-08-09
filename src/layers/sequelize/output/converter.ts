@@ -2,7 +2,7 @@ import { EntityBase } from '../../../types/entity/Root'
 import { EntityMetadata, EntityRelationTree } from '../../../types/entity/Metadata'
 import { EntityProjection, Query } from '../../../types/entity/Query'
 import { ConverterDialectsBuild } from '../../../types/entity/Converters'
-import { OutputFormaterBase } from '../../../formaters/output/outputFormaterBase'
+import { OutputConverterBase } from '../../../converters/output/base'
 import { 
     Model, InferAttributes, InferCreationAttributes 
 } from 'sequelize'
@@ -19,10 +19,10 @@ export const converterDialectsBuild = {
 }
 
 
-export class OutputFormater<
+export class OutputConverter<
     E extends EntityBase,
     T extends Model<InferAttributes<T>, InferCreationAttributes<T>>
-> extends OutputFormaterBase<E, T, typeof converterDialectsBuild> {
+> extends OutputConverterBase<E, T, typeof converterDialectsBuild> {
     
     constructor(
         metadata: EntityMetadata<E>, 

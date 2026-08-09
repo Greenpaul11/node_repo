@@ -7,14 +7,14 @@ import { createRelationTree } from '../../../../src/tree/treeBuilders';
 import { Query } from '../../../../src/types/entity/Query';
 import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types';
 import { rowToGrouped } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-import { OutputFormater } from '../../../../src/layers/sequelize/output/formater';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
 
 
 describe('rowToGrouped: Converts flat row with related entities into grouped structure with arrays', () => {
 
     const metadata = productMetadata
     const tree: EntityRelationTree<Product> = createRelationTree(metadata)
-    const formater = new OutputFormater(metadata, tree, 'mysql')
+    const formater = new OutputConverter(metadata, tree, 'mysql')
     const mapSelects = formater.mapSelects.bind(formater)
 
     describe('convert row without related entities', () => {

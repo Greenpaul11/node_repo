@@ -1,7 +1,7 @@
 import type { Model, InferAttributes, InferCreationAttributes, ModelStatic, FindOptions } from 'sequelize'
 import type { EntityBase } from '../../../types/entity/Root'
 import type { CreationOptional, EntityCreationAttributes } from '../../../types/entity/Creation'
-import { OrmManagerBase } from '../../../ormManager/ormMenagerBase'
+import { OrmManagerBase } from '../../../ormManager/base'
 import { DialectOptions } from '../../../types/Config'
 import { EntityQueryable, QueryControl } from '../../../types/entity/Query'
 import { Query } from '../../../types/entity/Query'

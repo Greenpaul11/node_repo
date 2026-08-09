@@ -2,8 +2,8 @@ import { EntityBase, ExternalReferences, EntityNoExternal, AttributeTypes,
     AggregateOperators, AggregateBase, EntityExtend } from './Root'
 import { SwitchType } from '../Global'
 import { AggregateAsKey, Query, EntityAggregateAttributes, QueryFunctions} from './Query'
-import { OutputFormaterBase } from '../../formaters/output/outputFormaterBase'
-import { EntityConfigAttributes } from './Metadata'
+import { OutputConverterBase } from '../../converters/output/base'
+import { EntityAttributes } from './Metadata'
 
 
 /**
@@ -212,7 +212,7 @@ export type ConverterFamilesInfer<E extends EntityBase> = {
 export type ConverterFunctionDialects<
     E extends EntityBase, 
     T, 
-    O extends OutputFormaterBase<E, T>
+    O extends OutputConverterBase<E, T>
 > = {
     [dialect: string]: ConverterFunctions<E, T, O>
 }
@@ -236,7 +236,7 @@ export type ConverterFunctionDialects<
  *   asEntities: function(query, rows) { return rows.map(r => this.convertRow(r))}
  * }
  */
-export type ConverterFunctions<E extends EntityBase, T, O extends OutputFormaterBase<E, T>> = {
+export type ConverterFunctions<E extends EntityBase, T, O extends OutputConverterBase<E, T>> = {
     asEntity<Q extends Query<E>>(this: O, row: T | null, query?: Q,): EntityExtend<E, EntityAggregateAttributes<E>> | null
     asEntities<Q extends Query<E>>(this: O, rows: T[], query?: Q): EntityExtend<E, EntityAggregateAttributes<E>>[]
 } 
@@ -277,7 +277,7 @@ export type TypeConverter<R extends AttributeTransformRules | AggregateTransform
  * - baseAttributes: types defined in {@link AttributeTypes} used to 
  *     index proper tranformation function for entity base attribute type.
  *     Each entity attribute of entity has defined domain 
- *     level type {@link EntityConfigAttributes[attribute][type]}
+ *     level type {@link EntityAttributes[attribute][type]}
  *     that should match {@link AttributeTypes}. 
  *     Example:
  *      {'string': (value: transformed value) => base attribute type (domain level type)}

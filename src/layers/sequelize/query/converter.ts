@@ -1,17 +1,17 @@
-import { QueryFormaterBase } from "../../../formaters/query/queryFormaterBase";
+import { QueryConverterBase } from "../../../converters/query/base";
 import { EntityBase } from "../../../types/entity/Root";
 import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata";
 import { Model, InferAttributes, InferCreationAttributes, FindOptions } from "sequelize"
 import sequelizeConvertersBuild from "./build"
 import { Query, QueryConvertObject, OverridesQueryConverterConfig } from "../../../types/entity/Query";
-import { queryConvertObjectFactory } from "../../../formaters/query/buildConverters";
+import { queryConvertObjectFactory } from "../../../converters/query/buildConverters";
 
 
-export class QueryFormater< 
+export class QueryConverter< 
     E extends EntityBase,
     T extends Model<InferAttributes<T>, InferCreationAttributes<T>>,
     F extends FindOptions<InferAttributes<T>> 
-> extends QueryFormaterBase<E, T, F> {
+> extends QueryConverterBase<E, T, F> {
     
     constructor(
         metadata: EntityMetadata<E>, 
@@ -23,7 +23,7 @@ export class QueryFormater<
         this.queryConvertObject = queryConvertObjectFactory(this.convertersBuild, this.config, metadata)
     }
 
-    public formatQuery<Q extends Query<E>>(query: Q): F {
+    public convertQuery<Q extends Query<E>>(query: Q): F {
         // create orm query object
         const formatted = {} as F
 

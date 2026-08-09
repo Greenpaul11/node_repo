@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { buildRangeAttributeConverters } from '../../../src/formaters/query/buildConverters'
+import { buildRangeAttributeConverters } from '../../../src/converters/query/buildConverters'
 import { ConvertersBuild, QueryRangeAttributeTypes, QueryRangeValidator } from '../../../src/types/entity/Query'
 import { productMetadata } from '../../testSkeleton/config'
 import { Product } from '../../testSkeleton/entities'
 import { EntityBase } from '../../../src/types/entity/Root'
 import { PickByType } from '../../../src/types/Global'
-import { validateRangeNumber, validateRangeDate } from '../../../src/formaters/query/validators'
+import { validateRangeNumber, validateRangeDate } from '../../../src/converters/query/validators'
 
 
 type OrmQuery = {

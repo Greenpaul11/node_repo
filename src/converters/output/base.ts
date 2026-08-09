@@ -20,7 +20,7 @@ import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects'
  * `OutputFormater`; what distinguishes one subclass from another is the
  * directory tree it is imported from.
  *
- * `OutputFormaterBase` sits between the data layer — which returns raw,
+ * `OutputConverterBase` sits between the data layer — which returns raw,
  * ORM-specific representations of an entity (or partially transformed
  * rows) — and the application layer, which expects the {@link EntityBase}
  * shape. It owns three responsibilities:
@@ -51,7 +51,7 @@ import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects'
  * @example
  * Subclassing for the Sequelize ORM:
  * ```ts
- * class OutputFormater<E extends EntityBase, T extends Model<...>> extends OutputFormaterBase<E, T> {
+ * class OutputFormater<E extends EntityBase, T extends Model<...>> extends OutputConverterBase<E, T> {
  *
  *     // ... Sequelize-specific implementation ...
  *
@@ -65,7 +65,7 @@ import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects'
  * }
  * ```
  */
-export abstract class OutputFormaterBase<
+export abstract class OutputConverterBase<
     E extends EntityBase,
     T,
     C extends ConverterDialectsBuild<C> = ConverterDialectsBuild<any>
@@ -88,7 +88,7 @@ export abstract class OutputFormaterBase<
      * Dialect-keyed view of {@link converterFunctions}. Each key is a
      * dialect name and its value is the converter pair for that dialect.
      */
-    public converterFunctionDialects!: ConverterFunctionDialects<E, T, OutputFormaterBase<E, T, C>>;
+    public converterFunctionDialects!: ConverterFunctionDialects<E, T, OutputConverterBase<E, T, C>>;
 
     /**
      * The full dialect build configuration passed into the constructor.

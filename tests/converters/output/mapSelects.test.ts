@@ -4,8 +4,8 @@ import { Product } from '../../testSkeleton/entities'
 import { productMetadata } from '../../testSkeleton/config';
 import { EntityRelationTree } from '../../../src/types/entity/Metadata';
 import { QuerySelect, MapEntitySelect, SubMapSelect, Query } from '../../../src/types/entity/Query';
-import { entitySelectToMapSelect, mapNestedSelects } from '../../../src/formaters/output/mapSelects';
-import { OutputFormater } from '../../../src/layers/sequelize/output/formater';
+import { entitySelectToMapSelect, mapNestedSelects } from '../../../src/converters/output/mapSelects';
+import { OutputConverter } from '../../../src/layers/sequelize/output/converter';
 import { createRelationTree } from '../../../src/tree/treeBuilders';
 
 
@@ -164,7 +164,7 @@ describe('mapSelects: Map query selects to mapped select objects for database qu
 
     describe('mapSelects: Complete mapping with base entity and nested selects', () => {
         
-        const formater = new OutputFormater(productMetadata, tree, 'mysql')
+        const formater = new OutputConverter(productMetadata, tree, 'mysql')
         const mapSelects = formater.mapSelects.bind(formater)
         let query: Query<Product> = {}
         let mappedSelects: MapEntitySelect<Product>
