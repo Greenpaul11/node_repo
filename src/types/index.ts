@@ -13,6 +13,7 @@ export type {
 
 export type {
   EntityMetadata,
+  MetadataConstructor,
   SortOption
 } from "./entity/Metadata.js";
 
@@ -27,6 +28,8 @@ export type {
 } from "./entity/Creation.js";
 
 export type {
-  OrmOptions,
-  DialectOptions
+  EntityBaseConfig,
+  EntityCreationTransform,
+  EntityQueryTransform,
+  AggregateBaseConfig
 } from "./Config.js";

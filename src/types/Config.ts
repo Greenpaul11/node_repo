@@ -3,35 +3,51 @@ import { Decimal } from "decimal.js"
 import { Sequelize } from "sequelize"
 
 /**
- * Define domain level base configuration types
+ * Define base type for all your entities.
+ * If there is no common attributes for all entities - do not override it.
+ * 
+ * @example 
+ *  - interface EntityBase { id: number } ALL ENTITIES MUST HAVE `id` with type number
+ *  - interface EntityBase { id: number, update: Date, created: Date, active: boolean } 
+ *    ALL ENTITIES MUST HAVE `id` with type number, `update` and `created` with type Date and
+ *    `active` with type boolean
+ * 
  */
-export type ConfigTypes = {
-    entityBase: {
-        id: number
-        created: Date
-        updated: Date
-        active: boolean
-    }
-    entityCreationTransform: {
-        baseAttributes: {
-            decimal: TransformRule<Decimal, number>
-        }
-    }
-    entityQueryTransform: {
-        baseAttributes: {
-            decimal: TransformRule<Decimal, number>
-        }
-    }
-    aggregateBase: {
-        $count: number
-        $sum: Decimal
-        $avg: Decimal
-        $min: Decimal
-        $max: Decimal
+export interface EntityBaseConfig {
+    id: number
+}
+
+export interface EntityCreationTransform {
+    baseAttributes: {
+        decimal: TransformRule<Decimal, number>
     }
 }
 
-export type OrmOptions = Sequelize | Decimal // Decimal is for test purpose
+export interface EntityQueryTransform {
+    baseAttributes: {
+        decimal: TransformRule<Decimal, number>
+    }
+}
+
+export interface AggregateBaseConfig {
+    $count: number
+    $sum: Decimal
+    $avg: Decimal
+    $min: Decimal
+    $max: Decimal
+}
+
+/**
+ * Define domain level base configuration types
+ */
+export type ConfigTypes = {
+    entityBase: EntityBaseConfig
+    entityCreationTransform: EntityCreationTransform
+    entityQueryTransform: EntityQueryTransform
+    aggregateBase: AggregateBaseConfig
+}
+
+export type OrmOptions = Sequelize 
 
 export type DialectOptions = 'mysql' | 'sqlite'
 

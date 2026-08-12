@@ -63,7 +63,7 @@ export class EntityMetadataManager<E extends EntityBase>
     public readonly attributesConfig: EntityAttributes<E>;
 
     /** Attributes marked as primary keys in `attributesConfig`. */
-    public readonly primaryKeys: Array<keyof E>;
+    public readonly primaryKeys: Array<keyof EntityNoExternal<E>>;
 
     /** Every attribute key of `E`, in declaration order. */
     public readonly entityAttributesList: Array<keyof E>;

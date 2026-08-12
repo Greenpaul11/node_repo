@@ -4,7 +4,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -13,6 +15,9 @@
     "./types": {
       "types": "./dist/types/index.d.ts"
     }
+  },
+  "bin": {
+    "node-repo": "./dist/cli.js"
   },
   "scripts": {
     "start": "node --env-file=config/.env",
@@ -29,7 +34,7 @@
     "@types/express": "^5.0.3",
     "@types/express-mysql-session": "^3.0.8",
     "@types/express-session": "^1.18.2",
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.2.0",
     "@types/node-schedule": "^2.1.8",
     "jest": "^29.7.0",
     "sass": "^1.95.0",

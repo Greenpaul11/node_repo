@@ -88,7 +88,7 @@ const shopAttributesConfig: MetadataConstructor<Shop> = {
     }
 }
 
-const shopMetadata = new EntityMetadataManager<Shop>(
+const shopMetadata = new EntityMetadataManager(
     shopAttributesConfig, 
     () => ( { prices: { metadata: priceMetadata, relation: 'one to many' } })
 )
@@ -178,7 +178,7 @@ const priceAttributesConfig: MetadataConstructor<Price> = {
     }
 }
 
-const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager<Price>(
+const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager(
     priceAttributesConfig, 
     () => ({ 
         shop: { metadata: shopMetadata, relation: 'many to one' }, 
@@ -307,7 +307,7 @@ const productAttributesConfig: MetadataConstructor<Product> = {
     }
 }
 
-const productMetadata: EntityMetadata<Product> = new EntityMetadataManager<Product>(
+const productMetadata: EntityMetadata<Product> = new EntityMetadataManager(
     productAttributesConfig, 
     () => ({ 
         prices: { metadata: priceMetadata, relation: 'one to many' },
@@ -394,7 +394,7 @@ const commentAttributesConfig: MetadataConstructor<Comment> = {
     }
 }
 
-const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager<Comment>(
+const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager(
     commentAttributesConfig,
     () => ({ 
         product: { metadata: productMetadata, relation: 'many to one' },
@@ -479,7 +479,7 @@ const categoryAttributesConfig: MetadataConstructor<Category> = {
     }
 }
 
-const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager<Category>(
+const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager(
     categoryAttributesConfig,
     () => ({ 
         parent: { metadata: categoryMetadata, relation: 'many to one' },
@@ -564,7 +564,7 @@ const productCategoryAttributesConfig: MetadataConstructor<ProductCategory> = {
     }
 }
 
-const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetadataManager<ProductCategory>(
+const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetadataManager(
     productCategoryAttributesConfig,
     () => ({ 
         product: { metadata: productMetadata, relation: 'many to one' },
@@ -639,7 +639,7 @@ const specificationTreeAttributesConfig: MetadataConstructor<SpecificationTree> 
     }
 }
 
-const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityMetadataManager<SpecificationTree>(
+const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityMetadataManager(
     specificationTreeAttributesConfig,
     () => ({ 
         product: { metadata: productMetadata, relation: 'one to one' },
@@ -714,7 +714,7 @@ const specificationAttributesConfig: MetadataConstructor<Specification> = {
     }
 }
 
-const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataManager<Specification>(
+const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataManager(
     specificationAttributesConfig,
     () => ({ specification_tree: { metadata: specificationTreeMetadata, relation: 'many to one' }})
 )
@@ -805,7 +805,7 @@ const userAttributesConfig: MetadataConstructor<User> = {
     }
 }
 
-const userMetadata: EntityMetadata<User> = new EntityMetadataManager<User>(
+const userMetadata: EntityMetadata<User> = new EntityMetadataManager(
     userAttributesConfig,
     () => ({ 
         comments: { metadata: commentMetadata, relation: 'one to many' },
@@ -890,7 +890,7 @@ const rateAttributesConfig: MetadataConstructor<Rate> = {
 }
 
 
-const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager<Rate>(
+const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager(
     rateAttributesConfig,
     () => ({ 
         comment: { metadata: commentMetadata, relation: 'many to one' },
@@ -956,7 +956,7 @@ export const productImporterAttributesConfig: MetadataConstructor<ProductImporte
     }
 }
 
-const productImporterMetadata: EntityMetadata<ProductImporter> = new EntityMetadataManager<ProductImporter>(
+const productImporterMetadata: EntityMetadata<ProductImporter> = new EntityMetadataManager(
     productImporterAttributesConfig,
     () => ({ 
         products: { metadata: productMetadata, relation: 'one to many' },
