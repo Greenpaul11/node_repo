@@ -1,11 +1,11 @@
 import { strict as assert } from 'node:assert'
-import { it, describe, before, after } from "node:test";
+import { it, describe, before } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 import { DataTypes, Sequelize } from 'sequelize'
 import connection from '../../../../config/connection';
 import { Product, Shop, SpecificationTree } from '../../../testSkeleton/models';
-import { createAll, createEntityConstructor } from '../../../../src/constructor/entityConstructor/sequelize/constructor';
+import { constructMetadatas, generateConstructor } from '../../../../src/constructors/metadataConstructor/sequelize/build'
 
 const sequelize = connection
 if (!sequelize) throw new Error('Instance Sequelize is undefined')
@@ -30,8 +30,13 @@ type Generated = {
     }>
 }
 
-function generate(model: Parameters<typeof createEntityConstructor>[0]): Generated {
-    return createEntityConstructor(model) as unknown as Generated
+function generate(model: Parameters<typeof generateConstructor>[0]): Generated {
+    let constructorString = generateConstructor(model, '')
+    const fixed = constructorString
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":') 
+        .replace(/'/g, '"');                                
+
+    return JSON.parse(fixed)
 }
 
 // helper that builds the attribute config the constructor is expected to produce
@@ -61,7 +66,7 @@ describe('createEntityConstructor', () => {
 
     describe('Product model (class based + Model.init)', () => {
         const constructor = generate(Product)
-
+        
         it('should generate base referenceNames', () => {
             assert.deepEqual(constructor.base, {
                 referenceNames: {
@@ -272,7 +277,7 @@ describe('createEntityConstructor', () => {
             ['short_label', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'string', type: 'string' }), 'nullable char'],
             ['description', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'string', type: 'string' }), 'nullable text'],
             ['importer_id', expectedAttribute({ required: false, allowNull: true, associated: true, asRange: true, fieldType: 'number', type: 'number' }), 'nullable fk'],
-            ['price', expectedAttribute({ required: true, allowNull: false, asRange: true, fieldType: 'decimal', type: 'decimal' }), 'decimal'],
+            ['price', expectedAttribute({ required: true, allowNull: false, asRange: true, fieldType: 'decimal', type: 'number' }), 'decimal'],
             ['weight', expectedAttribute({ required: true, allowNull: false, asRange: true, fieldType: 'number', type: 'number' }), 'bigint'],
             ['ratio', expectedAttribute({ required: false, allowNull: true, asRange: true, fieldType: 'number', type: 'number' }), 'float'],
             ['rating', expectedAttribute({ required: false, allowNull: true, asRange: true, fieldType: 'number', type: 'number' }), 'double'],
@@ -309,51 +314,59 @@ describe('createEntityConstructor', () => {
 })
 
 describe('createAll', () => {
-    const outputDir = path.join('tests/constructor/entityConstructor/sequelize/testOutput')
+    const config = {
+            connection: connection,
+            constructEntities: true,
+            constructMetadatas: true,
+            path: 'tests/constructors/metadataConstructor/sequelize',
+            dirName: 'repository'
+        }
+    const outputDir = path.join(config.path, 'testOutput')
 
     before(() => {
-        createAll(outputDir, connection)
+        constructMetadatas(outputDir, config)
     })
 
     //after(() => {
     //    fs.rmSync(outputDir, { recursive: true, force: true })
     //})
 
-    it('should create entityConstructors.ts', () => {
-        assert.ok(fs.existsSync(path.join(outputDir, 'entityConstructors.ts')))
+    it('should create metadata.ts', () => {
+        assert.ok(fs.existsSync(path.join(outputDir, 'metadata.ts')))
     })
 
     it('should import EntityConstructor from Metadata', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entityConstructors.ts'), 'utf-8')
-        assert.ok(content.includes('import { EntityConstructor } from'))
+        const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
+        assert.ok(content.includes('import { MetadataConstructor, EntityMetadata } from "node-repo/types"'))
+        assert.ok(content.includes('import { EntityMetadataManager } from "node-repo"'))
     })
 
     it('should have a numbered header comment block', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entityConstructors.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
         assert.ok(content.includes('//  *************************************************'))
-        assert.ok(content.includes('//  1.  Product ATTRIBUTES CONFIG'))
+        assert.ok(content.includes('//  1.  Product CONSTRUCTOR & METADATA'))
     })
 
     it('should generate a const block for each registered model', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entityConstructors.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
         for (const modelName of Object.keys(connection.models)) {
-            const constName = `${modelName.charAt(0).toLowerCase()}${modelName.slice(1)}AttributesConfig`
-            assert.ok(content.includes(`const ${constName}: EntityConstructor<${modelName}>`), `missing block for ${modelName}`)
+            const constName = `${modelName.charAt(0).toLowerCase()}${modelName.slice(1)}Constructor`
+            assert.ok(content.includes(`const ${constName}: MetadataConstructor<any>`), `missing block for ${modelName}`)
         }
     })
 
     it('should export all generated consts', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entityConstructors.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
         assert.ok(content.includes('export {'))
         for (const modelName of Object.keys(connection.models)) {
-            const constName = `${modelName.charAt(0).toLowerCase()}${modelName.slice(1)}AttributesConfig`
+            const constName = `${modelName.charAt(0).toLowerCase()}${modelName.slice(1)}Constructor`
             assert.ok(content.includes(constName), `missing export for ${constName}`)
         }
     })
 
     it('should have valid TypeScript structure for each block', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entityConstructors.ts'), 'utf-8')
-        const constBlocks = content.split('const ').slice(1)
+        const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
+        const constBlocks = content.split(/const\s+\w+Constructor/).slice(1)
         assert.ok(constBlocks.length > 0, 'should have at least one const block')
         for (const block of constBlocks) {
             assert.ok(block.includes('base:'), `block should have base: ${block.slice(0, 80)}`)

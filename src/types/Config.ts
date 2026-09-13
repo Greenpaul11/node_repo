@@ -1,6 +1,8 @@
 import { TransformRule } from "./entity/Converters.js"
 import { Decimal } from "decimal.js"
 import { Sequelize } from "sequelize"
+import { constructEntities } from "../constructors/entityConstructor/sequelize/build.js"
+import { constructMetadatas } from "../constructors/metadataConstructor/sequelize/build.js"
 
 /**
  * Define base type for all your entities.
@@ -56,7 +58,20 @@ export type NumberLike = number | Decimal
 /**
  * Constructor configurations
  */
-export type ConstructorConfg = {
+export type ConstructorConifg = {
     connection: OrmOptions,
-    path: string
+    constructEntities: boolean,
+    constructMetadatas: boolean
+    path: string,
+    dirName?: string,
+    indent?: number
+}
+
+/**
+ * Constructor configurations defaults
+ */
+export type ConstructorConifgDefaults = {
+    dirName: string,
+    indent: number,
+    consoleLogIdentifier: string
 }

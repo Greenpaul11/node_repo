@@ -10,8 +10,7 @@ export type EntityBase = ConfigTypes['entityBase']
 /**
  * Defines external references that an entity has to other entities.
  * Maps entity fields to their corresponding query types of related entities.
- * If entity can has many - reference is an array of related entities,
- * else is a single entity.
+ * Retrives singular releted entities type (reference can be also an array).
  */
  export type ExternalReferences<E extends EntityBase> = {
     [K in keyof E as

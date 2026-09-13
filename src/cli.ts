@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+import 'tsx/esm'
 import { build } from './commands/buildMetadata.js'
 
 const [, , command, ...args] = process.argv;

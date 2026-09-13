@@ -4,9 +4,11 @@
 
 export { Repository } from "./repository/repository.js";
 
+export { EntityMetadataManager } from "./metadata/entityMetadataMenager.js"
+
 // ============================================================
-// Builders
+// CLI
 // ============================================================
 
-export { createConstructors } from './builders/metadataConstructor/sequelize/build.js'
+export { buildMetadataForAll } from './constructors/metadataConstructor/sequelize/build.js'
 
