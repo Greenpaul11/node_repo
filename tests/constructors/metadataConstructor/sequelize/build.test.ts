@@ -318,10 +318,10 @@ describe('createAll', () => {
             connection: connection,
             constructEntities: true,
             constructMetadatas: true,
-            path: 'tests/constructors/metadataConstructor/sequelize',
+            path: 'tests/constructors/testOutput/sequelize',
             dirName: 'repository'
         }
-    const outputDir = path.join(config.path, 'testOutput')
+    const outputDir = config.path
 
     before(() => {
         constructMetadatas(outputDir, config)
@@ -351,7 +351,7 @@ describe('createAll', () => {
         const content = fs.readFileSync(path.join(outputDir, 'metadata.ts'), 'utf-8')
         for (const modelName of Object.keys(connection.models)) {
             const constName = `${modelName.charAt(0).toLowerCase()}${modelName.slice(1)}Constructor`
-            assert.ok(content.includes(`const ${constName}: MetadataConstructor<any>`), `missing block for ${modelName}`)
+            assert.ok(content.includes(`const ${constName}: MetadataConstructor`), `missing block for ${modelName}`)
         }
     })
 

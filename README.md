@@ -212,14 +212,27 @@ User → Repo.getManyBy(query)
 
 ```
 src/
+  cli.ts                          CLI entry point (`node-repo <command>`)
+  commands/
+    buildMetadata.ts              `build` CLI command → code generation
+  constructors/                   Code generation for entities + metadata
+    config.ts                     Default constructor options (dirName, indent)
+    unified.ts                    Unified type mapping (Sequelize ↔ domain)
+    entityConstructor/sequelize/
+      build.ts                    Generates entities.ts from ORM models
+    metadataConstructor/sequelize/
+      build.ts                    Generates metadata.ts (MetadataConstructor)
+  index.ts                        Public runtime API barrel (Repository, EntityMetadataManager)
   types/                          Type-level DSL and metadata types
+    index.ts                      Type-only barrel (public type exports)
     entity/
       Root.ts                     EntityBase, ExternalReferences, EntityNoExternal
       Query.ts                    Query<E>, QuerySelect, EntityProjection, ...
       Metadata.ts                 EntityMetadata, sub-entity references, sort options
       Converters.ts               TransformRule, EntityTransform, dialect-aware rules
       Creation.ts                 CreationOptional, EntityCreationAttributes
-    Config.ts                     OrmOptions, DialectOptions
+      Repository.ts               Repository-level types
+    Config.ts                     OrmOptions, DialectOptions, EntityBaseConfig, ...
     Global.ts                     Utility types (PickByType, NonUndefined, ...)
   converters/
     output/                       Row → entity conversion
@@ -234,18 +247,19 @@ src/
       validators.ts               Type validators (string, number, date, boolean, range, select)
   layers/
     sequelize/                    Sequelize implementation
-      dialects/{mysql,sqlite}/    Per-dialect converter build + functions
+      dialects/mysql/             MySQL converter build + functions
+      dialects/sqlite/            SQLite converter build + functions
       manager/ormManager.ts       Concrete OrmManager
       output/
         converter.ts              Concrete OutputConverter
-        mergeRowsIntoEntities.ts   raw:true, nest:true deduplication
+        mergeRowsIntoEntities.ts  raw:true, nest:true deduplication
       query/
         build.ts                  Sequelize-specific converter functions
         converter.ts              Sequelize QueryConverter
       types.ts                    Sequelize-specific type helpers
   metadata/
     config.ts                     Metadata configuration
-    entityMetadataMenager.ts      Attribute lists, lazy order/group trees
+    entityMetadataMenager.ts      Metadata manager + EntityMetadataManager
   ormManager/
     base.ts                       Abstract CRUD contract
   repository/
@@ -254,7 +268,12 @@ src/
     treeBuilders.ts               Cycle-safe relation-tree builder
   lib/
     override.ts                   Deep partial override utility
-config/                           Environment files, connection bootstrap, test setup
+tests/
+  constructors/                   Code-generation tests (entity/metadata constructors)
+  converters/                     Converter unit tests
+  layers/sequelize/               Layer tests (models, query, output, repository)
+  lib/                            override.test.ts
+  testSkeleton/                   Fixture entities, models, metadata, test data
 docs/api/                         Generated TypeDoc reference (npm run docs)
 ```
 

@@ -16,10 +16,11 @@ import { EntityMetadataManager } from "node-repo"
 //  12.  ProductClone METADATA CONSTRUCTOR
 //  13.  Gadget METADATA CONSTRUCTOR
 //  *************************************************
+import { Product, ProductImporter, Price, Shop, Category, ProductCategory, SpecificationTree, Specification, User, Comment, Rate, ProductClone, Gadget } from './entities.ts'
 
 
 //  1.  Product CONSTRUCTOR & METADATA
-const productConstructor: MetadataConstructor<any> = {
+const productConstructor: MetadataConstructor<Product> = {
     base: {
         referenceNames: {
             singularName: 'Product',
@@ -149,7 +150,7 @@ const productConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const productMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const productMetadata: EntityMetadata<Product> = new EntityMetadataManager(
     productConstructor,
     () => ({
         prices: {
@@ -176,7 +177,7 @@ const productMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  2.  ProductImporter CONSTRUCTOR & METADATA
-const productImporterConstructor: MetadataConstructor<any> = {
+const productImporterConstructor: MetadataConstructor<ProductImporter> = {
     base: {
         referenceNames: {
             singularName: 'ProductImporter',
@@ -236,7 +237,7 @@ const productImporterConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const productImporterMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const productImporterMetadata: EntityMetadata<ProductImporter> = new EntityMetadataManager(
     productImporterConstructor,
     () => ({
         products: {
@@ -247,7 +248,7 @@ const productImporterMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  3.  Price CONSTRUCTOR & METADATA
-const priceConstructor: MetadataConstructor<any> = {
+const priceConstructor: MetadataConstructor<Price> = {
     base: {
         referenceNames: {
             singularName: 'Price',
@@ -337,7 +338,7 @@ const priceConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const priceMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager(
     priceConstructor,
     () => ({
         product: {
@@ -352,7 +353,7 @@ const priceMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  4.  Shop CONSTRUCTOR & METADATA
-const shopConstructor: MetadataConstructor<any> = {
+const shopConstructor: MetadataConstructor<Shop> = {
     base: {
         referenceNames: {
             singularName: 'shop',
@@ -422,7 +423,7 @@ const shopConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const shopMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const shopMetadata: EntityMetadata<Shop> = new EntityMetadataManager(
     shopConstructor,
     () => ({
         prices: {
@@ -433,7 +434,7 @@ const shopMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  5.  Category CONSTRUCTOR & METADATA
-const categoryConstructor: MetadataConstructor<any> = {
+const categoryConstructor: MetadataConstructor<Category> = {
     base: {
         referenceNames: {
             singularName: 'Category',
@@ -513,7 +514,7 @@ const categoryConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const categoryMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager(
     categoryConstructor,
     () => ({
         children: {
@@ -532,7 +533,7 @@ const categoryMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  6.  ProductCategory CONSTRUCTOR & METADATA
-const productCategoryConstructor: MetadataConstructor<any> = {
+const productCategoryConstructor: MetadataConstructor<ProductCategory> = {
     base: {
         referenceNames: {
             singularName: 'product_category',
@@ -612,7 +613,7 @@ const productCategoryConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const productCategoryMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetadataManager(
     productCategoryConstructor,
     () => ({
         category: {
@@ -627,7 +628,7 @@ const productCategoryMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  7.  SpecificationTree CONSTRUCTOR & METADATA
-const specificationTreeConstructor: MetadataConstructor<any> = {
+const specificationTreeConstructor: MetadataConstructor<SpecificationTree> = {
     base: {
         referenceNames: {
             singularName: 'specification_tree',
@@ -697,7 +698,7 @@ const specificationTreeConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const specificationTreeMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityMetadataManager(
     specificationTreeConstructor,
     () => ({
         product: {
@@ -712,7 +713,7 @@ const specificationTreeMetadata: EntityMetadata<any> = new EntityMetadataManager
 )
 
 //  8.  Specification CONSTRUCTOR & METADATA
-const specificationConstructor: MetadataConstructor<any> = {
+const specificationConstructor: MetadataConstructor<Specification> = {
     base: {
         referenceNames: {
             singularName: 'specification',
@@ -782,7 +783,7 @@ const specificationConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const specificationMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataManager(
     specificationConstructor,
     () => ({
         specification_tree: {
@@ -793,7 +794,7 @@ const specificationMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  9.  User CONSTRUCTOR & METADATA
-const userConstructor: MetadataConstructor<any> = {
+const userConstructor: MetadataConstructor<User> = {
     base: {
         referenceNames: {
             singularName: 'user',
@@ -883,7 +884,7 @@ const userConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const userMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const userMetadata: EntityMetadata<User> = new EntityMetadataManager(
     userConstructor,
     () => ({
         comments: {
@@ -898,7 +899,7 @@ const userMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  10.  Comment CONSTRUCTOR & METADATA
-const commentConstructor: MetadataConstructor<any> = {
+const commentConstructor: MetadataConstructor<Comment> = {
     base: {
         referenceNames: {
             singularName: 'comment',
@@ -978,7 +979,7 @@ const commentConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const commentMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager(
     commentConstructor,
     () => ({
         product: {
@@ -997,7 +998,7 @@ const commentMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  11.  Rate CONSTRUCTOR & METADATA
-const rateConstructor: MetadataConstructor<any> = {
+const rateConstructor: MetadataConstructor<Rate> = {
     base: {
         referenceNames: {
             singularName: 'rate',
@@ -1077,7 +1078,7 @@ const rateConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const rateMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager(
     rateConstructor,
     () => ({
         user: {
@@ -1092,7 +1093,7 @@ const rateMetadata: EntityMetadata<any> = new EntityMetadataManager(
 )
 
 //  12.  ProductClone CONSTRUCTOR & METADATA
-const productCloneConstructor: MetadataConstructor<any> = {
+const productCloneConstructor: MetadataConstructor<ProductClone> = {
     base: {
         referenceNames: {
             singularName: 'ProductClone',
@@ -1222,13 +1223,13 @@ const productCloneConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const productCloneMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const productCloneMetadata: EntityMetadata<ProductClone> = new EntityMetadataManager(
     productCloneConstructor,
     () => ({})
 )
 
 //  13.  Gadget CONSTRUCTOR & METADATA
-const gadgetConstructor: MetadataConstructor<any> = {
+const gadgetConstructor: MetadataConstructor<Gadget> = {
     base: {
         referenceNames: {
             singularName: 'Gadget',
@@ -1428,7 +1429,7 @@ const gadgetConstructor: MetadataConstructor<any> = {
         }
     }
 }
-const gadgetMetadata: EntityMetadata<any> = new EntityMetadataManager(
+const gadgetMetadata: EntityMetadata<Gadget> = new EntityMetadataManager(
     gadgetConstructor,
     () => ({})
 )

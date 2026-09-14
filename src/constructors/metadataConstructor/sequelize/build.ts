@@ -5,6 +5,7 @@ import fs from "node:fs";
 import { join } from "node:path";
 import { ConstructorConifg } from "../../../types/Config.js";
 import configDefault from "../../config.js"
+import { constructEntities } from "../../entityConstructor/sequelize/build.js";
 
 
 export function constructMetadatas(
@@ -25,7 +26,7 @@ export function constructMetadatas(
     const imports = [
         'import { MetadataConstructor, EntityMetadata } from "node-repo/types"',
         'import { EntityMetadataManager } from "node-repo"'
-    ].join('\n')
+    ]
     
     const models = config.connection.modelManager.models
 
@@ -37,14 +38,18 @@ export function constructMetadatas(
         '//  *************************************************',
         ...models.map((model, index) => `//  ${index + 1}.  ${model.name} METADATA CONSTRUCTOR`),
         '//  *************************************************'
-    ].join('\n')
+    ]
 
+    const entityTuples: [number, string][] = []
     const blocks = models.map((model, index) => {
         const name = model.name
         const constName = `${toCamelCase(name)}Constructor`
         const metadataName = `${toCamelCase(name)}Metadata`
         const constructorBody = generateConstructor(model as ModelStatic<Model>, indent)
         const metadataBody = generateMetadata(constName, model as ModelStatic<Model>, indent)
+        
+        entityTuples.push([index, toFirstUpperCase(name)])
+        
         return [
             `//  ${index + 1}.  ${name} CONSTRUCTOR & METADATA`,
             `const ${constName}: MetadataConstructor<any> = ${constructorBody}`,
@@ -52,21 +57,59 @@ export function constructMetadatas(
         ].join('\n')
     })
 
+    // check if entities already exist (if were not genereted)
+    if (!config.constructEntities) {
+        const filePath = join(dirPath, "entities.ts");
+        if (fs.existsSync(filePath)) {
+            const entitiesFile = fs.readFileSync(filePath, "utf-8");
+            const toRemove: number[] = [];
+
+            for (const [index, name] of entityTuples.entries()) {
+                const regex = new RegExp(`export\\s+interface\\s+${name}\\b`, "s");
+
+                if (regex.test(entitiesFile)) {
+                    console.log(`${name} interface is exported`);
+                } else {
+                    console.log(`${name} interface NOT exported`);
+                    toRemove.push(index);
+                }
+            }
+
+            // remove entities that are not imported 
+            toRemove
+                .sort((a, b) => b - a)
+                .forEach(index => entityTuples.splice(index, 1))
+        }
+    }
+
+    // if entity exports exists and are equevalent to naming strategey updeat header and blocks
+    if (entityTuples.length) {
+        
+        // update header
+        const entityNames = entityTuples.map(([, name]) => name)
+        header.push(`import { ${entityNames.join(', ')} } from './entities.ts'`)
+
+        // update blocks
+        entityTuples.forEach(([index, name]) => {
+            blocks[index] = blocks[index].replace(/<any>/g, `<${name}>`)
+        })
+    }
+
     const exportedNames = models.map((model) => `${indent}${toCamelCase(model.name)}Constructor`)
     const exportsBlock = [
         'export { ',
         exportedNames.join(',\n'),
         '}'
-    ].join('\n')
+    ]
 
     const fileContent = [
-        imports,
+        imports.join('\n'),
         '',
-        header,
+        header.join('\n'),
         '',
         ...blocks.flatMap((block) => ['', block]),
         '',
-        exportsBlock,
+        exportsBlock.join('\n'),
         ''
     ].join('\n')
 
@@ -184,7 +227,7 @@ export function generateMetadata<T extends Model>(
 
 
 const toCamelCase = (name: string): string => name.charAt(0).toLowerCase() + name.slice(1)
-
+const toFirstUpperCase = (name: string): string => name.charAt(0).toUpperCase() + name.slice(1)
 
 function mapSequelizeType(type: DataType): DatabaseAttributeTypes {
     const typeName = type.constructor.name

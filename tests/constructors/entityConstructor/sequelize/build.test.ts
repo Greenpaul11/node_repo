@@ -290,31 +290,27 @@ describe('createAll', () => {
         connection: connection,
         constructEntities: true,
         constructMetadatas: true,
-        path: 'tests/constructors/entityConstructor/sequelize',
+        path: 'tests/constructors/testOutput/sequelize',
         dirName: 'repository'
     }
-    const outputDir = path.join(config.path, 'testOutput')
-
+    
     before(() => {
-        constructEntities(outputDir, config)
+        constructEntities(config.path, config)
     })
 
-    //after(() => {
-    //    fs.rmSync(outputDir, { recursive: true, force: true })
-    //})
 
     it('should create entities.ts', () => {
-        assert.ok(fs.existsSync(path.join(outputDir, 'entities.ts')))
+        assert.ok(fs.existsSync(path.join(config.path, 'entities.ts')))
     })
 
     it('should have a numbered header comment block', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entities.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(config.path, 'entities.ts'), 'utf-8')
         assert.ok(content.includes('//  *************************************************'))
         assert.ok(content.includes('//  1.  Product ENTITY'))
     })
 
     it('should generate an interface block for each registered model', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entities.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(config.path, 'entities.ts'), 'utf-8')
         for (const modelName of Object.keys(connection.models)) {
             const interfaceName = `${modelName.charAt(0).toUpperCase()}${modelName.slice(1)}`
             assert.ok(content.includes(`export interface ${interfaceName} {`), `missing interface for ${modelName}`)
@@ -322,7 +318,7 @@ describe('createAll', () => {
     })
 
     it('should write the external references for each interface', () => {
-        const content = fs.readFileSync(path.join(outputDir, 'entities.ts'), 'utf-8')
+        const content = fs.readFileSync(path.join(config.path, 'entities.ts'), 'utf-8')
         assert.ok(content.includes('prices?: Price'))
         assert.ok(content.includes('specification_tree?: SpecificationTree'))
         assert.ok(content.includes('product_importer?: ProductImporter'))
