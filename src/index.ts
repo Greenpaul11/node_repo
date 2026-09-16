@@ -10,5 +10,7 @@ export { EntityMetadataManager } from "./metadata/entityMetadataMenager.js"
 // CLI
 // ============================================================
 
-export { buildMetadataForAll } from './constructors/metadataConstructor/sequelize/build.js'
+export { constructMetadatas } from './constructors/metadataConstructor/sequelize/build.js'
+
+export { constructEntities } from './constructors/entityConstructor/sequelize/build.js'
 

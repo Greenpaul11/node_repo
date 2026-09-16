@@ -5,7 +5,6 @@ import fs from "node:fs";
 import { join } from "node:path";
 import { ConstructorConifg } from "../../../types/Config.js";
 import configDefault from "../../config.js"
-import { constructEntities } from "../../entityConstructor/sequelize/build.js";
 
 
 export function constructMetadatas(
@@ -39,7 +38,7 @@ export function constructMetadatas(
         ...models.map((model, index) => `//  ${index + 1}.  ${model.name} METADATA CONSTRUCTOR`),
         '//  *************************************************'
     ]
-
+    
     const entityTuples: [number, string][] = []
     const blocks = models.map((model, index) => {
         const name = model.name
@@ -52,50 +51,76 @@ export function constructMetadatas(
         
         return [
             `//  ${index + 1}.  ${name} CONSTRUCTOR & METADATA`,
-            `const ${constName}: MetadataConstructor<any> = ${constructorBody}`,
+            `const ${constName}: MetadataConstructor<any> = ${constructorBody}\n`,
             `const ${metadataName}: EntityMetadata<any> = ${metadataBody}`
         ].join('\n')
     })
 
     // check if entities already exist (if were not genereted)
-    if (!config.constructEntities) {
-        const filePath = join(dirPath, "entities.ts");
-        if (fs.existsSync(filePath)) {
-            const entitiesFile = fs.readFileSync(filePath, "utf-8");
-            const toRemove: number[] = [];
+    
+    const filePath = join(dirPath, "entities.ts");
+    if (fs.existsSync(filePath)) {
+        const entitiesFile = fs.readFileSync(filePath, "utf-8");
+        const toRemove: number[] = [];
 
-            for (const [index, name] of entityTuples.entries()) {
-                const regex = new RegExp(`export\\s+interface\\s+${name}\\b`, "s");
-
-                if (regex.test(entitiesFile)) {
-                    console.log(`${name} interface is exported`);
-                } else {
-                    console.log(`${name} interface NOT exported`);
-                    toRemove.push(index);
-                }
+        for (const [index, name] of entityTuples) {
+            const regex = new RegExp(`export\\s+interface\\s+${name}\\s+`);
+            if (regex.test(entitiesFile)) {
+                console.log(`${name} interface is exported`);
+            } else {
+                console.log(`${name} interface NOT exported`);
+                toRemove.push(index);
             }
+        }
 
-            // remove entities that are not imported 
-            toRemove
-                .sort((a, b) => b - a)
-                .forEach(index => entityTuples.splice(index, 1))
+        // remove entities that are not imported 
+        toRemove
+            .sort((a, b) => b - a)
+            .forEach(index => entityTuples.splice(index, 1))
+    
+        // if entity exports exists and are equevalent to naming strategey update imports and blocks
+        if (entityTuples.length) {
+            // update header
+            const entityNames = entityTuples.map(([, name]) => name)
+            if (entityNames.length < 5) {
+                header.push(`import { ${entityNames.join(', ')} } from './entities.ts'`)
+            } else {
+                const splited: string[] = []
+                splited.push(`import {`)
+                let parts: string[] = []
+                
+                for (let i = 0; i < entityNames.length; i++) {
+                    if (i === 0 || i % 4) {
+                        parts.push(entityNames[i])
+                    } else {
+                        // add comma at the end if 'i' is not last part
+                        if (i <= entityNames.length - 1) {
+                            splited.push(`${indent}${parts.join(', ')},`)
+                        } else {
+                            splited.push(`${indent}${parts.join(', ')}`)
+                        }
+                        parts = []
+                        parts.push(entityNames[i])
+                    }
+                }
+                if (parts.length) {
+                    splited.push(`${indent}${parts.join(', ')}`)
+                }
+                splited.push('} from "./entities.ts"')
+                splited.forEach((part) => imports.push(part))
+            }
+            
+            // update blocks
+            entityTuples.forEach(([index, name]) => {
+                blocks[index] = blocks[index].replace(/<any>/g, `<${name}>`)
+            })
         }
     }
 
-    // if entity exports exists and are equevalent to naming strategey updeat header and blocks
-    if (entityTuples.length) {
-        
-        // update header
-        const entityNames = entityTuples.map(([, name]) => name)
-        header.push(`import { ${entityNames.join(', ')} } from './entities.ts'`)
-
-        // update blocks
-        entityTuples.forEach(([index, name]) => {
-            blocks[index] = blocks[index].replace(/<any>/g, `<${name}>`)
-        })
-    }
-
-    const exportedNames = models.map((model) => `${indent}${toCamelCase(model.name)}Constructor`)
+    const exportedNames = [
+        ...models.map((model) => `${indent}${toCamelCase(model.name)}Constructor`),
+        ...models.map((model) => `${indent}${toCamelCase(model.name)}Metadata`)
+    ]
     const exportsBlock = [
         'export { ',
         exportedNames.join(',\n'),
@@ -159,7 +184,6 @@ function serializeObject(
 export function generateConstructor<T extends Model>(
     model: ModelStatic<T>,
     indent: string
-
 ): string {
     const attributes = model.getAttributes();
 

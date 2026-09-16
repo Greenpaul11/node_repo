@@ -231,7 +231,7 @@ export type EntityAttributes<E extends EntityBase> = {
         /**
          * Attributes that allow for FullTextSearch operation.
          */
-        searchIn: Property extends keyof PickByType<NonNullable<E>, string> ? boolean : null
+        searchIn: boolean | null
         /**
          * Database field type
          */
@@ -243,7 +243,7 @@ export type EntityAttributes<E extends EntityBase> = {
         /**
          * Determine if field is primary key
          */
-        primaryKey?: true,
+        primaryKey?: boolean,
         
     } 
 }

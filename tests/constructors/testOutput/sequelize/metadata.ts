@@ -1,5 +1,11 @@
 import { MetadataConstructor, EntityMetadata } from "node-repo/types"
 import { EntityMetadataManager } from "node-repo"
+import {
+    Product, ProductImporter, Price, Shop,
+    Category, ProductCategory, SpecificationTree, Specification,
+    User, Comment, Rate, ProductClone,
+    Gadget
+} from "./entities.ts"
 
 //  *************************************************
 //  1.  Product METADATA CONSTRUCTOR
@@ -16,7 +22,6 @@ import { EntityMetadataManager } from "node-repo"
 //  12.  ProductClone METADATA CONSTRUCTOR
 //  13.  Gadget METADATA CONSTRUCTOR
 //  *************************************************
-import { Product, ProductImporter, Price, Shop, Category, ProductCategory, SpecificationTree, Specification, User, Comment, Rate, ProductClone, Gadget } from './entities.ts'
 
 
 //  1.  Product CONSTRUCTOR & METADATA
@@ -150,6 +155,7 @@ const productConstructor: MetadataConstructor<Product> = {
         }
     }
 }
+
 const productMetadata: EntityMetadata<Product> = new EntityMetadataManager(
     productConstructor,
     () => ({
@@ -237,6 +243,7 @@ const productImporterConstructor: MetadataConstructor<ProductImporter> = {
         }
     }
 }
+
 const productImporterMetadata: EntityMetadata<ProductImporter> = new EntityMetadataManager(
     productImporterConstructor,
     () => ({
@@ -338,6 +345,7 @@ const priceConstructor: MetadataConstructor<Price> = {
         }
     }
 }
+
 const priceMetadata: EntityMetadata<Price> = new EntityMetadataManager(
     priceConstructor,
     () => ({
@@ -423,6 +431,7 @@ const shopConstructor: MetadataConstructor<Shop> = {
         }
     }
 }
+
 const shopMetadata: EntityMetadata<Shop> = new EntityMetadataManager(
     shopConstructor,
     () => ({
@@ -514,6 +523,7 @@ const categoryConstructor: MetadataConstructor<Category> = {
         }
     }
 }
+
 const categoryMetadata: EntityMetadata<Category> = new EntityMetadataManager(
     categoryConstructor,
     () => ({
@@ -613,6 +623,7 @@ const productCategoryConstructor: MetadataConstructor<ProductCategory> = {
         }
     }
 }
+
 const productCategoryMetadata: EntityMetadata<ProductCategory> = new EntityMetadataManager(
     productCategoryConstructor,
     () => ({
@@ -698,6 +709,7 @@ const specificationTreeConstructor: MetadataConstructor<SpecificationTree> = {
         }
     }
 }
+
 const specificationTreeMetadata: EntityMetadata<SpecificationTree> = new EntityMetadataManager(
     specificationTreeConstructor,
     () => ({
@@ -783,6 +795,7 @@ const specificationConstructor: MetadataConstructor<Specification> = {
         }
     }
 }
+
 const specificationMetadata: EntityMetadata<Specification> = new EntityMetadataManager(
     specificationConstructor,
     () => ({
@@ -884,6 +897,7 @@ const userConstructor: MetadataConstructor<User> = {
         }
     }
 }
+
 const userMetadata: EntityMetadata<User> = new EntityMetadataManager(
     userConstructor,
     () => ({
@@ -979,6 +993,7 @@ const commentConstructor: MetadataConstructor<Comment> = {
         }
     }
 }
+
 const commentMetadata: EntityMetadata<Comment> = new EntityMetadataManager(
     commentConstructor,
     () => ({
@@ -1078,6 +1093,7 @@ const rateConstructor: MetadataConstructor<Rate> = {
         }
     }
 }
+
 const rateMetadata: EntityMetadata<Rate> = new EntityMetadataManager(
     rateConstructor,
     () => ({
@@ -1223,6 +1239,7 @@ const productCloneConstructor: MetadataConstructor<ProductClone> = {
         }
     }
 }
+
 const productCloneMetadata: EntityMetadata<ProductClone> = new EntityMetadataManager(
     productCloneConstructor,
     () => ({})
@@ -1429,6 +1446,7 @@ const gadgetConstructor: MetadataConstructor<Gadget> = {
         }
     }
 }
+
 const gadgetMetadata: EntityMetadata<Gadget> = new EntityMetadataManager(
     gadgetConstructor,
     () => ({})
@@ -1447,5 +1465,18 @@ export {
     commentConstructor,
     rateConstructor,
     productCloneConstructor,
-    gadgetConstructor
+    gadgetConstructor,
+    productMetadata,
+    productImporterMetadata,
+    priceMetadata,
+    shopMetadata,
+    categoryMetadata,
+    productCategoryMetadata,
+    specificationTreeMetadata,
+    specificationMetadata,
+    userMetadata,
+    commentMetadata,
+    rateMetadata,
+    productCloneMetadata,
+    gadgetMetadata
 }

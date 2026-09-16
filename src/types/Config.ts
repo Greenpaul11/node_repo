@@ -64,13 +64,14 @@ export type ConstructorConifg = {
     constructMetadatas: boolean
     path: string,
     dirName?: string,
-    indent?: number
+    indent?: number,
+    consoleLogIdentifier?: string
 }
 
 /**
  * Constructor configurations defaults
  */
-export type ConstructorConifgDefaults = {
+export type ConstructorConfigDefaults = {
     dirName: string,
     indent: number,
     consoleLogIdentifier: string
