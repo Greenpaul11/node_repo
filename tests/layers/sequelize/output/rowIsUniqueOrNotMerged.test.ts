@@ -1,14 +1,14 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Price, Product } from '../../../testSkeleton/entities'
-import { productMetadata } from '../../../testSkeleton/config';
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { Query } from '../../../../src/types/entity/Query';
-import { SequelizeRawEntity, SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types';
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
-import { rowIsUniqueOrNotMerged } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-import { ProductCategory } from '../../../testSkeleton/models';
+import { productMetadata } from '../../../testSkeleton/metadata.js';
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import { rowIsUniqueOrNotMerged } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities.js';
+import { ProductCategory } from '../config/models.js';
+import type { EntityRelationTree } from '../../../../src/types/entity/Metadata.ts';
+import type { Query } from '../../../../src/types/entity/Query.ts';
+import type { Price, Product } from '../../../testSkeleton/entities.ts'
+import type { SequelizeRawEntity, SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types.ts';
 
 
 describe('rowIsUniqueOrNotMerged: Determines if row with its nested entities should be merged or kept separate', () => {

@@ -1,11 +1,13 @@
 {
-  "name": "node-repo",
+  "name": "node-repos",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
@@ -20,9 +22,7 @@
     "node-repo": "./dist/cli.js"
   },
   "scripts": {
-    "start": "node --env-file=config/.env",
-    "test": "node --trace-uncaught --env-file=config/.env.sequelize_sqlite --import tsx --import ./config/testSetup.ts --test --test-concurrency=1 --test-force-exit \"**/*.test.ts\"",
-    "test:one": "node --trace-uncaught --env-file=config/.env.sequelize_sqlite --import tsx --import ./config/testSetup.ts --test",
+    "test": "tsx tests/run.ts",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch",
     "build": "tsc",
@@ -30,17 +30,21 @@
   },
   "author": "",
   "license": "MIT",
-  "description": "",
+  "description": "A lightweight abstraction layer for multiple ORM frameworks.",
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/express-mysql-session": "^3.0.8",
     "@types/express-session": "^1.18.2",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.6.3",
     "@types/node-schedule": "^2.1.8",
+    "sequelize-cli": "^6.6.5",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typedoc": "^0.28.20",
     "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^7.10.0"
   },
   "dependencies": {
     "decimal.js": "^10.6.0",
@@ -48,9 +52,12 @@
     "express": "^4.19.2",
     "express-mysql-session": "^3.0.3",
     "express-session": "^1.18.1",
+    "mariadb": "^3.5.4",
     "mysql2": "^3.11.3",
+    "pg": "^8.23.0",
+    "pg-hstore": "^2.3.4",
     "picomatch": "^4.0.5",
-    "sequelize": "^6.37.7",
+    "sequelize": "^6.37.8",
     "sqlite3": "^6.0.1",
     "ts-transformer-keys": "^0.4.4",
     "typescript": "^5.7.3"

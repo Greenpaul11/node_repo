@@ -1,19 +1,17 @@
 import { strict as assert } from 'node:assert'
 import { it, describe, before } from "node:test";
-import connection from '../../../../config/connection';
-import { Product, Comment, ProductImporter, User, Rate, SpecificationTree, Category, ProductCategory, Price } from '../../../testSkeleton/entities'
-
+import connection from '../config/connection.js';
 import { 
     productImporterData,
     productData,
     priceData,
     shopData,
     categoryData 
-} from '../../../testSkeleton/testData/dataBase';
+} from '../../../testSkeleton/testData/dataBase.js';
 import { 
     productData as productData2,
     priceData as priceData2
-} from '../../../testSkeleton/testData/dataExtended';
+} from '../../../testSkeleton/testData/dataExtended.js';
 import { 
     priceData as priceData3,
     shopData as shopData2,
@@ -24,7 +22,7 @@ import {
     productCategoryData,
     specificationTreeData,
 
-} from '../../../testSkeleton/testData/dataExtended2';
+} from '../../../testSkeleton/testData/dataExtended2.js';
 import {
     ProductImporter as ProductImporterModel,
     Product as ProductModel,
@@ -37,7 +35,7 @@ import {
     ProductCategory as ProductCategoryModel,
     SpecificationTree as SpecificationTreeModel,
     Specification as SpecificationModel,
-} from '../../../testSkeleton/models.js';
+} from '../config/models.js';
 import { 
     priceMetadata,
     productImporterMetadata, 
@@ -48,13 +46,16 @@ import {
     categoryMetadata,
     productCategoryMetadata,
     specificationTreeMetadata,
-} from '../../../testSkeleton/config'
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { Query } from '../../../../src/types/entity/Query';
-import Decimal from 'decimal.js'
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
-
+} from '../../../testSkeleton/metadata.js'
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import { Decimal } from 'decimal.js'
+import type{ EntityRelationTree } from '../../../../src/types/entity/Metadata.ts';
+import type { Query } from '../../../../src/types/entity/Query.ts';
+import type { 
+    Product, Comment, ProductImporter, User, Rate, 
+    SpecificationTree, Category, ProductCategory, Price 
+} from '../../../testSkeleton/entities.ts'
 
 
 const sequelize = connection

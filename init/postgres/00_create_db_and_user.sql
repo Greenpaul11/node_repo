@@ -1,0 +1,10 @@
+CREATE ROLE migrator LOGIN PASSWORD 'migratorpass';
+CREATE ROLE test_user LOGIN PASSWORD 'noderepopassword';
+
+CREATE DATABASE node_repo_test OWNER migrator;
+
+\connect node_repo_test
+    
+GRANT USAGE ON SCHEMA public TO test_user;
+ALTER DEFAULT PRIVILEGES FOR ROLE migrator IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO test_user;
+ALTER DEFAULT PRIVILEGES FOR ROLE migrator IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO test_user;

@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import Decimal from 'decimal.js'
-import { buildConverters } from '../../../src/converters/output/buildConverters'
-import { ConverterFunctionsBuild } from '../../../src/types/entity/Converters'
-import { productMetadata } from '../../testSkeleton/config'
-import { Product } from '../../testSkeleton/entities'
+import { Decimal } from 'decimal.js'
+import { buildConverters } from '../../../src/converters/output/buildConverters.js'
+import { productMetadata } from '../../testSkeleton/metadata.js'
+import type { Product } from '../../testSkeleton/entities.ts'
+import type { EntityConvertersBuild } from '../../../src/types/entity/Converters.ts'
 
 
-const converterFunctionsBuild: ConverterFunctionsBuild = {
+const converterFunctionsBuild: EntityConvertersBuild = {
     baseAttributes: {
         number: (value) => Number.parseFloat(value),
         decimal: (value) => new Decimal(value),

@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import Decimal from 'decimal.js'
-import { convertRow } from '../../../src/converters/output/convertRow'
-import { buildConverters } from '../../../src/converters/output/buildConverters'
-import { MapEntitySelect } from '../../../src/types/entity/Query'
-import { shopMetadata, priceMetadata, productMetadata } from '../../testSkeleton/config'
-import { Shop, Price, Product } from '../../testSkeleton/entities'
-import { EntityTransform, FunctionsToTransformRules } from '../../../src/types/entity/Converters'
+import { Decimal } from 'decimal.js'
+import { convertRow } from '../../../src/converters/output/convertRow.js'
+import { buildConverters } from '../../../src/converters/output/buildConverters.js'
+import { shopMetadata, priceMetadata, productMetadata } from '../../testSkeleton/metadata.js'
+import type { Shop, Price, Product } from '../../testSkeleton/entities.ts'
+import type { EntityTransform, FunctionsToTransformRules } from '../../../src/types/entity/Converters.ts'
+import type { MapEntitySelect } from '../../../src/types/entity/Query.ts'
 
 const typeConverters = {
     baseAttributes: {

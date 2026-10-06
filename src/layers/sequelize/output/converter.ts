@@ -7,17 +7,22 @@ import {
     Model, InferAttributes, InferCreationAttributes 
 } from 'sequelize'
 
-import mysqlConverterBuild from '../dialects/mysql/build.js'
-import sqliteConverterBuild from '../dialects/sqlite/build.js'
-import extractMysqlFuntions from '../dialects/mysql/functions.js'
-import extractSqliteFuntions from '../dialects/sqlite/functions.js'
+import mysqlConverterBuild from '../dialects/mysql/output/build.js'
+import sqliteConverterBuild from '../dialects/sqlite/output/build.js'
+import postgresConverterBuild from '../dialects/postgres/output/build.js'
+import mariadbConvertersBuild from '../dialects/mariadb/output/build.js'
+import extractMysqlEntityConverters from '../dialects/mysql/output/converters.js'
+import extractSqliteEntityConverters from '../dialects/sqlite/output/converters.js'
+import extractPostgresEntityConverters from '../dialects/postgres/output/converters.js'
+import extractMariadbEntityConverters from '../dialects/mariadb/output/converters.js'
 
 // define dialect converters build
 export const converterDialectsBuild = {
     mysql: mysqlConverterBuild,
-    sqlite: sqliteConverterBuild
+    sqlite: sqliteConverterBuild,
+    postgres: postgresConverterBuild,
+    mariadb: mariadbConvertersBuild
 }
-
 
 export class OutputConverter<
     E extends EntityBase,
@@ -35,25 +40,27 @@ export class OutputConverter<
         this.converterDialectsBuild = converterDialectsBuild
 
         // set entity converter function dialects
-        this.converterFunctionDialects = {
-            mysql: extractMysqlFuntions(),
-            sqlite: extractSqliteFuntions()
+        this.entityConverterDialects = {
+            mysql: extractMysqlEntityConverters(),
+            sqlite: extractSqliteEntityConverters(),
+            postgres: extractPostgresEntityConverters(),
+            mariadb: extractMariadbEntityConverters()
         }
 
         // create attribute type converters
         this.converters = this.converterFactory(this.converterDialectsBuild[dialect])
 
         // set entity converters accordingly to dialect
-        this.converterFunctions = this.converterFunctionDialects[dialect]
+        this.entityConverters = this.entityConverterDialects[dialect]
     }
     
     asEntity<Q extends Query<E>>(row: T | null): E;
     asEntity<Q extends Query<E>>(row: T | null, query: Q): EntityProjection<E, Q> | null;
     asEntity<Q extends Query<E>>(row: T | null, query?: Q): E | EntityProjection<E, Q> | null {
-        return this.converterFunctions.asEntity.call(this, row, query) 
+        return this.entityConverters.asEntity.call(this, row, query) 
     }
 
     asEntities<Q extends Query<E>>(rows: T[], query?: Q) {
-        return this.converterFunctions.asEntities.call(this, rows, query) as unknown as EntityProjection<E, Q>[]
+        return this.entityConverters.asEntities.call(this, rows, query) as unknown as EntityProjection<E, Q>[]
     }
 }

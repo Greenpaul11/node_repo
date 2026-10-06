@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Product } from '../../../testSkeleton/entities'
-import { productMetadata } from '../../../testSkeleton/config';
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { MapEntitySelect, Query } from '../../../../src/types/entity/Query';
-import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types';
-import { entityRowIsUnique } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
+import { productMetadata } from '../../../testSkeleton/metadata.js';
+import { entityRowIsUnique } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities.js';
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import type { EntityRelationTree } from '../../../../src/types/entity/Metadata.ts';
+import type { MapEntitySelect, Query } from '../../../../src/types/entity/Query.ts';
+import type { Product } from '../../../testSkeleton/entities.ts'
+import type { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types.ts';
 
 describe('entityRowIsUnique: Checks if row is unique at root entity level', () => {
     const metadata = productMetadata

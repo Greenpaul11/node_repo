@@ -1,4 +1,4 @@
-import Decimal from "decimal.js"
+import { Decimal } from "decimal.js"
 /**
  * Product - main entity representing a product in the system
  * 

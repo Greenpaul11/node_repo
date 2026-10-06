@@ -6,7 +6,7 @@ import {
     QueryRangeAttributeTypes, QueryEntityAttributeValidator, 
     QueryRangeValidator, QuerySelectValidator 
 } from '../../../src/types/entity/Query'
-import { commentMetadata, priceMetadata, productMetadata, shopMetadata } from '../../testSkeleton/config'
+import { commentMetadata, priceMetadata, productMetadata, shopMetadata } from '../../testSkeleton/metadata'
 import { Comment, Price, Product, Shop } from '../../testSkeleton/entities'
 import { EntityBase, ExternalReferences } from '../../../src/types/entity/Root'
 import { PickByType } from '../../../src/types/Global'

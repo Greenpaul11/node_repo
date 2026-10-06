@@ -1,14 +1,13 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Price, Product, Shop } from '../../../testSkeleton/entities'
-import { productMetadata } from '../../../testSkeleton/config';
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { Query } from '../../../../src/types/entity/Query';
-import { SequelizeRawEntity, SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types';
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
-import { subRowIsUniqueOrNotMerged } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-
+import { productMetadata } from '../../../testSkeleton/metadata.js';
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import { subRowIsUniqueOrNotMerged } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities.js';
+import type { Price, Product } from '../../../testSkeleton/entities.ts'
+import type { EntityRelationTree } from '../../../../src/types/entity/Metadata.ts';
+import type { Query } from '../../../../src/types/entity/Query.ts';
+import type { SequelizeRawEntity, SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types.ts';
 
 describe('subRowIsUniqueOrNotMerged: Determines if subrow (nested entity) should be merged or marked as unique', () => {
 

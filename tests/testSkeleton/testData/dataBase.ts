@@ -1,5 +1,5 @@
-import { Product, Price, Shop, Category, ProductCategory, ProductImporter } from '../entities'
-import { EntityCreationAttributes, EntityCreation } from '../../../src/types/entity/Creation';
+import type { Product, Price, Shop, Category, ProductCategory, ProductImporter } from '../entities.ts'
+import type { EntityCreationAttributes } from '../../../src/types/entity/Creation.js';
 
 
 export const productImporterData: EntityCreationAttributes<ProductImporter>[] = [

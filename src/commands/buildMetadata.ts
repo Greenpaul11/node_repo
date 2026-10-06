@@ -1,6 +1,7 @@
+import { detectOrm } from "../repository/detectors.js";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
-import { ConstructorConifg, OrmOptions } from "../types/Config.js";
+import { ConstructorConifg, OrmOptions } from "../types/Registry.js";
 import fs from "node:fs";
 import { dirExistsSync } from "../lib/file.js";
 import constructorConfigDefault from "../constructors/config.js";
@@ -87,13 +88,5 @@ export async function build(args: string[]) {
   }
 }
 
-function detectOrm(connection: OrmOptions) {
-  if (Object.hasOwn(connection.constructor, 'name')) {
-    const name = connection.constructor.name
-    if (name === 'Sequelize') {
-      return 'sequelize'
-    }
-  }
-  throw new Error('Cannot determine connection type!')
-}
+
 

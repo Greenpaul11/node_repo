@@ -1,5 +1,5 @@
 import { NonUndefined } from '../Global.js'
-import { ConfigTypes } from '../Config.js'
+import { ConfigTypes } from '../Registry.js'
 
 /**
  * Base interface for all entity types.

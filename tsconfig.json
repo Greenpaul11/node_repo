@@ -11,8 +11,8 @@
     // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
+    //"outDir": "./dist",
+    "rootDir": ".",
     /* Language and Environment */
     "target": "ES2022",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
@@ -100,12 +100,10 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true,                                /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*.ts", "src/commands/buildMetadata.ts"],
+  "include": ["tests/**/*.ts","src/**/*.ts"],
 
   "exclude": [
     "node_modules",
-    "dist",
-    "config",
-    "tests"
+    "dist"
   ]
 }

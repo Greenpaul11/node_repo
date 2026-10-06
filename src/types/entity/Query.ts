@@ -6,10 +6,9 @@ import {
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root.js'
 import { EntityMetadata } from './Metadata.js'
 import { EntityTransform } from './Converters.js'
-import { ConfigTypes, NumberLike } from '../Config.js'
+import { ConfigTypes, DialectOptions, NumberLike } from '../Registry.js'
 import { Decimal } from 'decimal.js'
 import type { Model, InferAttributes, InferCreationAttributes } from 'sequelize'
-
 
 /**
  * Represents a flexible value type for entity query attribute.
@@ -206,6 +205,9 @@ export type QueryRelationTransform<E extends EntityBase, F> = {
     }
 }
 
+export type ConverterDialectsBuild<F, T extends Record<string, ConvertersBuild<F>> = Record<string, ConvertersBuild<F>> > = {
+    [Key in keyof T]: ConvertersBuild<F>
+}
 
 export type ConvertersBuild<F> = {
     baseAttributes: {

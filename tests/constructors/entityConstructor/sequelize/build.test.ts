@@ -3,10 +3,10 @@ import { it, describe, before } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 import { DataTypes, Sequelize } from 'sequelize'
-import connection from '../../../../config/connection';
-import { Product, Shop, SpecificationTree } from '../../../testSkeleton/models';
-import { constructEntities, generateEntityAttributes } from '../../../../src/constructors/entityConstructor/sequelize/build'
-import { constructMetadatas } from '../../../../src/constructors/metadataConstructor/sequelize/build';
+import connection from '../../../layers/sequelize/config/connection.js';
+import { Product, Shop, SpecificationTree } from '../../../layers/sequelize/config/models.js';
+import { constructEntities, generateEntityAttributes } from '../../../../src/constructors/entityConstructor/sequelize/build.js'
+
 
 const sequelize = connection
 if (!sequelize) throw new Error('Instance Sequelize is undefined')
@@ -228,7 +228,7 @@ describe('generateEntityAttributes', () => {
             kind_on: { type: DataTypes.DATEONLY, allowNull: true },
             released_at: { type: DataTypes.DATE, allowNull: true },
             payload: { type: DataTypes.JSON, allowNull: true },
-            specs: { type: DataTypes.JSONB, allowNull: true },
+            specs: { type: DataTypes.JSON, allowNull: true },
             image_data: { type: DataTypes.BLOB, allowNull: true },
             kind: { type: DataTypes.ENUM('a', 'b'), allowNull: false }
         }, {
@@ -257,7 +257,7 @@ describe('generateEntityAttributes', () => {
             ['kind_on', expectedAttribute({ type: 'Date', nullable: true }), 'dateonly'],
             ['released_at', expectedAttribute({ type: 'Date', nullable: true }), 'date'],
             ['payload', expectedAttribute({ type: 'object', nullable: true }), 'json'],
-            ['specs', expectedAttribute({ type: 'object', nullable: true }), 'jsonb'],
+            ['specs', expectedAttribute({ type: 'object', nullable: true }), 'json'],
             ['image_data', expectedAttribute({ type: 'object', nullable: true }), 'blob'],
             ['kind', expectedAttribute({ type: 'string' }), 'enum']
         ]

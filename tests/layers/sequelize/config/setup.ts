@@ -1,24 +1,26 @@
 import { after, before } from 'node:test';
-import { createDatabase, dropDatabase } from './database';
-import connection from '../../../../config/connection';
+import { applayClean } from './database.js';
+import connection from './connection.js';
 import { Sequelize } from 'sequelize';
 
+const notValidMode = process.env.NODE_ENV === 'test' ? false : true
+
+if (notValidMode) {
+    throw new Error('Database setup is not running in test mode!' +
+        'Test cannot be accomplished!'
+    )
+}
 
 if (!(connection instanceof Sequelize)) {
     throw new Error(`Instanceof connection is not Sequelize!`)
 }
 
-const sequelize: Sequelize = connection
-
 before(async () => {
-    console.log('>>> SETUP before hook: Starting');
-    await createDatabase(sequelize)     
-    console.log('>>> SETUP before hook: Database created');
-});
+    await applayClean(connection)
+})
 
 after(async () => {
-    console.log('>>> SETUP after hook: About to drop database');
-    await dropDatabase(sequelize)
-    console.log('>>> SETUP after hook: Database dropped');
-
+    await applayClean(connection)
+    await connection.close()
 })
+

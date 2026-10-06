@@ -2,7 +2,7 @@ import type { Model, InferAttributes, InferCreationAttributes, ModelStatic, Find
 import type { EntityBase } from '../../../types/entity/Root.js'
 import type { CreationOptional, EntityCreationAttributes } from '../../../types/entity/Creation.js'
 import { OrmManagerBase } from '../../../ormManager/base.js'
-import { DialectOptions } from '../../../types/Config.js'
+import { DialectOptions } from '../../../types/Registry.js'
 import { EntityQueryable, QueryControl } from '../../../types/entity/Query.js'
 import { Query } from '../../../types/entity/Query.js'
 

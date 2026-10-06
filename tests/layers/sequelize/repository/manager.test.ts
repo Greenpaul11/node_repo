@@ -1,21 +1,21 @@
 import { strict as assert } from 'node:assert'
 import { it, describe, before } from "node:test";
-import connection from '../../../../config/connection';
+import connection from '../config/connection.js';
 import { 
     Product, ProductImporter, Price, Shop, Comment, User, 
     Rate, Category, ProductCategory, SpecificationTree, Specification 
-} from '../../../testSkeleton/models';
+} from '../config/models.js';
 import { 
     productImporterData,
     productData,
     priceData,
     shopData,
     categoryData
-} from '../../../testSkeleton/testData/dataBase';
+} from '../../../testSkeleton/testData/dataBase.js';
 import { 
     productData as productData2,
     priceData as priceData2
-} from '../../../testSkeleton/testData/dataExtended';
+} from '../../../testSkeleton/testData/dataExtended.js';
 import { 
     priceData as priceData3,
     shopData as shopData2,
@@ -26,7 +26,7 @@ import {
     productCategoryData as productCategoryData2,
     specificationTreeData,
     specificationData,
-} from '../../../testSkeleton/testData/dataExtended2';
+} from '../../../testSkeleton/testData/dataExtended2.js';
 import { 
     productImporterMetadata, 
     productMetadata,
@@ -39,8 +39,8 @@ import {
     productCategoryMetadata,
     specificationTreeMetadata,
     specificationMetadata,
-} from '../../../testSkeleton/config'
-import { 
+} from '../../../testSkeleton/metadata.js'
+import type { 
     Product as ProductEntity, 
     ProductImporter as ProductImporterEntity, 
     Price as PriceEntity,
@@ -52,12 +52,12 @@ import {
     ProductCategory as ProductCategoryEntity, 
     SpecificationTree as SpecificationTreeEntity, 
     Specification as SpecificationEntity 
-} from '../../../testSkeleton/entities';
-import { Repository } from '../../../../src/repository/repository';
-import { EntityCreationAttributes } from '../../../../src/types/entity/Creation';
-import Decimal from 'decimal.js'
+} from '../../../testSkeleton/entities.ts';
+import { Repository } from '../../../../src/repository/repository.js';
+import type { EntityCreationAttributes } from '../../../../src/types/entity/Creation.ts';
+import { Decimal } from 'decimal.js'
 
-
+const dialect = process.env.DIALECT
 
 const sequelize = connection
 if (!sequelize) throw new Error('Instance Sequelize is undefined')
@@ -101,11 +101,37 @@ async function seedDatabase() {
     await Rate.bulkCreate(rateData)
 }
 
+// for postgresSql fix (failing autoincrement of ids)
+async function resetIdSequences() {
+    const tables = [
+        'product',
+        'price',
+        'category',
+        'user',
+        'comment',
+        'product_category',
+        'specification_tree',
+        'specification',
+        'rate',
+        'shop',
+        'product_importer'
+    ];
 
+    for (const table of tables) {
+        const seqName = `${table}_id_seq`;
+
+        await connection.query(`
+            SELECT setval('${seqName}', COALESCE((SELECT MAX(id) FROM "${table}"), 0) + 1);
+        `);
+    }
+}
 
 describe('manager: Test Repository manager functions createOne, deleteOne, destroyAll', () => {
     before(async () => {
         await seedDatabase()
+        if (dialect === 'postgres') {
+            await resetIdSequences()
+        }
     })
 
     // ==========================================================================

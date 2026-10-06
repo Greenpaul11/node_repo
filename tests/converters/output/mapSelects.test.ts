@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Product } from '../../testSkeleton/entities'
-import { productMetadata } from '../../testSkeleton/config';
-import { EntityRelationTree } from '../../../src/types/entity/Metadata';
-import { QuerySelect, MapEntitySelect, SubMapSelect, Query } from '../../../src/types/entity/Query';
-import { entitySelectToMapSelect, mapNestedSelects } from '../../../src/converters/output/mapSelects';
-import { OutputConverter } from '../../../src/layers/sequelize/output/converter';
-import { createRelationTree } from '../../../src/tree/treeBuilders';
+import { productMetadata } from '../../testSkeleton/metadata.js';
+import { entitySelectToMapSelect, mapNestedSelects } from '../../../src/converters/output/mapSelects.js';
+import { OutputConverter } from '../../../src/layers/sequelize/output/converter.js';
+import { createRelationTree } from '../../../src/tree/treeBuilders.js';
+import type { EntityRelationTree } from '../../../src/types/entity/Metadata.ts';
+import type { QuerySelect, MapEntitySelect, SubMapSelect, Query } from '../../../src/types/entity/Query.ts';
+import type { Product } from '../../testSkeleton/entities.ts'
 
 
 describe('mapSelects: Map query selects to mapped select objects for database queries', () => {

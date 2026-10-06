@@ -26,6 +26,9 @@ I wanted to learn something new, so I chose a project like this:
 
 ## How to run
 
+**Experimental usage setup**
+
+**Development usage setup**
 The application requires:
 
 - An ORM connection (currently only Sequelize is accepted).

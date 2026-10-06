@@ -2,8 +2,8 @@ import { EntityBase } from '../../types/entity/Root.js'
 import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata.js'
 import { Query, MapEntitySelect, EntityProjection } from '../../types/entity/Query.js'
 import {
-    ConverterFunctions,
-    ConverterFunctionDialects,
+    EntityConverters,
+    EntityConverterDialects,
     ConverterFamilesInfer,
     ConverterDialectsBuild
 } from '../../types/entity/Converters.js'
@@ -73,7 +73,7 @@ export abstract class OutputConverterBase<
     /**
      * Family-keyed set of converters, populated by {@link converterFactory}.
      * Each key is a transform family (e.g. `"raw"`, `"native"`) and each
-     * value is a {@link ConverterFunctions}-shaped object.
+     * value is a {@link EntityConverters}-shaped object.
      */
     public converters!: ConverterFamilesInfer<E>;
 
@@ -82,13 +82,13 @@ export abstract class OutputConverterBase<
      * types. Drives the runtime behavior of `asEntity` and `asEntities`
      * in subclasses.
      */
-    public converterFunctions!: ConverterFunctions<E, T, any>;
+    public entityConverters!: EntityConverters<E, T, any>;
 
     /**
-     * Dialect-keyed view of {@link converterFunctions}. Each key is a
+     * Dialect-keyed view of {@link EntityConverters}. Each key is a
      * dialect name and its value is the converter pair for that dialect.
      */
-    public converterFunctionDialects!: ConverterFunctionDialects<E, T, OutputConverterBase<E, T, C>>;
+    public entityConverterDialects!: EntityConverterDialects<E, T, OutputConverterBase<E, T, C>>;
 
     /**
      * The full dialect build configuration passed into the constructor.
@@ -107,7 +107,7 @@ export abstract class OutputConverterBase<
     constructor(
         public metadata: EntityMetadata<E>,
         public relationTree: EntityRelationTree<E>,
-        public dialect: keyof C
+        public dialect: keyof C 
     ) {}
 
 

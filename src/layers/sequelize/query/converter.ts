@@ -2,24 +2,35 @@ import { QueryConverterBase } from "../../../converters/query/base.js";
 import { EntityBase } from "../../../types/entity/Root.js";
 import { EntityMetadata, EntityRelationTree } from "../../../types/entity/Metadata.js";
 import { Model, InferAttributes, InferCreationAttributes, FindOptions } from "sequelize"
-import sequelizeConvertersBuild from "./build.js"
 import { Query, QueryConvertObject, OverridesQueryConverterConfig } from "../../../types/entity/Query.js";
 import { queryConvertObjectFactory } from "../../../converters/query/buildConverters.js";
+import { DialectOptions } from "../../../types/Registry.js";
+import extractMysqlQueryConverters from '../dialects/mysql/query/converters.js'
+import extractSqliteQueryConverters from '../dialects/sqlite/query/converters.js'
+import extractPostgresQueryConverters from '../dialects/postgres/query/converters.js'
+import extractMariadbQueryConverters from '../dialects/mariadb/query/converters.js'
 
 
 export class QueryConverter< 
     E extends EntityBase,
     T extends Model<InferAttributes<T>, InferCreationAttributes<T>>,
-    F extends FindOptions<InferAttributes<T>> 
+    F extends FindOptions<InferAttributes<T>>,
 > extends QueryConverterBase<E, T, F> {
     
     constructor(
         metadata: EntityMetadata<E>, 
         relationTree: EntityRelationTree<E>,
+        dialect: DialectOptions,
         config?: OverridesQueryConverterConfig 
     ) {
-        super(metadata, relationTree, config)
-        this.convertersBuild = sequelizeConvertersBuild<F>()
+        super(metadata, relationTree, dialect, config)
+        this.queryConverterDialects = {
+            mysql: extractMysqlQueryConverters(),
+            sqlite: extractSqliteQueryConverters(),
+            postgres: extractPostgresQueryConverters(),
+            mariadb: extractMariadbQueryConverters()
+        }
+        this.convertersBuild = this.queryConverterDialects[dialect]
         this.queryConvertObject = queryConvertObjectFactory(this.convertersBuild, this.config, metadata)
     }
 

@@ -3,9 +3,9 @@ import { it, describe, before } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 import { DataTypes, Sequelize } from 'sequelize'
-import connection from '../../../../config/connection';
-import { Product, Shop, SpecificationTree } from '../../../testSkeleton/models';
-import { constructMetadatas, generateConstructor } from '../../../../src/constructors/metadataConstructor/sequelize/build'
+import connection from '../../../layers/sequelize/config/connection.js';
+import { Product, Shop, SpecificationTree } from '../../../layers/sequelize/config/models.js';
+import { constructMetadatas, generateConstructor } from '../../../../src/constructors/metadataConstructor/sequelize/build.js'
 
 const sequelize = connection
 if (!sequelize) throw new Error('Instance Sequelize is undefined')
@@ -256,7 +256,7 @@ describe('createEntityConstructor', () => {
             kind_on: { type: DataTypes.DATEONLY, allowNull: true },
             released_at: { type: DataTypes.DATE, allowNull: true },
             payload: { type: DataTypes.JSON, allowNull: true },
-            specs: { type: DataTypes.JSONB, allowNull: true },
+            specs: { type: DataTypes.JSON, allowNull: true },
             image_data: { type: DataTypes.BLOB, allowNull: true },
             kind: { type: DataTypes.ENUM('a', 'b'), allowNull: false }
         }, {
@@ -285,7 +285,7 @@ describe('createEntityConstructor', () => {
             ['kind_on', expectedAttribute({ required: false, allowNull: true, asRange: true, fieldType: 'date', type: 'date' }), 'dateonly'],
             ['released_at', expectedAttribute({ required: false, allowNull: true, asRange: true, fieldType: 'datetime', type: 'date' }), 'date'],
             ['payload', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'json', type: 'object' }), 'json'],
-            ['specs', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'json', type: 'object' }), 'jsonb'],
+            ['specs', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'json', type: 'object' }), 'json'],
             ['image_data', expectedAttribute({ required: false, allowNull: true, asRange: false, fieldType: 'binary', type: 'object' }), 'blob'],
             ['kind', expectedAttribute({ required: true, allowNull: false, asRange: false, fieldType: 'enum', type: 'string' }), 'enum']
         ]

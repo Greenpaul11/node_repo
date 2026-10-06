@@ -1,0 +1,13 @@
+PRAGMA foreign_keys = OFF;
+DROP TABLE IF EXISTS rate;
+DROP TABLE IF EXISTS comment;
+DROP TABLE IF EXISTS specification;
+DROP TABLE IF EXISTS specification_tree;
+DROP TABLE IF EXISTS product_category;
+DROP TABLE IF EXISTS price;
+DROP TABLE IF EXISTS product;
+DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS shop;
+DROP TABLE IF EXISTS product_importer;
+PRAGMA foreign_keys = ON;

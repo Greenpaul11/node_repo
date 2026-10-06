@@ -1,6 +1,6 @@
-import { Price, Comment, Shop, SpecificationTree, User, Rate, 
-    Category, ProductCategory, Specification } from '../entities'
-import { EntityCreationAttributes } from '../../../src/types/entity/Creation';
+import type { Price, Comment, Shop, SpecificationTree, User, Rate, 
+    Category, ProductCategory, Specification } from '../entities.ts'
+import type { EntityCreationAttributes } from '../../../src/types/entity/Creation.ts';
 
 export const priceData: EntityCreationAttributes<Price>[] = [
     {

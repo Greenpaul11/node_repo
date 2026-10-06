@@ -209,12 +209,12 @@ export type ConverterFamilesInfer<E extends EntityBase> = {
  *   postgres: { asEntity: ..., asEntities: ... }
  * }
  */
-export type ConverterFunctionDialects<
+export type EntityConverterDialects<
     E extends EntityBase, 
     T, 
     O extends OutputConverterBase<E, T>
 > = {
-    [dialect: string]: ConverterFunctions<E, T, O>
+    [dialect: string]: EntityConverters<E, T, O>
 }
 
 /**
@@ -236,7 +236,7 @@ export type ConverterFunctionDialects<
  *   asEntities: function(query, rows) { return rows.map(r => this.convertRow(r))}
  * }
  */
-export type ConverterFunctions<E extends EntityBase, T, O extends OutputConverterBase<E, T>> = {
+export type EntityConverters<E extends EntityBase, T, O extends OutputConverterBase<E, T>> = {
     asEntity<Q extends Query<E>>(this: O, row: T | null, query?: Q,): EntityExtend<E, EntityAggregateAttributes<E>> | null
     asEntities<Q extends Query<E>>(this: O, rows: T[], query?: Q): EntityExtend<E, EntityAggregateAttributes<E>>[]
 } 
@@ -288,7 +288,7 @@ export type TypeConverter<R extends AttributeTransformRules | AggregateTransform
  *     Example:
  *      {'$count': (value: transformed value) => aggregate function type (domain level type)}     
  */
-export type ConverterFunctionsBuild = {
+export type EntityConvertersBuild = {
     baseAttributes: {
         [Key in AttributeTypes]?: (value: any) => any
     }
@@ -298,7 +298,7 @@ export type ConverterFunctionsBuild = {
 }
 
 /**
- * Groups {@link ConverterFunctionsBuild} by transform family. Allows having different
+ * Groups {@link EntityConvertersBuild} by transform family. Allows having different
  * type conversion logic for different tramsform categories. Used to fill up 
  * {@link ConverterDialectsBuild}
  * 
@@ -308,8 +308,8 @@ export type ConverterFunctionsBuild = {
  *   native: { baseAttributes: ..., fns: ... }
  * }
  */
-export type ConverterFamiliesBuild<T extends Record<string, ConverterFunctionsBuild>> = {
-      [Key in keyof T]: ConverterFunctionsBuild
+export type ConverterFamiliesBuild<T extends Record<string, EntityConvertersBuild>> = {
+      [Key in keyof T]: EntityConvertersBuild
 };
 
 /**
@@ -328,24 +328,24 @@ export type ConverterFamiliesBuild<T extends Record<string, ConverterFunctionsBu
  *   }
  * }
  */
-export type ConverterDialectsBuild<T extends Record<string, Record<string, ConverterFunctionsBuild>>> = {
+export type ConverterDialectsBuild<T extends Record<string, Record<string, EntityConvertersBuild>> = Record<string, Record<string, EntityConvertersBuild>>> = {
     [Key in keyof T]: ConverterFamiliesBuild<T[Key]>
 }
 
 /**
- * Converts all functions defined in a {@link ConverterFunctionsBuild} structure into
+ * Converts all functions defined in a {@link EntityConvertersBuild} structure into
  * corresponding {@link TransformRule} mappings, organized by dialect and family.
  */
-export type FunctionsToTransformRules<T extends ConverterFunctionsBuild> = {
+export type FunctionsToTransformRules<T extends EntityConvertersBuild> = {
     baseAttributes: BaseAttributeRules<T>
     fns: FnsRules<T>
 }
 
-type BaseAttributeRules<T extends ConverterFunctionsBuild> = {
+type BaseAttributeRules<T extends EntityConvertersBuild> = {
     [Key in keyof T['baseAttributes']]: TransformRuleFromFunction<T['baseAttributes'][Key]>
 }
 
-type FnsRules<T extends ConverterFunctionsBuild> = {
+type FnsRules<T extends EntityConvertersBuild> = {
     [Key in keyof T['fns']]: TransformRuleFromFunction<T['fns'][Key]> 
 }
 

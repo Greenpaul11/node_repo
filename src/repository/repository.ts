@@ -1,14 +1,15 @@
-import { Sequelize } from "sequelize";
 import { EntityMetadata, EntityRelationTree } from "../types/entity/Metadata.js";
 import { EntityBase } from "../types/entity/Root.js";
 import { createRelationTree } from "../tree/treeBuilders.js";
 import { OutputConverterBase } from "../converters/output/base.js";
-import { OrmOptions, DialectOptions } from "../types/Config.js";
+import { OrmOptions, DialectOptions } from "../types/Registry.js";
 import { CreationOptional, EntityCreationAttributes } from "../types/entity/Creation.js";
 import { OrmManagerBase } from "../ormManager/base.js";
 import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query.js";
 import { QueryConverterBase } from "../converters/query/base.js";
 import { ResolveManager } from "../types/entity/Repository.js";
+import { detectDialect, detectOrm } from "./detectors.js";
+import { OrmName } from "../types/Registry.js";
 
 
 /**
@@ -176,15 +177,16 @@ export class Repository<
 
         const repository = new Repository<E, C, T>(metadata, connection);
         const orm = repository._resolveOrmName(connection)
-        const dialect = repository._resolveDialectName(connection);
+        const dialect = repository._resolveDialectName(connection, orm);
 
         // place for implementation of QueryConverter
         const ormQueryModule = await import(`../layers/${orm}/query/converter`);
         const QueryConverter = ormQueryModule.QueryConverter as new (
             metadata: EntityMetadata<E>,
             relationTree: EntityRelationTree<E>,
+            dialect: DialectOptions
         ) => QueryConverterBase<E, T>
-        repository.queryConverter = new QueryConverter(repository.metadata, repository.relationTree)
+        repository.queryConverter = new QueryConverter(repository.metadata, repository.relationTree, dialect)
 
         // load proper OrmManager class for specific ORM
         const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
@@ -213,16 +215,14 @@ export class Repository<
      * Inspect `connection` and return its dialect identifier.
      *
      * @param connection The ORM connection to inspect.
-     * @returns `'mysql'` or `'sqlite'` (the values of
-     *          {@link DialectOptions}) when the connection is a
-     *          `Sequelize` instance.
-     * @throws {Error} When `connection` is not a Sequelize instance.
+     * @param orm The ORM identifier returned by {@link _resolveOrmName}.
+     * @returns `'mysql'`, `'sqlite'`, `'postgres'`, or `'mariadb'`
+     *          (the values of {@link DialectOptions}) when the connection
+     *          is a `Sequelize` instance.
+     * @throws {Error} When dialect detection is unavailable or fails.
      */
-    private _resolveDialectName(connection: OrmOptions): DialectOptions {
-        if (connection instanceof Sequelize) {
-            return connection.getDialect() as DialectOptions
-        }
-        throw new Error(`unknown ORM connection: ${typeof connection}`);
+    private _resolveDialectName(connection: OrmOptions, orm: OrmName): DialectOptions {
+        return detectDialect(connection, orm)
     }
 
     /**
@@ -232,15 +232,11 @@ export class Repository<
      * `layers/<orm>/output/formater`).
      *
      * @param connection The ORM connection to inspect.
-     * @returns `'sequelize'` for a Sequelize connection; reserved
-     *          future values include `'prisma'`.
-     * @throws {Error} When `connection` is not a recognized ORM.
+     * @returns The registered ORM identifier, such as `'sequelize' or 'prisma'`.
+     * @throws {Error} When no registered ORM recognizes the connection.
      */
-    private _resolveOrmName(connection: OrmOptions): string {
-        if (connection instanceof Sequelize) {
-            return 'sequelize'
-        }
-        throw new Error('connection is unknown!')
+    private _resolveOrmName(connection: OrmOptions): OrmName {
+        return detectOrm(connection)
     }
 
 

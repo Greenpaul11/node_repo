@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { Product, Price, Shop } from './entities'
+import { Product, Price, Shop } from './entities.js'
 
 export const isProductOutput = (product: Product) => {
     // Required fields (Mandatory)

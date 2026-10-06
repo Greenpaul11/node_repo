@@ -3,7 +3,7 @@ import { DatabaseAttributeTypes } from "../../../types/entity/Metadata.js";
 import { unifiedTypesToAttributeTypes, sequelizeAttributeTypesToUnified } from "../../unified.js";
 import fs from "node:fs";
 import { join } from "node:path";
-import { ConstructorConifg } from "../../../types/Config.js";
+import { ConstructorConifg } from "../../../types/Registry.js";
 import configDefault from "../../config.js"
 
 

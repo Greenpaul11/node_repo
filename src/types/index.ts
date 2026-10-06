@@ -32,4 +32,4 @@ export type {
   EntityCreationTransform,
   EntityQueryTransform,
   AggregateBaseConfig
-} from "./Config.js";
+} from "./Registry.js";

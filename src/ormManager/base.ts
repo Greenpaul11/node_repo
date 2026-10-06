@@ -1,6 +1,6 @@
 import type { EntityBase } from '../types/entity/Root.js'
 import type { CreationOptional, EntityCreationAttributes } from '../types/entity/Creation.js'
-import type { DialectOptions } from '../types/Config.js'
+import type { DialectOptions } from '../types/Registry.js'
 import type { EntityQueryable, Query, QueryControl } from '../types/entity/Query.js'
 import { ResolveManager } from '../types/entity/Repository.js'
 

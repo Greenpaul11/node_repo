@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Product } from '../../../testSkeleton/entities'
-import { productMetadata } from '../../../testSkeleton/config';
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { Query } from '../../../../src/types/entity/Query';
-import { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types';
-import { rowToGrouped } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
+import { productMetadata } from '../../../testSkeleton/metadata.js';
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { rowToGrouped } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import type { Product } from '../../../testSkeleton/entities.ts'
+import type { EntityRelationTree } from '../../../../src/types/entity/Metadata.ts';
+import type { Query } from '../../../../src/types/entity/Query.ts';
+import type { SequelizeRawEntityNotGrouped, SequelizeRawEntity } from '../../../../src/layers/sequelize/types.ts';
 
 
 describe('rowToGrouped: Converts flat row with related entities into grouped structure with arrays', () => {

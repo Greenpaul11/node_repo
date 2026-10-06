@@ -1,6 +1,6 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { overrideObject } from '../../src/lib/override'
+import { overrideObject } from '../../src/lib/override.js'
 
 describe('overrideObject', () => {
     //  Simple primitive overrides

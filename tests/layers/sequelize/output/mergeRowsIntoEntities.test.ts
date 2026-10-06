@@ -1,13 +1,13 @@
 import { strict as assert } from 'node:assert'
 import { it, describe } from "node:test";
-import { Product, Comment, ProductImporter, User, Rate, SpecificationTree } from '../../../testSkeleton/entities'
-import { productMetadata, commentMetadata, productImporterMetadata, userMetadata, rateMetadata, specificationTreeMetadata } from '../../../testSkeleton/config';
-import { EntityRelationTree } from '../../../../src/types/entity/Metadata';
-import { Query } from '../../../../src/types/entity/Query';
-import { SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types';
-import { mergeRowsIntoEntities } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities';
-import { createRelationTree } from '../../../../src/tree/treeBuilders';
-import { OutputConverter } from '../../../../src/layers/sequelize/output/converter';
+import { productMetadata, commentMetadata, productImporterMetadata, userMetadata, rateMetadata, specificationTreeMetadata } from '../../../testSkeleton/metadata.js';
+import { mergeRowsIntoEntities } from '../../../../src/layers/sequelize/output/mergeRowsIntoEntities.js';
+import { createRelationTree } from '../../../../src/tree/treeBuilders.js';
+import { OutputConverter } from '../../../../src/layers/sequelize/output/converter.js';
+import type { EntityRelationTree } from '../../../../src/types/entity/Metadata.js';
+import type { Product, Comment, ProductImporter, User, Rate, SpecificationTree } from '../../../testSkeleton/entities.ts'
+import type { Query } from '../../../../src/types/entity/Query.ts';
+import type { SequelizeRawEntityNotGrouped } from '../../../../src/layers/sequelize/types.ts';
 
 
 describe('mergeRowsIntoEntities: merge rows of entity with related entities into deduplicated rows(plural relations turned into array)', () => {
