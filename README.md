@@ -17,7 +17,9 @@ Currently supported ORM and dialects:
 
 - Sequelize
   - mysql
+  - mariadb
   - sqlite
+  - postgres
 
 ## Why this exists
 
@@ -449,30 +451,38 @@ const raw = await repo.getOneBy({ brand: 'Apple' }, { native: true })
 
 ## Testing
 
+This project supports automated testing with database integration using Docker containers. By default, tests run against pre-configured databases in Docker containers.
+
+# Connecting to Custom Databases
+
+To use your own database instead of the default Docker setup modify
+`registry/constants.js` with your database connection details.
+
+# Connecting to Docker Databases
+
+1. (Optional) If you have made changes to `registry/constants.js`, update the Docker Compose configuration and initialization files in `docker/init/...` by running:
 ```bash
-npm test
+npm run generate-docker-compose
+```
+2. Build the Docker images and start the databases with their users:
+```bash
+docker compose -f docker/docker-compose.yml up -d
 ```
 
-The suite uses the built-in `node --test` runner with `tsx`. Coverage includes:
+# Migrating Test Entities
 
-- **Converter unit tests** — `buildEntityAttributeConverters`,
-  `buildRangeAttributeConverters`, `buildQueryAttributeConverters`,
-  `buildRelationAttributeConverters` — verify converter construction
-  with and without validation.
-- **Query conversion tests** — `baseAttributes`, `rangeAttributes`,
-  `relationAttribute`, `selectAttribute` at both converter level and
-  database output level (sqlite + mysql).
-- **Database output tests** — end-to-end: construct a query, run it
-  against the database, assert returned entity shapes and values.
-- **Output converter tests** — `buildConverters`, `convertRow`,
-  `mapSelects`, `compareOutput` (deep equality between converter output
-  and raw Sequelize output).
-- **Manager CRUD tests** — `createOne`, `deleteOne`, `destroyAll`
-  lifecycle against test fixtures.
-- **Relation model tests** — Sequelize model relation setup and cascade
-  delete behavior.
-- **Override utility tests** — `lib/override.test.ts`.
+Once the databases are ready, migrate the test entities:
+```bash
+npm run migrate-test-entities
+```
 
+# Run Tests
+
+To make testing easier, tests are organized and executed using a custom test runner.
+To see the available commands and instructions for running tests, execute:
+```bash
+npm test help
+```
 
 ## Documentation
 

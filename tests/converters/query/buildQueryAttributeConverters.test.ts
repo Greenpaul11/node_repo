@@ -1,12 +1,12 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { buildQueryAttributeConverters } from '../../../src/converters/query/buildConverters'
-import { ConvertersBuild, QuerySelectValidator, QuerySortValidator } from '../../../src/types/entity/Query'
-import { productMetadata } from '../../testSkeleton/metadata'
-import { Product } from '../../testSkeleton/entities'
-import { EntityBase } from '../../../src/types/entity/Root'
-import { validateSelect, validateSort } from '../../../src/converters/query/validators'
-import { EntityMetadata, SortOptions } from '../../../src/types/entity/Metadata'
+import { buildQueryAttributeConverters } from '../../../src/converters/query/buildConverters.js'
+import { ConvertersBuild, QuerySelectValidator, QuerySortValidator } from '../../../src/types/entity/Query.js'
+import { productMetadata } from '../../testSkeleton/metadata.js'
+import { Product } from '../../testSkeleton/entities.js'
+import { EntityBase } from '../../../src/types/entity/Root.js'
+import { validateSelect, validateSort } from '../../../src/converters/query/validators.js'
+import { EntityMetadata, SortOptions } from '../../../src/types/entity/Metadata.js'
 
 type OrmQuery= {
     attributes: (string | unknown[])[]

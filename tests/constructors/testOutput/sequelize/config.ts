@@ -1,4 +1,4 @@
-import connection from "../../../../../config/connection";
+import { connection } from "../../../layers/sequelize/config/models.js";
 
 
 export default {

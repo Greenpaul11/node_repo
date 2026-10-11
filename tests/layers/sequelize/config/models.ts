@@ -1145,5 +1145,5 @@ Rate.belongsTo(Comment, {
 
 export { 
     Product, Price, Shop, Comment, Category, ProductCategory,
-    SpecificationTree, Specification, User, Rate, ProductImporter
+    SpecificationTree, Specification, User, Rate, ProductImporter, connection
 }

@@ -1,16 +1,16 @@
 import { strict as assert } from 'node:assert'
 import { describe, it } from 'node:test'
-import { buildRelationAttributeConverters } from '../../../src/converters/query/buildConverters'
+import { buildRelationAttributeConverters } from '../../../src/converters/query/buildConverters.js'
 import { 
     ConvertersBuild, QueryConvertObject, EntityQueryable, 
     QueryRangeAttributeTypes, QueryEntityAttributeValidator, 
     QueryRangeValidator, QuerySelectValidator 
-} from '../../../src/types/entity/Query'
-import { commentMetadata, priceMetadata, productMetadata, shopMetadata } from '../../testSkeleton/metadata'
-import { Comment, Price, Product, Shop } from '../../testSkeleton/entities'
-import { EntityBase, ExternalReferences } from '../../../src/types/entity/Root'
-import { PickByType } from '../../../src/types/Global'
-import { EntityMetadata } from '../../../src/types/entity/Metadata'
+} from '../../../src/types/entity/Query.js'
+import { commentMetadata, priceMetadata, productMetadata, shopMetadata } from '../../testSkeleton/metadata.js'
+import { Comment, Price, Product, Shop } from '../../testSkeleton/entities.js'
+import { EntityBase, ExternalReferences } from '../../../src/types/entity/Root.js'
+import { PickByType } from '../../../src/types/Global.js'
+import { EntityMetadata } from '../../../src/types/entity/Metadata.js'
 
 // Test orm query type
 type OrmQuery = {

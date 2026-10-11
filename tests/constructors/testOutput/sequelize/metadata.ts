@@ -1,11 +1,11 @@
-import { MetadataConstructor, EntityMetadata } from "node-repo/types"
-import { EntityMetadataManager } from "node-repo"
+import { MetadataConstructor, EntityMetadata } from "../../../../src/types/index.js"
+import { EntityMetadataManager } from "../../../../src/index.js"
 import {
     Product, ProductImporter, Price, Shop,
     Category, ProductCategory, SpecificationTree, Specification,
     User, Comment, Rate, ProductClone,
     Gadget
-} from "./entities.ts"
+} from "./entities.js"
 
 //  *************************************************
 //  1.  Product METADATA CONSTRUCTOR

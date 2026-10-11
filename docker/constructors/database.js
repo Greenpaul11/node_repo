@@ -1,0 +1,48 @@
+import {
+    TEST_DATABASE,
+    MIGRATOR_USER,
+    MIGRATOR_USER_PASSWORD,
+    TEST_USER,
+    TEST_USER_PASSWORD
+} from '../../registry/constants.js';
+
+// SQL Initialization Scripts
+const mysqlInit = `
+CREATE DATABASE IF NOT EXISTS ${TEST_DATABASE};
+
+CREATE USER IF NOT EXISTS '${MIGRATOR_USER}'@'%' IDENTIFIED BY '${MIGRATOR_USER_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${TEST_DATABASE}.* TO '${MIGRATOR_USER}'@'%';
+
+CREATE USER IF NOT EXISTS '${TEST_USER}'@'%' IDENTIFIED BY '${TEST_USER_PASSWORD}';
+GRANT SELECT, INSERT, UPDATE, DELETE ON ${TEST_DATABASE}.* TO '${TEST_USER}'@'%';
+
+FLUSH PRIVILEGES;
+`;
+
+const postgresInit = `
+CREATE ROLE ${MIGRATOR_USER} LOGIN PASSWORD '${MIGRATOR_USER_PASSWORD}';
+CREATE ROLE ${TEST_USER} LOGIN PASSWORD '${TEST_USER_PASSWORD}';
+
+CREATE DATABASE ${TEST_DATABASE} OWNER ${MIGRATOR_USER};
+
+\\connect ${TEST_DATABASE}
+
+GRANT USAGE ON SCHEMA public TO ${TEST_USER};
+ALTER DEFAULT PRIVILEGES FOR ROLE ${MIGRATOR_USER} IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO ${TEST_USER};
+ALTER DEFAULT PRIVILEGES FOR ROLE ${MIGRATOR_USER} IN SCHEMA public GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO ${TEST_USER};
+
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO ${TEST_USER};
+`;
+
+export function generateDatabaseInit(dialect) {
+    switch (dialect) {
+        case 'mysql':
+        case 'mariadb':
+            return mysqlInit
+        case 'postgres':
+            return postgresInit
+        default:
+            throw new Error(`Dialect: "${dialect} has no entry in generateDatabaseInit().`)
+    
+    }
+}

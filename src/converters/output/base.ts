@@ -42,7 +42,7 @@ import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects.js'
  * @typeParam E - The typed entity shape returned to callers
  *                (must extend {@link EntityBase}).
  * @typeParam T - The transformed row type produced by the ORM layer
- *                (e.g. a Sequelize `Model` instance).
+ *                (e.g. Sequelize `Model` instance).
  * @typeParam C - The dialect build configuration type. Defaults to
  *                {@link ConverterDialectsBuild} of `any`. Each key of `C`
  *                corresponds to a supported dialect (e.g. `"mysql"`,
@@ -55,11 +55,11 @@ import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects.js'
  *
  *     // ... Sequelize-specific implementation ...
  *
- *     asEntity<Q extends Query<E>>(row: T | null, query?: Q): any {
+ *     asEntity<Q extends Query<E>>(row: T | null, query?: Q): E | null  {
  *         return this.convertRow(row, query);
  *     }
  *
- *     asEntities<Q extends Query<E>>(rows: T[], query?: Q): any[] {
+ *     asEntities<Q extends Query<E>>(rows: T[], query?: Q): E[] {
  *         return rows.map(r => this.convertRow(r, query));
  *     }
  * }

@@ -6,7 +6,6 @@ import { DialectName, OrmName } from '../src/types/Registry.js'
 
 
 const rootDir = process.cwd()
-const envTestPath = path.join(rootDir, 'config', '.env.test')
 const coreTestLocations = [
     'tests/constructors/**/*.test.ts',
     'tests/converters/**/*.test.ts',
@@ -157,13 +156,11 @@ export async function runTests(
             process.execPath,
             [
                 '--trace-uncaught',
-                `--env-file-if-exists=${envTestPath}`,
                 '--import',
                 'tsx',
                 ...(orm && dialect ? ['--import', './tests/bootstrap.ts']: []),
                 '--test',
                 '--test-concurrency=1',
-                '--test-force-exit',
                 ...patterns,
             ],
             {
@@ -172,7 +169,7 @@ export async function runTests(
                 signal,
                 env: (orm && dialect)
                     ? { ...process.env, NODE_ENV: 'test', ORM: orm, DIALECT: dialect }
-                    : undefined,
+                    : { ...process.env, NODE_ENV: 'test' },
             }
         )
 

@@ -22,11 +22,13 @@
     "node-repo": "./dist/cli.js"
   },
   "scripts": {
+    "generate-docker-compose": "node docker/constructors/generate.js",
+    "migrate-test-entities": "bash shell/tests/migrate-all.sh",
     "test": "tsx tests/run.ts",
     "docs": "typedoc",
     "docs:watch": "typedoc --watch",
-    "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "build": "tsc -p tsconfig.build.json",
+    "clean:build": "rm -rf dist"
   },
   "author": "",
   "license": "MIT",

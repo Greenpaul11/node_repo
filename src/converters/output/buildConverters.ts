@@ -2,7 +2,7 @@ import { EntityBase } from '../../types/entity/Root.js'
 import {
     BaseAttributeConvertersInfer,
     ExternalConvertersInfer,
-    ConverterFunctionsBuild,
+    EntityConvertersBuild,
     ConverterFunctionsInfer
 } from '../../types/entity/Converters.js'
 import { EntityMetadata } from '../../types/entity/Metadata.js'
@@ -11,7 +11,7 @@ import { EntityMetadata } from '../../types/entity/Metadata.js'
  * Build a complete set of attribute converters for an entity and its
  * nested relations.
  *
- * Takes the type-keyed {@link ConverterFunctionsBuild} (one function per
+ * Takes the type-keyed {@link EntityConvertersBuild} (one function per
  * {@link AttributeTypes} entry, plus aggregate-function operators) and
  * the entity's {@link EntityMetadata}, and produces a
  * {@link ConverterFunctionsInfer} where every base attribute and every
@@ -61,7 +61,7 @@ import { EntityMetadata } from '../../types/entity/Metadata.js'
  */
 export function buildConverters<E extends EntityBase>(
     metadata: EntityMetadata<E>,
-    converters: ConverterFunctionsBuild,
+    converters: EntityConvertersBuild,
     depth = 0
 ): ConverterFunctionsInfer<E> {
     // 1. Base attributes — bind each attribute's declared type to a converter

@@ -1,5 +1,6 @@
-CREATE ROLE migrator LOGIN PASSWORD 'migratorpass';
-CREATE ROLE test_user LOGIN PASSWORD 'noderepopassword';
+
+CREATE ROLE migrator LOGIN PASSWORD 'migratorPass123';
+CREATE ROLE test_user LOGIN PASSWORD 'testUserPass123';
 
 CREATE DATABASE node_repo_test OWNER migrator;
 

@@ -180,7 +180,7 @@ export class Repository<
         const dialect = repository._resolveDialectName(connection, orm);
 
         // place for implementation of QueryConverter
-        const ormQueryModule = await import(`../layers/${orm}/query/converter`);
+        const ormQueryModule = await import(`../layers/${orm}/query/converter.js`);
         const QueryConverter = ormQueryModule.QueryConverter as new (
             metadata: EntityMetadata<E>,
             relationTree: EntityRelationTree<E>,
@@ -189,7 +189,7 @@ export class Repository<
         repository.queryConverter = new QueryConverter(repository.metadata, repository.relationTree, dialect)
 
         // load proper OrmManager class for specific ORM
-        const ormManagerModule = await import(`../layers/${orm}/manager/ormManager`);
+        const ormManagerModule = await import(`../layers/${orm}/manager/ormManager.js`);
         const OrmManager = ormManagerModule.OrmManager as new (
             ormManager: ResolveManager<T>,
             dialect: DialectOptions,
@@ -199,7 +199,7 @@ export class Repository<
         repository.ormManager = new OrmManager(ormManager, dialect, convertQuery)
 
         // load proper OutputConverter class for specific ORM
-        const converterModule = await import(`../layers/${orm}/output/converter`);
+        const converterModule = await import(`../layers/${orm}/output/converter.js`);
         const OutputConverter = converterModule.OutputConverter as new (
             metadata: EntityMetadata<E>,
             relationTree: EntityRelationTree<E>,
