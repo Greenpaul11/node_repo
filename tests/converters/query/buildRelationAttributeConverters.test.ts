@@ -19,7 +19,7 @@ type OrmQuery = {
     where?: Record<string, unknown>
 }
 
-const validationOff = {
+const config = {
     validation: {
         baseAttributes: {
             string: false,
@@ -37,7 +37,7 @@ const validationOff = {
             group: false
         }
     },
-    subEntityRelationDepth: 2
+    subEntitiesDepth: 2
 }
 
 // Test query converters
@@ -114,8 +114,8 @@ function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {
 
                 return converted
             },
-            order: {} as never,
-            group: {} as never
+            order: {} as never, // supported at root level
+            group: {} as never // supported at root level
         },
         relationAttributes: {
             relations: <E extends EntityBase, K extends keyof ExternalReferences<E>>(
@@ -139,7 +139,7 @@ const convertersBuild = createConvertersBuild()
 function assertBaseKeys(obj: Record<string, unknown>, expectedKeys: string[], label: string) {
     for (const key of expectedKeys) {
         assert.ok(key in obj, `${label}: missing base attribute "${key}"`)
-        const entry = (obj as any)[key]
+        const entry = obj[key] as {convert: (value: unknown, converted: unknown) => unknown}
         assert.ok(entry && typeof entry.convert === 'function', `${label}.${key}: missing convert function`)
     }
 }
@@ -151,18 +151,156 @@ function assertRangeKeys(obj: Record<string, unknown>, attributes: string[], lab
     }
 }
 
-//  Entity attribute metadata (used for assertions)
+//  Test base attribute converter functions
+function testBaseConverters(obj: Record<string, unknown>, expectedTypes: [string, string][], label: string ) {
+    const converted = {} as { where?: Record<string, unknown> }
+    let result = {} as { where: Record<string, unknown> }
+    for (const [type, attr] of expectedTypes) {
+        const entry = obj[attr] as {convert: (value: unknown, converted: unknown) => { where: Record<string, unknown> }}
+        let value: unknown
+        switch (type) {
+            case 'string':
+                value = 1
+                break
+            case 'number':
+                value = 1111
+                break
+            case 'date':
+                value = new Date('2023-03-01T00:00:00Z')
+                break
+            case 'boolean':
+                value = true
+                break
+            default: 
+                throw new Error(`Invalid type "${type}" for base attributes!`)
+        }
+        result = entry.convert(value, converted)
+        assert.ok(converted.where, `${label}: missing property "where" in converted object`)
+        assert.ok(Object.hasOwn(converted.where, attr), `${label}: missing converted value for attribute "${attr}"`)
+        assert.strictEqual(converted.where[attr], value)
+    }
+    // Ensure the convert function returns the mutated converted object reference
+    assert.deepStrictEqual(result, converted)
+
+}
+
+//  Test base attribute converter functions
+function testRangeConverters(obj: Record<string, unknown>, expectedTypes: [string, string, string][], label: string ) {
+    const converted = {} as { where?: Record<string, unknown> }
+    let result = {} as { where: Record<string, unknown> }
+    for (const [type, attrTo, attrFrom] of expectedTypes) {
+        const entryTo = obj[attrTo] as {convert: (value: unknown, converted: unknown) => { where: Record<string, unknown> }}
+        const entryFrom = obj[attrFrom] as {convert: (value: unknown, converted: unknown) => { where: Record<string, unknown> }}
+        const toAfter = attrTo.replace('to', 'lt')
+        const fromAfter = attrFrom.replace('from', 'gte')
+        let valueTo: unknown
+        let valueFrom: unknown
+        switch (type) {
+            case 'number':
+                valueTo = 9999
+                valueFrom = 1111
+                break
+            case 'date':
+                valueTo = new Date('2026-03-01T00:00:00Z')
+                valueFrom = new Date('1999-03-01T00:00:00Z')
+                break
+            default: 
+                throw new Error(`Invalid type "${type}" for range attributes!`)
+        }
+        result = entryTo.convert(valueTo, converted)
+        result = entryFrom.convert(valueFrom, converted)
+        assert.ok(converted.where, `${label}: missing property "where" in converted object`)
+        assert.ok(Object.hasOwn(converted.where, toAfter), `${label}: missing converted value for range attribute "${toAfter}"`)
+        assert.ok(Object.hasOwn(converted.where, fromAfter), `${label}: missing converted value for range attribute "${fromAfter}"`)
+        assert.strictEqual(converted.where[toAfter], valueTo)
+        assert.strictEqual(converted.where[fromAfter], valueFrom)
+    }
+    // Ensure the convert function returns the mutated converted object reference
+    assert.deepStrictEqual(result, converted)
+}
+
+function testSelectConverter(obj: Record<string, unknown>, expectedAttributes: string[], label: string) {
+    const select = obj['select'] as {convert: (value: unknown, converted: unknown) => {attributes: string[]}}
+    let converted = {}
+    let value: unknown = undefined
+    let result: {attributes: string[]}
+    // test select as array
+    converted = {}
+    value = []
+    result = select.convert(value, converted)
+    assert.ok(result.attributes, `${label}: missing property "attributes" in converted object`)
+    assert.ok(Array.isArray(result.attributes), `${label}: "attributes" property of converted object should be type of array`)
+    // test select as attributes
+    converted = {}
+    value = [...expectedAttributes]
+    result = select.convert(value, converted)
+    assert.ok(result.attributes, `${label}: missing property "attributes" in converted object`)
+    const attributes = result.attributes
+    for (let i = 0; i < expectedAttributes.length; i++) {
+        const expected = expectedAttributes[i]
+        assert.ok(attributes.includes(expected), `${label}: missing selected attribute: "${expected}" in convert object`)
+    }
+    // Ensure the convert function returns the mutated converted object reference
+    assert.deepStrictEqual(result, converted)
+    // test select as invalid type
+    for (const invalid of [undefined, null, 0, '', true]) {
+        assert.throws(
+            () => select.convert(invalid, converted),
+            /Invalid type for select attribute/
+        )
+    }
+    // test select with invalid items
+    for (const invalid of [[null, undefined], [1, 2, 3] , [true, false]]) {
+        assert.throws(
+            () => select.convert(invalid, converted),
+            /Invalid type for select item/
+        )
+    }
+}
+
+// Entity attribute metadata (used for assertions)
+// Price
 const PRICE_BASE = priceMetadata.baseAttributesList
 const PRICE_RANGE = priceMetadata.rangeAttributesList
 const PRICE_RELATIONS = Object.keys(priceMetadata.subEntities!) as Array<keyof ExternalReferences<Price>>
-
+const PRICE_ATTRIBUTE_TYPES = [
+    ...priceMetadata.stringAttributesList.map((a) => ['string', a] as [string, string]),
+    ...priceMetadata.numberAttributesList.map((a) => ['number', a] as [string, string]),
+    ...priceMetadata.dateAttributesList.map((a) => ['date', a] as [string, string]),
+    ...priceMetadata.booleanAttributesList.map((a) => ['boolean', a] as [string, string]),
+] satisfies [string, string][]
+const PRICE_RANGE_TYPES = [
+    ...priceMetadata.numberAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string]),
+    ...priceMetadata.dateAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string])
+] satisfies [string, string, string][]
+// Shop
 const SHOP_BASE = shopMetadata.baseAttributesList
 const SHOP_RANGE = shopMetadata.rangeAttributesList
 const SHOP_RELATIONS = Object.keys(shopMetadata.subEntities!) as Array<keyof ExternalReferences<Shop>>
-
+const SHOP_ATTRIBUTE_TYPES = [
+    ...shopMetadata.stringAttributesList.map((a) => ['string', a] as [string, string]),
+    ...shopMetadata.numberAttributesList.map((a) => ['number', a] as [string, string]),
+    ...shopMetadata.dateAttributesList.map((a) => ['date', a] as [string, string]),
+    ...shopMetadata.booleanAttributesList.map((a) => ['boolean', a] as [string, string]),
+] satisfies [string, string][]
+const SHOP_RANGE_TYPES = [
+    ...shopMetadata.numberAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string]),
+    ...shopMetadata.dateAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string])
+] satisfies [string, string, string][]
+// Comment
 const COMMENT_BASE = commentMetadata.baseAttributesList
 const COMMENT_RANGE = commentMetadata.rangeAttributesList
 const COMMENT_RELATIONS = Object.keys(commentMetadata.subEntities!) as Array<keyof ExternalReferences<Comment>>
+const COMMENT_ATTRIBUTE_TYPES = [
+    ...commentMetadata.stringAttributesList.map((a) => ['string', a] as [string, string]),
+    ...commentMetadata.numberAttributesList.map((a) => ['number', a] as [string, string]),
+    ...commentMetadata.dateAttributesList.map((a) => ['date', a] as [string, string]),
+    ...commentMetadata.booleanAttributesList.map((a) => ['boolean', a] as [string, string]),
+] satisfies [string, string][]
+const COMMENT_RANGE_TYPES = [
+    ...commentMetadata.numberAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string]),
+    ...commentMetadata.dateAttributesList.map((a) => ['number', `${a}_to`, `${a}_from`] as [string, string, string])
+] satisfies [string, string, string][]
 
 
 describe('buildRelationAttributeConverters', () => {
@@ -172,7 +310,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('returns 5 relation entries matching Product external references', () => {
             const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
             const keys = Object.keys(result).sort()
             assert.deepStrictEqual(keys, [
@@ -183,7 +321,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('each relation entry has queryConvertObject and convert function', () => {
             const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
             for (const key of Object.keys(result)) {
                 const entry = result[key as keyof typeof result]
@@ -195,32 +333,35 @@ describe('buildRelationAttributeConverters', () => {
         describe('prices relation (Price entity, depth 0 => 1)', () => {
             it('queryConvertObject has Price base attribute converters', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.prices.queryConvertObject 
                 assertBaseKeys(convertObj, PRICE_BASE, 'prices')
+                testBaseConverters(convertObj, PRICE_ATTRIBUTE_TYPES, 'prices')
             })
 
             it('queryConvertObject has Price range attribute converters', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.prices.queryConvertObject 
                 assertRangeKeys(convertObj, PRICE_RANGE, 'prices')
+                testRangeConverters(convertObj, PRICE_RANGE_TYPES, 'prices')
             })
 
             it('queryConvertObject has select converter', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.prices.queryConvertObject
                 assert.ok('select' in convertObj)
                 assert.strictEqual(typeof convertObj.select.convert, 'function')
+                testSelectConverter(convertObj, PRICE_BASE, 'prices')
             })
 
             it('queryConvertObject has sub-relations: shop, product (depth 1)', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.prices.queryConvertObject 
                 for (const rel of PRICE_RELATIONS) {
@@ -233,13 +374,17 @@ describe('buildRelationAttributeConverters', () => {
 
             it('prices.shop.queryConvertObject has Shop base/range/select/relations (depth 2)', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.prices.queryConvertObject.shop.queryConvertObject 
 
                 assertBaseKeys(convertObj, SHOP_BASE, 'prices.shop')
                 assertRangeKeys(convertObj, SHOP_RANGE, 'prices.shop')
                 assert.ok('select' in convertObj)
+                
+                testBaseConverters(convertObj, SHOP_ATTRIBUTE_TYPES, 'shop')
+                testRangeConverters(convertObj, SHOP_RANGE_TYPES, 'shop')
+                testSelectConverter(convertObj, SHOP_BASE, 'shop')
 
                 for (const rel of SHOP_RELATIONS) {
                     assert.ok(rel in convertObj, `prices.shop: missing sub-relation "${rel}"`)
@@ -248,45 +393,43 @@ describe('buildRelationAttributeConverters', () => {
                 }
             })
 
-            it('shop.prices.queryConvertObject at depth 3 returns empty relations (depth limit)', () => {
+            it('queryConvertObject at depth 3 is empty and convert function throws an error (depth limit)', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
-                const convertObj = result.prices.queryConvertObject 
-                    .shop.queryConvertObject.prices.queryConvertObject 
+                const entityLevel3 = result.prices.queryConvertObject.shop.queryConvertObject.prices 
+                const convertObj = entityLevel3.queryConvertObject
 
-                // Still has base/range/select
-                assertBaseKeys(convertObj, PRICE_BASE, 'prices.shop.prices')
-                assert.ok('select' in convertObj)
-
-                // But NO sub-relations (depth 3 exceeds limit)
-                for (const rel of PRICE_RELATIONS) {
-                    assert.ok(!(rel in convertObj),
-                        `prices.shop.prices should NOT have sub-relation "${rel}" at depth limit`)
-                }
+                assert.deepStrictEqual(convertObj, {})
+                assert.throws(
+                    () => entityLevel3.convert({}, {}),
+                    /Depth limit exceeded \(maximum: 2\) when converting query/ 
+                )
             })
         })
 
         describe('comments relation (Comment entity, depth 0 => 1)', () => {
             it('queryConvertObject has Comment base attribute converters', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.comments.queryConvertObject 
                 assertBaseKeys(convertObj, COMMENT_BASE, 'comments')
+                testBaseConverters(convertObj, COMMENT_ATTRIBUTE_TYPES, 'comments')
             })
 
             it('queryConvertObject has Comment range attribute converters', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.comments.queryConvertObject 
                 assertRangeKeys(convertObj, COMMENT_RANGE, 'comments')
+                testRangeConverters(convertObj, COMMENT_RANGE_TYPES, 'comments')
             })
 
             it('queryConvertObject has sub-relations (product, user, rates) at depth 1', () => {
                 const result = buildRelationAttributeConverters<Product, OrmQuery>(
-                    convertersBuild, validationOff, productMetadata, 0
+                    convertersBuild, config, productMetadata, 0
                 )
                 const convertObj = result.comments.queryConvertObject 
                 for (const rel of COMMENT_RELATIONS) {
@@ -303,7 +446,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('depth 0 creates relation converters with sub-relations', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
             // Prices has shop and product at depth 1
             assert.ok('shop' in (convertObj.prices.queryConvertObject))
@@ -312,7 +455,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('depth 1 creates relation converters but limits sub-sub-relations', () => {
             const convertObjLevel1 = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 1
+                convertersBuild, config, productMetadata, 1
             )
             // Prices exists (2 >= 1)
             assert.ok(convertObjLevel1.prices)
@@ -323,9 +466,9 @@ describe('buildRelationAttributeConverters', () => {
                 'at depth 1, shop should NOT have sub-relation "prices" (depth 3 > 2)')
         })
 
-        it('depth equal to subEntityRelationDepth still creates top-level converters', () => {
+        it('depth equal to subEntitiesDepth limit still creates top-level converters', () => {
             const convertObjLevel2 = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 2
+                convertersBuild, config, productMetadata, 2
             )
             assert.ok(convertObjLevel2.prices)
             assert.ok(convertObjLevel2.comments)
@@ -335,20 +478,28 @@ describe('buildRelationAttributeConverters', () => {
             assert.ok(!('product' in convertObjLevel3))
         })
 
-        it('depth exceeding subEntityRelationDepth returns empty', () => {
+        it('depth exceeding subEntitiesDepth limit returns entries with empty queryConvertObject and convert function', () => {
             const convertObjLevel3 = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 3
+                convertersBuild, config, productMetadata, 3
             )
-            assert.deepStrictEqual(convertObjLevel3, {})
+            for (const entity in productMetadata.subEntities) {
+                assert.ok(entity in convertObjLevel3)
+                const entry = convertObjLevel3[entity as keyof typeof convertObjLevel3]
+                assert.deepStrictEqual(entry.queryConvertObject, {})
+                assert.throws(
+                    () => entry.convert({}, {}),
+                    /Depth limit exceeded/
+                )
+            }
         })
 
-        it('depth 0 with subEntityRelationDepth=0: relations exist but sub-entities have no relations', () => {
-            const validationOffDepth0 = {
-                ...validationOff,
-                subEntityRelationDepth: 0
+        it('depth 0 with subEntitiesDepth limit=0: relations exist but sub-entities have no relations', () => {
+            const configDepth0 = {
+                ...config,
+                subEntitiesDepth: 0
             }
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOffDepth0, productMetadata, 0
+                convertersBuild, configDepth0, productMetadata, 0
             )
             // Product relations exist (0 < 0 is false => continues)
             assert.ok(convertObj.prices)
@@ -364,7 +515,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('calling convert on a relation adds an include entry for the association', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before = {}
@@ -377,7 +528,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('calling convert returns the same converted object (chaining)', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -387,7 +538,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('multiple relation convert calls accumulate include entries', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -404,7 +555,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('sub-relation convert adds include entry through queryConvertObject access', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -421,7 +572,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('converts base attribute of sub-entity through queryConvertObject', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -432,7 +583,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('converts range attribute of sub-entity through queryConvertObject', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -443,7 +594,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('converts select on sub-entity through queryConvertObject', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -456,7 +607,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('navigates nested sub-entity converters through queryConvertObject chain', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = { include: [] }
@@ -471,9 +622,9 @@ describe('buildRelationAttributeConverters', () => {
 
         it('circular entity graph references are stopped by depth limit (no infinite loop)', () => {
             // Product => Price => Shop => Price => ... is circular
-            // subEntityRelationDepth = 2, so depth 3 exceeds limit
+            // subEntitiesDepth limit = 2, so depth 3 exceeds limit
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             // Depth: Product(0) => Price(1) => Shop(2) => Price(3 exceeds limit)
@@ -494,7 +645,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('passing null as value throws an error', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = {}
@@ -506,7 +657,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('passing undefined as value throws an error', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = {} 
@@ -518,7 +669,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('passing non-object as value throws an error', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = {}
@@ -538,7 +689,7 @@ describe('buildRelationAttributeConverters', () => {
 
         it('passing object as value and empty converted initializes include array', () => {
             const convertObj = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const before: OrmQuery = {}
@@ -550,10 +701,10 @@ describe('buildRelationAttributeConverters', () => {
 
         it('independent relation converter instances produce independent results', () => {
             const convertObjA = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
             const convertObjB = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOff, productMetadata, 0
+                convertersBuild, config, productMetadata, 0
             )
 
             const accA: OrmQuery = {}
@@ -572,24 +723,37 @@ describe('buildRelationAttributeConverters', () => {
             assert.strictEqual(accB.include![0].association, 'comments')
         })
 
-        it('depth limit with validationOff.subEntityRelationDepth=0 returns empty results at depth 1', () => {
-            const validationOffDepth0 = {
-                ...validationOff,
-                subEntityRelationDepth: 0
+        it('depth limit=0 with exceeding depth parameter returns always "depth exceeding handler"', () => {
+            const configDepth0 = {
+                ...config,
+                subEntitiesDepth: 0
             }
-            // depth 1 already exceeds subEntityRelationDepth 0
+            // depth 1 already exceeds subEntitiesDepth limit 0
             const convertObjLevel1 = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOffDepth0, productMetadata, 1
+                convertersBuild, configDepth0, productMetadata, 1
             )
-            assert.deepStrictEqual(convertObjLevel1, {},
-                'depth 1 with subEntityRelationDepth 0 should be empty')
-
+            for (const entity in productMetadata.subEntities) {
+                assert.ok(entity in convertObjLevel1)
+                const entry = convertObjLevel1[entity as keyof typeof convertObjLevel1]
+                assert.deepStrictEqual(entry.queryConvertObject, {})
+                assert.throws(
+                    () => entry.convert({}, {}),
+                    /Depth limit exceeded/
+                )
+            }
             // depth 0 still works (0 < 0 is false)
             const convertObjLevel0 = buildRelationAttributeConverters<Product, OrmQuery>(
-                convertersBuild, validationOffDepth0, productMetadata, 0
+                convertersBuild, configDepth0, productMetadata, 0
             )
-            assert.ok(convertObjLevel0.prices,
-                'depth 0 with subEntityRelationDepth 0 should still produce relation entries')
+            for (const entity in productMetadata.subEntities) {
+                assert.ok(entity in convertObjLevel0)
+                const entry = convertObjLevel0[entity as keyof typeof convertObjLevel0]
+                assert.deepStrictEqual(entry.queryConvertObject, {})
+                assert.throws(
+                    () => entry.convert({}, {}),
+                    /Depth limit exceeded/
+                )
+            }
         })
     })
 })

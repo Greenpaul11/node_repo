@@ -1,0 +1,425 @@
+<h3>Data maintainer</h3>
+<div class="message_cont" style="display: none;">
+    <div class="message_inner">
+        <div id="message_line"></div>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+</div>
+<div class="error_cont" style="display: none;">
+    <div class="error_inner">
+        <div id="error_line"></div> 
+        <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+        </div>
+    </div>
+</div>
+<div id="result_items">
+    <div>
+        <div>
+            <h3>Deactivated prices</h3>
+            <div style="position: relative;">
+                <div class="lds_roller_wrapper" data-runner-el="eP">
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            
+            <% if (jobRunning === 'eP') { %>
+            <button data-job="eP" data-job-running="true" data-runner="eP" type="button">Run</button>
+            <% } else { %>
+            <button data-job="eP" data-job-running="" data-runner="eP" type="button">Run</button>
+            <% } %>
+        </div>
+        <% if (pricesDeactivated) { %> 
+        <div>
+            <p>Last action: 
+            <select data-job="eP">
+                <% for (const [index, date, active] of pricesDeactivated.dates) { %>
+                <% if (active) { %>
+                <option value="<%= index %>" selected><%= date %></option>
+                <% } else { %>
+                <option value="<%= index %>"><%= date %></option>
+                <% } %>
+                <% } %>
+            </select>
+            </p>
+            <p>Deactivated count: <span><%= pricesDeactivated.modified.length %></span></p>
+            <% if (pricesDeactivated.errors.length) { %> 
+            <div>
+            <% for (const [index, error] of pricesDeactivated.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+            <% } %>
+            </div>>
+            <% } else if (pricesDeactivated.modified.length) { %>
+            <div>
+                <p>Deactivated: 
+                    <% for ([index, id] of pricesDeactivated.modified.entries()) { %> 
+                    <% if (index > 0) { %>
+                    , 
+                    <% } %>
+                    <a href="admin/price/id=<%= id %>"><%= id %></a>
+                    <% } %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        <% } else { %>
+        <div>
+            <p>No action registered</p>
+        </div>
+        <% } %>
+        <div>
+            <h3>Deactivated laptops</h3>
+            <div style="position: relative;">
+                <div class="lds_roller_wrapper" data-runner-el="eL">
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            
+            <% if (jobRunning === 'eL') { %>
+            <button data-job="eL" data-job-running="true" data-runner="eL" type="button">Run</button>
+            <% } else { %>
+            <button data-job="eL" data-job-running="" data-runner="eL" type="button">Run</button>
+            <% } %>
+        </div>
+        <% if (laptopsDeactivated) { %>
+        <div>
+            <p>Last action: 
+            <select data-job="eL">
+                <% for (const [index, date, active] of laptopsDeactivated.dates) { %>
+                <% if (active) { %>
+                <option value="<%= index %>" selected><%= date %></option>
+                <% } else { %>
+                <option value="<%= index %>"><%= date %></option>
+                <% } %>
+                <% } %>
+            </select>
+            </p>
+            <p>Deactivated count: <span><%= laptopsDeactivated.modified.length %></span></p>
+            <% if (laptopsDeactivated.errors.length) { %> 
+            <div>
+            <% for (const [index, error] of laptopsDeactivated.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+            <% } %>
+            </div>>
+            <% } else if (laptopsDeactivated.modified.length) { %>
+            <div>
+                <p>Deactivated: 
+                    <% for ([index, id] of laptopsDeactivated.modified.entries()) { %> 
+                    <% if (index > 0) { %>
+                    , 
+                    <% } %>
+                    <a href="admin/laptop/id=<%= id %>"><%= id %></a>
+                    <% } %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        <% } else { %>
+        <div>
+            <p>No action registered</p>
+        </div>
+        <% } %>
+        <div>
+            <h3>Deleted prices</h3>
+            <div style="position: relative;">
+                <div class="lds_roller_wrapper" data-runner-el="dP">
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            
+            <% if (jobRunning === 'dP') { %>
+            <button data-job="dP" data-job-running="true" data-runner="dP" type="button">Run</button>
+            <% } else { %>
+            <button data-job="dP" data-job-running="" data-runner="dP" type="button">Run</button>
+            <% } %>
+        </div>
+        <% if (pricesDeleted) { %> 
+        <div>
+            <p>Last action: 
+                <select data-job="dP">
+                    <% for (const [index, date, active] of pricesDeleted.dates) { %>
+                    <% if (active) { %>
+                    <option value="<%= index %>" selected><%= date %></option>
+                    <% } else { %>
+                    <option value="<%= index %>"><%= date %></option>
+                    <% } %>
+                    <% } %>
+                </select>
+            </p>
+            <p>Deleted count: <span><%= pricesDeleted.modified.length %></span></p>
+            <% if (pricesDeleted.errors.length) { %> 
+            <div>
+            <% for (const [index, error] of pricesDeleted.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+            <% } %>
+            </div>>
+            <% } else if (pricesDeleted.modified.length) { %>
+            <div>
+                <p><b>Deleted:</b></p>
+                <% for ([id, shop, collected] of pricesDeleted.modified) { %>
+                <p>id<b> <%= id %></b> from <b><%= shop %></b> collected <b><%= collected %></b></p>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+        <% } else { %>
+        <div>
+            <p>No action registered</p>
+        </div>
+        <% } %>
+        <div>
+            <h3>Deleted laptops</h3>
+            <div style="position: relative;">
+                <div class="lds_roller_wrapper" data-runner-el="dL">
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            
+            <% if (jobRunning === 'dL') { %>
+            <button data-job="dL" data-job-running="true" data-runner="dL" type="button">Run</button>
+            <% } else { %>
+            <button data-job="dL" data-job-running="" data-runner="dL" type="button">Run</button>
+            <% } %>
+        </div>
+        <% if (laptopsDeleted) { %>
+        <div>
+            <p>Last action: 
+            <select data-job="dL">
+                <% for (const [index, date, active] of laptopsDeleted.dates) { %>
+                <% if (active) { %>
+                <option value="<%= index %>" selected><%= date %></option>
+                <% } else { %>
+                <option value="<%= index %>"><%= date %></option>
+                <% } %>
+                <% } %>
+            </select>
+            </p>
+            <p>Deleted count: <span><%= laptopsDeleted.modified.length %></span></p>
+            <% if (laptopsDeleted.errors.length) { %> 
+            <div>
+            <% for (const [index, error] of laptopsDeleted.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+            <% } %>
+            </div>>
+            <% } else if (laptopsDeleted.modified.length) { %>
+            <div>
+                <p><b>Deleted:</b></p>
+                <% for ([id, brand, model] of laptopsDeleted.modified) { %>
+                <p>id<b> <%= id %></b> brand <b><%= brand %></b> model <b><%= model %></b></p>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+        <% } else { %>
+        <div>
+            <p>No action registered</p>
+        </div>
+        <% } %>
+        <div>
+            <h3>Delete job files</h3>
+            <div style="position: relative;">
+                <div class="lds_roller_wrapper" data-runner-el="dF">
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            <% if (jobRunning === 'dF') { %>
+            <button data-job="dF" data-job-running="true" data-runner="dF" type="button">Run</button>
+            <% } else { %>
+            <button data-job="dF" data-job-running="" data-runner="dF" type="button">Run</button>
+            <% } %>
+        </div>
+        <% if (jobFilesDeleted) { %>
+        <div>
+            <p>Last action: 
+            <select data-job="dF">
+                <% for (const [index, date, active] of jobFilesDeleted.dates) { %>
+                <% if (active) { %>
+                <option value="<%= index %>" selected><%= date %></option>
+                <% } else { %>
+                <option value="<%= index %>"><%= date %></option>
+                <% } %>
+                <% } %>
+            </select>
+            </p>
+            <p>Deleted count: <span><%= jobFilesDeleted.modified.length %></span></p>
+            <% if (jobFilesDeleted.errors.length) { %> 
+            <div>
+            <% for (const [index, error] of jobFilesDeleted.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+            <% } %>
+            </div>>
+            <% } else if (jobFilesDeleted.modified.length) { %>
+            <div>
+                <p><b>Deleted:</b></p>
+                <% for ([dirName, deleted] of jobFilesDeleted.modified) { %>
+                <p><b><%= deleted %></b> from <b><%= dirName %></b></p>
+                <% } %>
+            </div>
+            <% } %>
+        </div>
+        <% } else { %>
+        <div>
+            <p>No action registered</p>
+        </div>
+        <% } %>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    let jobButton
+    let dateSelects
+    function interact() {
+        dateSelects = document.querySelectorAll('select[data-job]')
+        dateSelects.forEach((select) => {
+            select.addEventListener('change', async (event) => {
+                const job = event.currentTarget.dataset.job
+                const jobIndex = event.currentTarget.value
+                const url = updateUrl(window.location, {update_results: true, [job]: jobIndex})
+                const htmlBody = await getData(url)
+                if (htmlBody) {
+                    const resultsHtml = document.querySelector('#result_items')
+                    resultsHtml.innerHTML = htmlBody
+                    interact()
+                }
+                const urlAfter = updateUrl(url, null, ['update_results'])
+                updateUrlHistory(urlAfter)
+            })
+        })
+        const jobButtons = document.querySelectorAll('button[data-job]')
+        jobButtons.forEach((button) => {
+            if (button.dataset.jobRunning) {
+                jobButton = button
+                setEventSource(onStart, onEnd)
+                button.addEventListener('click', closeEventSource)
+            } else {
+                button.addEventListener('click', openEventSource)
+            }
+        })
+    }
+    const onStart = () => {
+        jobButton.innerText = 'Cancel'
+        jobButton.dataset.job.running = 'true'
+        if (jobButton.dataset.runner) {
+            document.querySelector(`[data-runner-el=${jobButton.dataset.runner}]`).style.display = 'block'
+        }
+    }
+    const onEnd = async () => {
+        // update whole content element
+        const job = jobButton.dataset.job
+        const url = updateUrl(window.location, {update_results: true, [job]: 0})
+        const htmlBody = await getData(url)
+        if (htmlBody) {
+            const resultsHtml = document.querySelector('#result_items')
+            resultsHtml.innerHTML = htmlBody
+            interact()
+        }
+        const urlAfter = updateUrl(url, null, ['update_results'])
+        updateUrlHistory(urlAfter)
+        jobButton = null
+    }
+    async function openEventSource(event) {
+        jobButton = event.target
+        const runTempTarget = 'maintainer'
+        const job = jobButton.dataset.job 
+        const runStart = Object.fromEntries([[job, [runTempTarget]]])
+        const submitUrl = parseUrl('/admin/request_collect_job')
+        const result = await fetch(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify({runStart: runStart}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const [accepted, error] = await result.json()
+        if (accepted) {
+            const buttonText = jobButton.innerText
+            setEventSource(onStart, onEnd)
+            jobButton.removeEventListener('click', openEventSource)
+            jobButton.addEventListener('click', closeEventSource)
+        } else {
+            let errors = ''
+            for (const [errorKey, errorValues] of Object.entries(error) ) {
+                for (const error of errorValues) {
+                    errors += `<p>${errorKey} ${errorValues}</p>`
+                }
+            }
+            displayErros(errors) 
+        }
+    }
+
+    async function closeEventSource(event) {
+        const button = event.target
+        const job = button.dataset.job
+        const runStop = Object.fromEntries([[job, true]])
+        const submitUrl = parseUrl('/admin/request_collect_job')
+        const result = await fetch(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify({runStop: runStop}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const [stopped, error] = await result.json()
+        // restore stat data to previous state
+        if (error) {
+            let errors = ''
+            for (const [errorKey, errorValues] of Object.entries(error) ) {
+                for (const error of errorValues) {
+                    errors += `<p>${errorKey} ${errorValues}</p>`
+                }
+            }
+            displayErros(errors)
+        }
+    }
+
+    function setEventSource(setOnStart, setOnEnd) {
+        source = new EventSource('/admin/start_collect_job')
+        source.addEventListener("open", (event) => {
+            if (setOnStart) setOnStart() 
+            console.log("The connection has been established.")
+        })
+        source.addEventListener("error", (error) => {
+            console.log(error)
+            if (setOnEnd) setOnEnd() 
+            console.log("An error occurred while attempting to connect.")
+            source.close()
+        })
+        source.addEventListener('message', (event) => {  
+            const data = JSON.parse(event.data)
+        })
+        test = source
+    }
+    window.onload = () => {
+        interact()
+    }
+    
+   
+</script>

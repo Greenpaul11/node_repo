@@ -1,0 +1,107 @@
+<div class="collector-runner-wrapper">
+  <div class="admin-paragraph-wrapper flex flex-space-between">
+      <div class="paragraph-and-image">
+          <p>Active shops:&nbsp</p>
+          <div>
+              <% for (const shop of activeShops) {%>
+              <% let shopToCamel = shop.replace(' ', '_') %>
+              <img src="/static_files/logos/logo_shops/<%= shopToCamel %>_small.jpg %>">
+              <% } %>
+          </div>
+      </div>
+      <div class="button-center-wrapper">
+          <button class="admin-button-link">Change<a href="/admin/settings/collector"></a></button>
+      </div>
+  </div>
+  <div class="admin-paragraph-wrapper flex flex-space-between">
+      <div class="admin-paragraph-checkbox-wrapper">
+          <p>Collect from:&nbsp</p>
+          <% for (const [shop, run] of activeShopsRun) {%>
+            <% if (run) { %>
+            <label class="label-parent"><input type="checkbox" name="targets" value="<%= shop %>" data-target="<%= shop %>" checked><%= shop %></label>
+            <% } else { %>
+            <label class="label-parent"><input type="checkbox" name="targets" value="<%= shop %>" data-target="<%= shop %>"><%= shop %></label>
+            <% } %>
+          <% } %>
+      </div>
+      <div class="button-center-wrapper">
+        <button class="admin-button-link">Change<a href="/admin/settings/collector"></a></button>
+      </div>
+  </div>
+  <div class="admin-paragraph-wrapper flex flex-space-between">
+      <p>Collector schedule status: <b><%= jobSchedule['status'] %></b></p>
+      <div class="button-center-wrapper">
+        <button class="admin-button-link">Change<a href="/admin/settings/collector"></a></button>
+      </div>
+  </div>
+  <div class="admin-paragraph-wrapper">
+    <p>Collector next run: <b><%= jobSchedule['nextRun'] %></b></p>
+  </div>
+  <div class="admin-paragraph-wrapper">
+    <p>Collector last run: <b><%= jobSchedule['lastRun'] %></b></p>
+  </div>
+  <% if (jobSchedule['expired'] !== null) { %>
+  <% if (!jobSchedule['expired']) { %>
+  <div class="admin-paragraph-wrapper">
+      <p>Collector job expires in: <b><%= jobSchedule['expiration'] %></b></p>
+  </div>
+  <div class="admin-paragraph-wrapper flex flex-space-between">
+    <div>
+        <p>Run collector on last session: <b data-on-off-collector-options>off</b></p>
+    </div>
+    <div class="flex flex-center-horizontal">
+        <label class="switch">
+            <input id="show-run-collector-options" type="checkbox">
+            <span class="slider round"></span>
+        </label>
+    </div>
+  </div>
+  <div id="run-collector-options-container" class="admin-paragraph-wrapper dropdown">
+    <p>Perform actions:</p>
+    <div class="admin-paragraph-checkbox-wrapper">  
+        <% for (const action of rerunActionOptions) { %>
+        <label class="label-parent"><input type="checkbox" data-collector-action="<%= action[0] %>" value="0" <% if (action[1]) { %>checked<% } %>><%= action[2] %></label>
+        <% } %>
+    </div>
+  </div>
+  <% } else { %>
+  <div class="admin-paragraph-wrapper">
+      <p>Collector job expired in: <b><%= jobSchedule['expiration'] %></b></p>
+  </div> 
+  <% } %>
+  <% } %>
+  <div class="admin-paragraph-wrapper flex flex-space-between">
+      <% if (currentJob === 'RC') { %>
+      <div class="flex">
+          <p>Collector status: <b data-collector-status>active</b></p>
+          <div id="on-off-wrapper" class="on-off-wrapper"><div class="on-off-outer"><div class="on-off-inner"></div></div></div>
+      </div>
+      <div class="button-center-wrapper">
+          <button class="admin-button-link" data-job="<%= job %>" data-target-name="<%= activeShops %>" data-job-running="true" type="button">Stop</button>
+      </div>
+      <% } else { %>
+      <div class="flex">
+          <p>Collector status: <b data-collector-status>inactive</b></p>
+          <div id="on-off-wrapper" class="on-off-wrapper"><div class="on-off-outer"><div class="on-off-inner"></div></div></div>
+      </div>
+      <div class="button-center-wrapper">
+          <button class="admin-button-link" data-job="<%= job %>" data-target-name="<%= activeShops %>" data-job-running="false" type="button">Run</button>
+      </div>
+      <% } %>
+  </div>
+   <div id="collector-progress-column-wrapper" class="collector-progress-column-wrapper dropdown">
+      <% if (activeShopStat) { %>
+      <div class="admin-paragraph-wrapper">
+          <p>Collecting data from: <b data-current-progress-on><%= activeShopStat['name'] %></b></p>
+      </div>
+      <div id="collector-progress-column">
+      <%- include('./collectorProgressStat', {stat: activeShopStat}) %>
+      </div>
+      <% } else { %>
+      <div class="admin-paragraph-wrapper">
+          <p>Collecting data from: <b data-current-progress-on></b></p>
+      </div>
+      <div id="collector-progress-column"></div>
+      <% } %>
+  </div>
+</div>

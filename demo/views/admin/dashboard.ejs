@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <link rel="stylesheet" href="/static_files/css/styleConverted.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+</head>
+<body>
+  <%- include('../partials/header') %>
+  <div class="admin-main-wrapper">
+    <div class="admin-base-cont">
+      <dialog id="admin_alert" class="alert_container">
+        <div id="inner_dialog">
+        </div>
+        <button id="approve_btn">Yes</button>
+        <button id="disapprove_btn">No</button>
+      </dialog>
+      <div id='admin-left-wrapper' class="admin-left-wrapper">
+        <div class="header-wrapper-section">
+          <button id="admin-grow-left"><img src="/static_files/svgs/menu_small.png"></button>
+          <button id="admin-shrink-left"><img src="/static_files/svgs/close.png"></button>
+        </div>
+        <div id="admin-left-dropdown" class="admin-left-dropdown">
+          <div>
+            <button class="admin-left-button" data-direction='/admin/dashboard'>
+              <div>
+                <img src="/static_files/logos/home.png">
+                <span class="button-text">Dashboard</span>
+              </div>
+            </button>
+          </div>
+          <div data-section="collector">
+            <button class="admin-left-button" data-dropdown-button>
+              <div>
+                <img src="/static_files/logos/logout.png">
+                <span class="button-text">Collector</span>
+              </div>
+              <span class="angle-bracket">&#12296</span>
+              <span class="angle-bracket">&#12297</span>
+            </button>
+            <div class="dropdown-container">
+              <ul class="dropdown">
+                <li>
+                  <button class="admin-left-button" data-direction='/admin/collector'>
+                    <div>
+                      <span class="button-text">Collector</span>
+                    </div>
+                    <a href="/admin/collector"></a>
+                  </button>
+                </li>
+                <li>
+                  <button class="admin-left-button" data-direction='/admin/collector_test'>
+                    <div>
+                      <span class="button-text">Collector test</span>
+                    </div>
+                    <a href="/admin/collector_test"></a>
+                  </button>
+                </li>
+                <li>
+                  <button class="admin-left-button" data-direction='/admin/collector_test_shops'>
+                    <div>
+                      <span class="button-text">Shop test</span>
+                    </div>
+                    </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <button class="admin-left-button" data-direction='/admin/user'>
+              <img src="/static_files/logos/users.png">
+              <span class="button-text">Users</span>
+          </button>
+          <button class="admin-left-button" data-direction='/admin/user_token'>
+              <img src="/static_files/logos/security.png">
+              <span class="button-text">Security</span>
+          </button>
+          <button class="admin-left-button" data-direction='/admin/laptop'>
+            <img src="/static_files/logos/settings.png">
+            <span class="button-text">Settings</span>
+          </button>
+          <button class="admin-left-button" data-direction='0'>
+              <img src="/static_files/logos/logout.png">
+              <span class="button-text">Logout</span>
+          </button>
+        </div>
+        
+      </div>
+      <div id='admin-right-wrapper' class="admin-right-wrapper">
+        <div id="admin-right-roller" class="lds-roller-wrapper">
+          <div class="lds-roller-active"></div>
+          <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+        <%- include(nextSubElement) %>
+      </div>
+      
+  </div>
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>
+<script type="text/javascript">
+  
+  let currentPath
+  let sectionPath 
+  let currentButtonDirect
+  let currentLeftSection
+  let sectionsLeftColumn
+  let sectionDropdownButtons
+  let adminLeftWrapper 
+  let adminLeftDropdown
+  let currentActiveDropdown
+  let shrinkLeftColumnButton
+  let growLeftColumnButton
+  let shrinkLeftColumnActive
+  
+  function interactAdminPanel() {
+    currentPath = window.location.pathname
+    sectionPath = Array.from(currentPath.split('/')).slice(0, 3).join('/')
+    sectionsLeftColumn = document.querySelectorAll('div[data-section]')
+    for (const section of sectionsLeftColumn) {
+      let directionButtons = section.querySelectorAll('button[data-direction]')
+      for (const button of directionButtons) {
+        if (button.dataset.direction === sectionPath) {
+          currentButtonDirect = button
+          currentButtonDirect.dataset.active = 'true'
+          currentLeftSection = section
+          currentLeftSection.dataset.active = 'true'
+          toggleActiveDropdown(currentLeftSection)
+          break
+        }
+      }
+      if (currentLeftSection) {
+        let currentSectionButton = section.querySelector('button')
+        currentSectionButton.dataset.currentDirection = 'true'
+        break
+      }
+    }
+    sectionDropdownButtons = document.querySelectorAll('button[data-dropdown-button]')
+    sectionDropdownButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        toggleSections(button)
+      })
+    })
+
+    adminLeftWrapper = document.getElementById('admin-left-wrapper')
+    adminLeftDropdown = adminLeftWrapper.querySelector('#admin-left-dropdown')
+    if (!menuButton) {
+      menuButton = document.getElementById('menu-button')
+    }
+    menuButton.addEventListener('click', (event) => {
+      const active = adminLeftDropdown.dataset.active
+      if (!active) {
+        adminLeftWrapper.dataset.active = 'true'
+        adminLeftDropdown.dataset.active = 'true'
+      } else {
+        delete adminLeftWrapper.dataset.active
+        delete adminLeftDropdown.dataset.active
+      }
+    })
+    const mediaQueryAdmin = window.matchMedia('(max-width: 900px)')
+    mediaQueryAdmin.addEventListener('change', handleMobileChangeAdminPanel)
+    if (window.innerWidth <= 900) adminLeftToMobile()
+
+    shrinkLeftColumnButton = document.getElementById('admin-shrink-left')
+    growLeftColumnButton = document.getElementById('admin-grow-left')
+    shrinkLeftColumnButton.addEventListener('click', () => {
+      if (currentLeftSection) {
+        delete currentLeftSection.dataset.active
+        currentLeftSection = null
+      }
+      toggleActiveDropdown()
+      adminLeftWrapper.dataset.shrink = 'true'
+    })
+    growLeftColumnButton.addEventListener('click', () => {
+      delete adminLeftWrapper.dataset.shrink
+    })
+  }
+
+  function toggleSections(button) {
+    const parent = button.parentElement
+    if (!currentLeftSection) {
+      parent.dataset.active = 'true'
+      currentLeftSection = parent
+      toggleActiveDropdown(currentLeftSection)
+    } else if (currentLeftSection === parent) {
+      delete currentLeftSection.dataset.active
+      currentLeftSection = null
+      toggleActiveDropdown()
+    } else {
+      delete currentLeftSection.dataset.active
+      setTimeout(() => {
+        parent.dataset.active = 'true'
+        currentLeftSection = parent
+        currentActiveDropdown(parent)
+      }, 300)
+    }
+  }
+
+  function toggleActiveDropdown(parent=null) {
+    if (currentActiveDropdown) {
+      delete currentActiveDropdown.dataset.active
+    }
+    if (parent) {
+      currentActiveDropdown = parent.querySelector('.dropdown')
+      currentActiveDropdown.dataset.active = 'true'
+    }
+  }
+
+  function handleMobileChangeAdminPanel(event) {
+    if (event.matches) {
+      adminLeftToMobile()
+    } else {
+      adminLeftToDesktop()
+    }
+  }
+  
+  function adminLeftToMobile() {
+    adminLeftWrapper.classList.add('dropdown-container')
+    adminLeftDropdown.classList.add('dropdown')
+    if (adminLeftWrapper.dataset.shrink) {
+      delete adminLeftWrapper.dataset.shrink
+      shrinkLeftColumnActive = true
+    }
+  }
+  
+  function adminLeftToDesktop() {
+    adminLeftWrapper.classList.remove('dropdown-container')
+    adminLeftDropdown.classList.remove('dropdown')
+    if (shrinkLeftColumnActive) {
+      adminLeftWrapper.dataset.shrink = 'true'
+    }
+  }
+  
+  
+  interactAdminPanel()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const roller = document.querySelector('.lds_roller_wrapper')
+const buttonLinks = document.querySelectorAll('button.admin_colI_button')
+const alertDialog = document.getElementById('admin_alert')
+const alertMessage = document.getElementById('inner_dialog')
+const alertApproveBtn = document.getElementById('approve_btn')
+const alertDisapproveBtn = document.getElementById('disapprove_btn')
+currentPath = window.location.pathname
+sectionPath = Array.from(currentPath.split('/')).slice(0, 3).join('/')
+
+// add funcionality to the left column buttons
+//buttonLinks.forEach((button) => {
+//  if (button.dataset.direction === sectionPath) {
+//        button.dataset.active = true
+//    }
+//    button.addEventListener('click', async () => {
+//      window.location = parseUrl(button.dataset.direction)
+//    })
+//})
+// make sure when history updated manualy page will reflect changes after clicking back/next
+window.addEventListener("popstate", (event) => {
+  if (event.state) {
+    window.location.reload()
+  }
+});
+
+// transform form to url query
+function formToUrlString(form) {
+    const formRaw = new FormData(form)
+    const dataList = [...formRaw.entries()]
+    const cleaned = dataList.filter(attr => !!attr[1])
+    const encoded = cleaned.map(attr => encodeURIComponent(attr[0]) + '=' + encodeURIComponent(attr[1]))
+    const stringed = encoded.join('&')
+    return stringed
+}
+
+// get data for specific url
+async function getData(url) {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`)
+    }
+    const body = await response.text()
+    return body
+  } catch(error) {
+    console.error(error.message)
+    return null
+  }
+
+}
+// send data to the server
+async function putData(url, data) {
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`)
+    }
+    const object = await response.json()
+    return object
+  } catch(error) {
+    console.error(error.message)
+    return null
+  }
+
+}
+
+// parse url origin to new pathname
+function parseUrl(pathname) {
+  if (window.location) {
+    const currentUrl = new URL(window.location)
+    const origin = currentUrl.origin
+    const nextUrl = new URL(pathname, origin)
+    return nextUrl.href
+  } else {
+    return null
+  }
+}
+
+// update url with current active queries
+function updateUrl(url, queries_to_set, queries_to_del=null) {
+    const newUrlQuery = new URL(url)
+    const queryParams = newUrlQuery.searchParams
+    if (queries_to_del) {
+        queries_to_del.forEach((query) => {
+            queryParams.delete(query)
+        })
+    }
+    if (queries_to_set) {
+        Object.keys(queries_to_set).forEach((key) => {
+            queryParams.set(key, queries_to_set[key])
+        })
+    }
+    newUrlQuery.search = queryParams.toString()
+    return newUrlQuery.toString()
+} 
+
+
+// alert user about changes
+async function actionDialog(messages) {
+  alertMessage.innerHTML = messages
+  alertDialog.showModal()
+  let accept = false
+  let waitForPressResolve;
+  const waitForPress = () => {
+      return new Promise(resolve => waitForPressResolve = resolve);
+  }
+  alertApproveBtn.addEventListener('click', () => {
+      if (waitForPress) {
+          accept = true
+          alertDialog.close()
+          waitForPressResolve()
+
+      }
+  })
+  alertDisapproveBtn.addEventListener('click', () => {
+      if (waitForPress) {
+          alertDialog.close()
+          waitForPressResolve()
+      }
+  })
+  await waitForPress()
+  if (accept) return true
+  return false
+  
+}
+
+function displayMessage(messageList) {
+  const messageWrapper = document.getElementById('message-wrapper')
+  const messageContainer = messageWrapper.querySelector('div[data-message-blueprint]')
+  const containerClone = messageContainer.cloneNode(true)
+  const innerElement = containerClone.querySelector('#message-inner')
+  const closeButton = containerClone.querySelector('button')
+  messageList.forEach((line) => {
+    let formatLine = line.replace(/ /g, '&nbsp;')
+    innerElement.innerHTML += '<p>' + formatLine + '</p>'
+  })
+  closeButton.addEventListener('click', () => containerClone.remove())
+  delete containerClone.dataset.messageBlueprint
+  messageWrapper.appendChild(containerClone)
+}
+
+function displayError(errors) {
+  const errorWrapper = document.getElementById('error-wrapper')
+  const errorContainer = errorWrapper.querySelector('div[data-error-blueprint]')
+  const containerClone = errorContainer.cloneNode(true)
+  const innerElement = containerClone.querySelector('#error-inner')
+  const closeButton = containerClone.querySelector('button')
+  if (Array.isArray(errors)) {
+    errors.forEach((line) => {
+      let formatLine = line.replace(/ /g, '&nbsp;')
+      innerElement.innerHTML += '<p>' + formatLine + '</p>'
+    })
+  } else if (typeof errors === 'object' && errors !== null) {
+    Object.entries(errors).forEach(([name, errorList]) => {
+      innerElement.innerHTML += '<p>' + name + '</p>'
+      errorList.forEach((line) => {
+        let formatLine = line.replace(/ /g, '&nbsp;')
+        innerElement.innerHTML += '<p>' + '&nbsp;' + '*' + '&nbsp;' + formatLine + '</p>'
+      })
+    })
+  }
+ 
+  closeButton.addEventListener('click', () => containerClone.remove())
+  delete containerClone.dataset.errorBlueprint
+  errorWrapper.appendChild(containerClone)
+}
+
+function updateUrlHistory(url) {
+    const nextState = { additionalInformation: 'Updated the URL with JS' };
+    window.history.pushState(nextState, '', url);
+}
+
+function reloadOnGoBack() {
+  window.addEventListener('pageshow', function (event) {
+    if (event.persisted) {
+        window.location.reload()
+    }
+})
+}
+</script>

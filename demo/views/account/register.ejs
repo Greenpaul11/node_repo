@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+  <script src="https://kit.fontawesome.com/bd4791ad83.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<%- include('../partials/header') %>
+<div class="wrapper">
+    <div class="reg_log_cont">
+        <div class="reg_log_header">
+			<h2>Create Account</h2>
+			<p class="small_label">
+				Back to <a href="/account/login">LOGIN</a>
+			</p>
+		</div>
+    <form class="reg_log_form" action="/account/register" method="POST">
+      <% if (errors !== {}) { %>
+      <% for (const [errorType, errorList] of Object.entries(errors)) { %>
+      <div class="error_cont">
+        <% for (const error of errorList) { %>
+        <div class="error_inner">
+          <p><%= errorType %> <%= error %></p> 
+          <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+      <% } %>
+			<label>Login: </label><br />
+      <% if (data.login) { %>
+      <input class="custom_input" type="text" name="login" value="<%= data.login %>"><br />
+      <% } else { %>
+			<input class="custom_input" type="text" name="login" value=""><br />
+      <% } %>
+      <label>Email:</label><br />
+      <% if (data.email) { %>
+      <input class="custom_input" type="email" name="email" value="<%= data.email %>"><br />
+      <% } else { %>
+        <input class="custom_input" type="email" name="email" value=""><br />
+      <% } %>
+			<label>Password: </label><br />
+			<input class="custom_input" type="password" name="password" value=""><br />
+			<label>Confirm password: </label><br />
+			<input class="custom_input" type="password" name="password_confirm" value=""><br />
+			<button class="register_btn" type="submit">REGISTER</button>
+		</form>
+
+    </div>
+</div>
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>

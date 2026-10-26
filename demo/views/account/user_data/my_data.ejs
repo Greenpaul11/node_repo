@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+  <script src="https://kit.fontawesome.com/bd4791ad83.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<%- include('../../partials/header') %>
+<div class="wrapper">
+    <div class="account_data_cont">
+        <h2>My Data</h2>
+        <% if (errors !== {}) { %>
+        <% for (const [errorType, errorList] of Object.entries(errors)) { %>
+        <div class="error_cont">
+            <% for (const error of errorList) { %>
+            <div class="error_inner">
+            <p><%= errorType %> <%= error %></p> 
+            <div class="error_img">
+                <img src="/static_files/pictures/error.png"/>
+            </div>
+            </div>
+            <% } %>
+        </div>
+        <% } %>
+        <% } %>
+        <% if (messages) { %>
+        <div class="account_data_row" data-message-cont>
+            <header class="message_cont">
+                <% for (const message of messages) { %>
+                <div class="message_inner">
+                <p><%= message %></p>
+                <div class="message_img">
+                    <img src="/static_files/logos/check-mark.png"/>
+                </div>
+                </div>
+                <% } %>
+            </header>
+        </div>
+        <% } %>
+        <p>YOUR DETAILS</p>
+        <div class="account_data_row">
+            <div>
+                <a id="changeSwitch">Change</a>
+                <p>E-mail address: <span class="f-weight6"><%= dataUser.email %></span></p>
+            </div>
+            <p style="display: none;">CHANGE EMAIL</p>
+            <div style="display: none;" class="account_data_row form_c">
+                <form action="/account/user/my_data/change_email" method="POST">
+                    <div>
+                        <label>New e-mail address:</label><br />
+                        <input class="custom_input" type="email" name="email" value=""><br /><br />
+                    </div>
+                    <div>
+                        <label>Password:</label><br />
+                        <i class="fa-solid fa-eye-slash" id="toggleOldPassword"></i>
+                        <input class="custom_input" type="password" name="password" value=""><br /><br />
+                    </div>
+                    <button class="account_button" type="submit">CHANGE EMAIL</button>
+                </form>
+            </div>
+        </div>
+        <div class="account_data_row">
+            <div>
+              <a id="changeSwitch">Change</a>
+              <p>Login: <span class="f-weight6"><%= dataUser.login %></span></p>
+            </div>
+            <p style="display: none;">CHANGE LOGIN</p>
+            <div style="display: none;" class="account_data_row form_c">
+                <form action="/account/user/my_data/change_login" method="POST">
+                    <div>
+                        <label>New login:</label><br />
+                        <input class="custom_input" type="text" name="login" value=""><br /><br />
+                    </div>
+                    <div>
+                        <label>Password:</label><br />
+                        <i class="fa-solid fa-eye-slash" id="toggleOldPassword"></i>
+                        <input class="custom_input" type="password" name="password" value=""><br /><br />
+                    </div>
+                    <button class="account_button" type="submit">CHANGE LOGIN</button>
+                </form>
+            </div>
+        </div>
+        <div class="account_data_row">
+            <div>
+                <p>Joined: <span class="f-weight6"><%= dataUser.joined %></span></p>
+            </div>
+        </div>
+        <div class="account_data_row">
+            <div>
+                <p>Last time updated: <span class="f-weight6"><%= dataUser.updated %></span></p>
+            </div>
+        </div>
+        <div class="account_data_row">
+            <p>CHANGE PASSWORD</p>
+            <div class="account_data_row form_c">
+                <form action="/account/user/my_data/change_password" method="POST">
+                    <div>
+                        <label>Current password:</label><br />
+                        <i class="fa-solid fa-eye-slash" id="toggleOldPassword"></i>
+                        <input class="custom_input" type="password" name="password_current" value=""><br /><br />
+                    </div>
+                    <div>
+                        <label>New password:</label><br />
+                        <i class="fa-solid fa-eye-slash" id="togglePassword"></i>
+                        <input class="custom_input" type="password" name="password" value=""><br /><br />
+                    </div>
+                    <div>
+                        <label>New password repeat:</label><br />
+                        <i class="fa-solid fa-eye-slash" id="togglePasswordConfirm"></i>
+                        <input class="custom_input" type="password" name="password_confirm" value=""><br /><br /><br />
+                    </div>
+                    <button class="account_button" type="submit">CHANGE PASSWORD</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+</div>
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>
+<script defer type="text/javascript">
+    // show/hide password
+    const showButtons = document.querySelectorAll('form > div > i')
+    showButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const pwd = button.nextElementSibling;
+        const type = pwd.getAttribute('type') === 'password' ? 'text' : 'password'; 
+        pwd.setAttribute('type', type)
+        button.classList.toggle('fa-eye-slash')
+        button.classList.toggle('fa-eye')
+      })
+    })
+    // show/hide 'CHANGE EMAIL' and 'CHANGE LOGIN'
+    const changeButtons = document.querySelectorAll('#changeSwitch')
+    changeButtons.forEach((button) => {
+        const textInfo = button.parentElement.nextElementSibling
+        const formCont = textInfo.nextElementSibling
+        function showHideForm () {
+            if (this.innerText === 'Change') {
+                textInfo.style.display = "block"
+                formCont.style.display = "block"
+                this.innerText = 'Hide'
+            } else {
+                textInfo.style.display = "none"
+                formCont.style.display = "none"
+                this.innerText = 'Change'
+            }
+            this.addEventListener('click', showHideForm)
+        }
+        button.addEventListener('click', showHideForm)
+    })
+</script>

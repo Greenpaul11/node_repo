@@ -1,0 +1,675 @@
+
+<form id="filter_form" method="get" action="" data-entity="<%= entity %>" autocomplete="off">
+    <div class="admin_filter_container">
+        <div>
+            <label for="id_sort_options"><p>Sort options:</p></label> 
+            <select name="order" class="custom_input">
+                <% for (const [key, value] of Object.entries(queryConfig.order)) { %> 
+                <% if (order === key) { %>
+                <option value="<%= key %>" selected><%= value.toText %></option>
+                <% } else { %>
+                <option value="<%= key %>"><%= value.toText %></option>
+                <% } %>
+                <% } %>
+            </select>
+        </div>
+        <% for (const [attribute, options] of Object.entries(queryConfig.attributes)) { %>
+        <div>
+            <p><%= attribute.charAt(0).toUpperCase() + attribute.slice(1) %>: </p>
+            <% if (options.input === 'checkbox') { %>
+                <% if (queryData[attribute] && queryData[attribute] === '1') { %>
+                <label><input type="checkbox" name="<%= attribute %>" value="1" checked>
+                    <span class="checkmark"></span> Yes</label>
+                <label><input type="checkbox" name="<%= attribute %>" value="0">
+                    <span class="checkmark"></span> No</label>
+                <% } else if (queryData[attribute] && queryData[attribute] === '0') { %>
+                <label><input type="checkbox" name="<%= attribute %>" value="1">
+                    <span class="checkmark"></span> Yes</label>
+                <label><input type="checkbox" name="<%= attribute %>" value="0" checked>
+                    <span class="checkmark"></span> No</label>
+                <% } else { %>
+                <label><input type="checkbox" name="<%= attribute %>" value="1">
+                    <span class="checkmark"></span> Yes</label>
+                <label><input type="checkbox" name="<%= attribute %>" value="0">
+                    <span class="checkmark"></span> No</label>
+                <% } %>
+            <% } else if (options.input === 'number') { %>
+                <% if (queryData[attribute]) { %> 
+                <label><input class="custom_input" type="number" name="<%= attribute %>" value="<%= queryData[attribute] %>"></label>
+                <% } else { %>
+                <label><input class="custom_input" type="number" name="<%= attribute %>" value=""></label>
+                <% } %>
+            <% } else if (options.input === 'text') { %>
+                <% if (queryData[attribute]) { %> 
+                <label><input class="custom_input" type="text" name="<%= attribute %>" value="<%= queryData[attribute] %>"></label>
+                <% } else { %>
+                <label><input class="custom_input" type="text" name="<%= attribute %>" value=""></label>
+                <% } %>
+            <% } else if (options.input === 'date' || options.input === 'datetime-local') { %>
+                <% let dateFrom = attribute + '_from' %>
+                <% if (queryData[dateFrom]) { %> 
+                <label><input class="custom_input" type="date" name="<%= dateFrom %>" value="<%= queryData[dateFrom] %>"></label>
+                <% } else { %>
+                <label><input class="custom_input" type="date" name="<%= dateFrom %>" value=""></label>
+                <% } %>
+                <% let dateTo = attribute + '_to' %>
+                <% if (queryData[dateTo]) { %> 
+                <label><input class="custom_input" type="date" name="<%= dateTo %>" value="<%= queryData[dateTo] %>"></label>
+                <% } else { %>
+                <label><input class="custom_input" type="date" name="<%= dateTo %>" value=""></label>
+                <% } %>
+            <% } else if (options.input === 'select') { %>
+                <select name="<%= attribute %>" class="custom_input">
+                <option value="">all</option>
+                <% for (const option of selectOptions[attribute]) { %> 
+                    <% if (queryData[attribute] === option) { %>
+                        <option value="<%= option %>" selected><%= option %></option>
+                    <% } else { %>
+                        <option value="<%= option %>"><%= option %></option>
+                    <% } %>
+                <% } %>
+                </select>
+                
+            <% } %>
+        </div>
+        <% } %> 
+    </div>
+    <div id="column_buttons" class="admin_filter_row">
+        <p>Select: </p>
+        <% for (const attribute of Object.keys(queryConfig.attributes)) { %>
+        <% if (select.includes(attribute)) { %> 
+        <label><%= attribute %><input type="checkbox" name="select" value="<%= attribute %>" checked><span class="checkmark"></span></label>
+        <% } else { %>
+        <label><%= attribute %><input type="checkbox" name="select" value="<%= attribute %>"><span class="checkmark"></span></label>
+        <% } %>
+        <% } %>
+    </div>
+    <div class="admin_filter_row">
+        <div>
+            <label for="action_select"><p>Action: </p></label> 
+            <select id="action_select" name="action" class="custom_input">
+                <% if (action === 'UP') { %>
+                <option value="UP" selected>update</option>
+                <% } else { %>
+                <option value="UP">update</option>
+                <% } %>
+                <% if (action === 'DE') { %>
+                <option value="DE" selected>delete</option>
+                <% } else { %>
+                <option value="DE">delete</option>
+                <% } %>
+                <option value="CR">create</option>
+            </select>
+            <span class="admin_action_container">
+                <% if (action === 'UP') { %>
+                <button id='start_edit' type="button" onclick="setToEdit()">edit<img src="/static_files/logos/edit.png" alt="edit logo"></button>
+                <button id="save_edit" type="button" style="display: none;">Save</button>
+                <button id="cancel_edit" type="button" style="display: none;">Cancel</button>
+                <% } else { %>
+                <label><input id="select_all_to_delete" type="checkbox"><span class="checkmark"></span>select all</label>
+                <button id="submit_to_delete" type="button" onclick="deleteData()">Delete</button>
+                <% } %>
+                <% if (queryData.similar) { %>
+                <button id="select_row" type="button" data-active="true">Select on</button>
+                <% } else { %>
+                <button id="select_row" type="button" data-active="false">Select off</button>
+                <% } %>
+                <% if (entity === 'laptop') { %>
+                <% if (queryData.similar) { %> 
+                <button id="similar_row" type="button" data-active="true" data-for-record="<%= queryData.sid %>">Similar on</button>    
+                <label id="similar_row_label">Similar level <input id="similar_level_input" type="number" min="1" max="10" value="<%= queryData.slevel %>" form="similar_form"></label>
+                <% } else { %>
+                <button id="similar_row" type="button" data-active="false" disabled>Similar off</button>    
+                <label id="similar_row_label" style="display: none">Similar level <input id="similar_level_input" type="number" min="1" max="10" value="1" form="similar_form"></label>
+                <% } %>
+                <% } %>  
+            </span>
+        </div>
+        <div data-attr-action-for="" style="display: none;">
+            <p>Action for: <b><span></span></b></p>
+        </div>
+    </div>
+</form>
+
+<div id="result_items">
+    <%- include('./entity_results') %>
+</div>
+<script type="text/javascript">
+    let table
+    let selectToDelete = false
+    let editElements = {}
+    let actionContainer
+    let startButton
+    let saveButton
+    let cancelButton
+    let updateRecords
+    let selectButton
+    let similarButton
+    let similarLabel
+    let similarLevel
+    let selectSimilar
+    let submitSimilar
+    let actionPanel
+    let activeRow
+    let selectionOn 
+    
+    // set up page
+    function interact() {
+        table = document.querySelector('table')
+        actionPanel = document.querySelector('[data-attr-action-for]')
+        actionContainer = document.querySelector('.admin_action_container')
+        startButton = actionContainer.querySelector('#start_edit')
+        saveButton = actionContainer.querySelector('#save_edit')
+        cancelButton = actionContainer.querySelector('#cancel_edit')
+        selectButton = document.querySelector('#select_row')
+        similarButton = document.querySelector('#similar_row')
+        selectButton.addEventListener('click', toggleSelection)
+        if (similarButton) {
+            similarLabel = document.querySelector('#similar_row_label')
+            similarLevel = document.querySelector('#similar_level_input')
+            if (similarButton.dataset.forRecord) {
+                selectButton.disabled = true
+                setSimilar(similarButton.dataset.forRecord)
+            }
+            similarButton.addEventListener('click', async (event) => {
+                if (!activeRow) return
+                if (similarButton.dataset.active === 'false') {
+                    similarButton.innerText = 'Similar on'
+                    similarButton.dataset.active = true
+                    similarLabel.style.display = 'inline'
+                    selectButton.disabled = true
+                    getSimilar()
+                } else {
+                    similarButton.innerText = 'Similar off'
+                    similarButton.dataset.active = false
+                    similarLabel.style.display = 'none'
+                    selectButton.disabled = false
+                    unsetSimilar()
+                }
+            })
+            similarLevel.addEventListener('click', async () => {
+                if (submitSimilar) {
+                    clearTimeout(submitSimilar)
+                }
+                submitSimilar = setTimeout(async () => {
+                    await getSimilar()
+                }, 1500)
+            })
+        }
+        formInputsAction()
+        setUpResultPages()
+    }
+    
+    /* functions for similar action */
+    async function getSimilar() {
+        const input = document.getElementById('similar_level_input')
+        const data = {similar: true, sid: activeRow.dataset.identifier, slevel: input.value, update_results: true}
+        const url = updateUrl(window.location, data)
+        const htmlBody = await getData(url)
+        const resultsHtml = document.querySelector('#result_items')
+        if (htmlBody) {
+            resultsHtml.innerHTML = htmlBody
+            setSimilar(activeRow.dataset.identifier)
+            setUpResultPages()
+            const updatedUrl = updateUrl(url, null, ['update_results'])
+            updateUrlHistory(updatedUrl)
+        }
+    }
+
+    function setSimilar(id) {
+        const row = document.querySelector(`tr[data-identifier="${id}"]`)
+        setActiveRow(row)
+        const similarRows = document.querySelectorAll(`tr[data-identifier]`)
+        similarRows.forEach((r) => r.dataset.similar = true)
+    }
+
+    async function unsetSimilar() {
+        const url = updateUrl(window.location, {update_results: true}, ['similar', 'sid', 'slevel', 'spage'])
+        await getResultPage(url)
+    }
+    
+    /* functions for selecting row */
+    function toggleSelection() {
+        selectButton.dataset.active = selectButton.dataset.active === 'true' ? false : true
+        selectionOn = selectButton.dataset.active === 'true' ? true : false
+        selectButton.innerText = selectionOn ? 'Select on' : 'Select off'
+        if (!selectionOn) {
+            unsetActiveRow()
+            activeRow = null
+            similarButton.disabled = true
+        } else {
+            similarButton.disabled = false
+        }
+        setTableToSelection()
+    }
+    
+    function setTableToSelection() {
+        table = document.querySelector('table')
+        selectRows = document.querySelectorAll('tr[data-identifier]')
+        if (selectionOn) {
+            table.dataset.toSelection = true
+            selectRows.forEach((row) => row.addEventListener('click', selectToAction))
+            actionPanel.style.display = 'block'
+        } else {
+            table.dataset.toSelection = false
+            actionPanel.firstElementChild.querySelector('span').innerText = ''
+            actionPanel.style.display = 'none'
+            selectRows.forEach((row) => row.removeEventListener('click', selectToAction))
+        }
+    }
+    
+    function selectToAction(event) {
+        // switch to orginal one if row is a clone
+        unsetActiveRow()
+        setActiveRow(event.currentTarget)
+    }
+
+    /* functions for setting active row */
+    function setActiveRow(row) {
+        activeRow = row
+        activeRow.dataset.active = true
+        table.dataset.toSelection = false
+        actionPanel.firstElementChild.querySelector('span').innerText = activeRow.dataset.identifier
+    }
+
+    function unsetActiveRow() {
+        if (!activeRow) return
+        activeRow.dataset.active = false
+        actionPanel.firstElementChild.querySelector('span').innerText = ''
+    }
+
+    /* manage filter forms and actions */
+    async function formInputsAction() {
+        let submitTimeout 
+        const form = document.querySelector('#filter_form')
+        const formInputs = form.querySelectorAll('input, select')
+        formInputs.forEach((element) => {
+            if (element.id === 'action_select') {
+                // change mode to update, delete or create
+                element.addEventListener('change', async () => {
+                    if (element.value === 'CR') {
+                        window.location = parseUrl(`admin/${form.dataset.entity}?action=CR`)
+                    } else {
+                        window.location = updateUrl(window.location, {action: element.value}, ['action'])
+                    }
+                })
+            } else if (element.id === 'select_all_to_delete') {
+                element.addEventListener('change', async () => {
+                    toggleToDelete()
+                })
+            } else if (element.id !== 'similar_level_input') {
+                // update search results automatically after selecting filter
+                element.addEventListener('input', () => {
+                    if (submitTimeout) {
+                        clearTimeout(submitTimeout)
+                    }
+                    submitTimeout = setTimeout(async () => {
+                        await submitFilterForm(form)
+                    }, 2000)
+                })
+            }
+        })
+    }   
+
+    // submit filter form and update html elements 
+    async function submitFilterForm(form) {
+        roller.style.display = 'block'
+        const submitUrl = parseUrl(currentPath)
+        const queryData = formToUrlString(form)
+        let queryUrl = updateUrl(parseUrl(currentPath), {'update_search': 'true'})
+        queryUrl += '&' + queryData
+        const htmlBody = await getData(queryUrl)
+        queryUrl = updateUrl(queryUrl, null, ['update_search'])
+        updateUrlHistory(queryUrl)
+        if (htmlBody) {
+            const column = document.querySelector('#admin_colII')
+            column.innerHTML = htmlBody
+            interact()
+        } else {
+            console.log('Updating page failure!')
+        }
+        roller.style.display = 'none'
+    }
+    /* functions for paginator */
+    // set up link to the specific result page
+    function setUpResultPages() {
+        const pagesLinksCont = document.querySelector('.paginator_cont')
+        const pagesLinks = pagesLinksCont.querySelectorAll('a')
+        pagesLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+            event.preventDefault()
+            // update url queries with specific page query
+            let page_queries
+            if (similarButton.dataset.active === 'true') {
+                page_queries = {
+                'spage': `${link.dataset.page}`,
+                'update_results': 'true'
+                }
+            } else {
+                page_queries = {
+                'page': `${link.dataset.page}`,
+                'update_results': 'true'
+                }
+                if (activeRow) {
+                    unsetActiveRow()
+                    activeRow = null
+                }
+            }
+            const new_url = updateUrl(window.location, page_queries)
+            link.href = new_url
+            getResultPage(new_url)
+            })
+        })
+    }
+
+    // update current result page
+    async function getResultPage(url) {
+        const htmlBody = await getData(url)
+        const removeQuery = []
+        if (htmlBody) {
+            // set that HTML result element to the returned by the server
+            const resultsHtml = document.querySelector('#result_items')
+            resultsHtml.innerHTML = htmlBody
+            if (updateRecords) {
+                editElements = {}
+                setToEdit()
+            } else if (selectToDelete) {
+                toggleToDelete()
+            }
+            // set result item to selection if select button on
+            if (similarButton.dataset.active === 'true') {
+                setTableToSelection()
+                // swap activeRow
+                setSimilar(activeRow.dataset.identifier)
+            // this condition is run when turning off similar
+            } else if (selectButton.dataset.active === 'true') {
+                setTableToSelection()
+                // swap activeRow
+                if (activeRow) {
+                    const row = document.querySelector(`tr[data-identifier="${activeRow.dataset.identifier}"]`)
+                    setActiveRow(row)
+                }
+                removeQuery.push(...['similar', 'sid', 'slevel', 'spage'])
+            }
+            setUpResultPages()
+            // update url address
+            removeQuery.push('update_results')
+            updateUrlHistory(updateUrl(url, null, ['update_results']))
+        } else {
+            console.log('Updating page error!')
+        }
+    }
+
+    /* edit record properties */
+    function setToEdit() {
+        table = document.getElementById('admin_result_table')
+        // set up save button
+        saveButton.addEventListener('click', async() => {
+            roller.style.display = 'block'
+            try {
+                await updateData()
+            } catch(error) {
+                console.log(error)
+                document.querySelector('#error_line').innerText = 'Could not update data!'
+                document.querySelector('.error_cont').style.display = 'block'
+            }
+            roller.style.display = 'none'
+        })
+        saveButton.style.display = 'inline-block'
+        // set up cancel button
+        cancelButton.addEventListener('click', (event) => {
+            setToNormal(table)
+        })
+        cancelButton.style.display = 'inline-block'
+        // hide pencil button
+        startButton.style.display = 'none'
+        const tableParts = table.querySelectorAll('td[data-locked="false"]')
+        tableParts.forEach((record) => {
+            record.addEventListener('click', addInput)
+        })
+        table.dataset.edit = true
+        updateRecords = true
+    }
+
+    // set table back to only display records
+    function setToNormal(table) {
+        const tableParts = table.querySelectorAll('td[data-locked="false"]')
+        tableParts.forEach((record) => {
+            record.removeEventListener('click', addInput)
+        })
+        startButton.style.display = 'inline-block'
+        saveButton.style.display = 'none'
+        cancelButton.style.display = 'none'
+        for (const [key, value] of Object.entries(editElements)) {
+            for (const[propertyKey, propertyValues] of Object.entries(value)) {
+            propertyValues['element'].remove()
+            }
+        }
+        editElements = {}
+        table.dataset.edit = false
+        updateRecords = false
+    }
+
+    // transform table record to the input
+    function addInput(event) {
+        const record = event.target
+        const recordId = record.dataset.identifier
+        const property = record.dataset.property
+        const type = record.dataset.type
+        const textValue = record.innerText
+        const input = document.createElement('input')
+        input.setAttribute('form', 'update_form')
+        if (record.dataset.attributes) {
+            // set extra attributes
+            const attributes = JSON.parse(record.dataset.attributes)
+            Object.entries(attributes).forEach(([key, value]) => {
+                input.setAttribute(key, value)
+            })
+        }
+        input.type = record.dataset.type
+        if (input.type === 'checkbox') {
+            input.value = 'true'
+            input.checked = textValue === 'true' ? true : false
+            input.name = `${record.dataset.identifier}.${record.dataset.property}`
+            // add label and span 
+            const label = document.createElement('label')
+            const span = document.createElement('span')
+            span.classList.add('checkmark')
+            // if checkbox not selected submit false value
+            const hidden = document.createElement('input')
+            hidden.type = 'hidden'
+            hidden.name = input.name
+            hidden.value = 'false'
+            if (textValue === 'true') {
+                hidden.setAttribute('disabled', '')
+            }
+            // append elements
+            label.appendChild(hidden)
+            label.appendChild(input)
+            label.appendChild(span)
+            record.appendChild(label)
+            // add event to input to toggle hidden input 
+            input.addEventListener('click', (event) => {
+                if (input.checked) {
+                    input.previousElementSibling.setAttribute('disabled', '')
+                } else {
+                    input.previousElementSibling.removeAttribute('disabled')
+                }
+            })
+            // add data specific to input to be able to update html elements
+            if (!editElements.hasOwnProperty(recordId)) {
+                editElements[recordId] = {}
+                editElements[recordId][property] = {
+                    record: record,
+                    value: textValue,
+                    element: label
+                }
+            } else {
+                editElements[recordId][property] = {
+                    record: record,
+                    value: textValue,
+                    element: label
+                }
+            }
+        } else {
+            input.classList.add('custom_input')
+            input.value = textValue
+            input.name = `${record.dataset.identifier}.${record.dataset.property}`
+            record.appendChild(input)
+            if (!editElements.hasOwnProperty(recordId)) {
+                editElements[recordId] = {}
+                editElements[recordId][property] = {
+                    record: record,
+                    value: textValue,
+                    element: input
+                }
+            } else {
+                editElements[recordId][property] = {
+                    record: record,
+                    value: textValue,
+                    element: input
+                }
+            }
+            input.focus()
+        }
+        record.removeEventListener('click', addInput)
+    }
+    /* data manipulation functions */
+    // update user data and in final result update html elements to reflect changes
+    async function updateData() {
+        const form = document.querySelector('#update_form')
+        const updateObj = {}
+        const dataObj = Object.fromEntries(new FormData(form))
+        const dataList = Object.entries(dataObj)
+        dataList.forEach(([key, value]) => {
+            const [identity, property] = key.split('.')
+            if (!updateObj.hasOwnProperty(identity)) {
+            updateObj[identity] = {
+                [property]: value
+            }
+            } else {
+            updateObj[identity][property] = value
+            }
+        })
+        let messages = ''
+        let errorsMessages = ''
+        // show user dialog with changes to be applayed
+        messages += '<p>Apply the followning changes:</p>'
+        for (const[key, values] of Object.entries(updateObj)) {
+            messages += `<p>Changes for record with id ${key}:`
+            for (const [propertyKey, propertyValue] of Object.entries(values)) {
+                messages += `<p>${propertyKey}: ${editElements[key][propertyKey]['value']}  -->  ${propertyValue}</p>`
+            }
+            messages += '<br>'
+        }
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        // applay changes
+        messages = ''
+        for (const[key, values] of Object.entries(updateObj)) {
+            const rawData = {identity: key, ...values}
+            const [entity, errors] = await putData(form.action, rawData)
+            if (entity) {
+                // update record in update column
+                const updateElement = document.querySelector(`[data-identifier="${key}"][data-property="updated"]`)
+                if (updateElement) {
+                    updateElement.innerText = entity.updated
+                }
+                if (!errors) {
+                    messages += `<p>Record with id: ${key} successfully updated!</p>`
+                } else {
+                    messages += `<p>Record with id: ${key} partially updated!</p>`
+                }
+
+                for (const [propertyKey, propertyValue] of Object.entries(values)) {
+                    const valueAfter = String.valueOf(entity[propertyKey])
+                    const valueBefore = editElements[key][propertyKey]['value']
+                    if (valueAfter !== valueBefore) {
+                        editElements[key][propertyKey]['record'].innerText = entity[propertyKey] === null ? 'null' : entity[propertyKey]
+                        editElements[key][propertyKey]['element'].remove()
+                        editElements[key][propertyKey]['record'].addEventListener('click', addInput)
+                        messages += `<p>${propertyKey}: ${editElements[key][propertyKey]['value']}  -->  ${entity[propertyKey] === null ? 'null' : entity[propertyKey]}</p>`
+                    }
+                }
+                messages += '<br>'
+            } 
+            if (errors) {
+                errorsMessages += `<p>Record with id: ${key} could not be updated!</p>`
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errorsMessages += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                errorsMessages += '<br>'
+            }
+        }
+        if (messages) {
+            displayMessages(messages)
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+        }
+    }
+
+    // delete entity
+    async function deleteData() {
+        const form = document.getElementById('delete_form')
+        const submitUrl = parseUrl(form.action)
+        const formData = new FormData(form)
+        const dataList = [...formData.entries()]
+        // show to user dialog with changes to be applayed
+        let messages = ''
+        messages += '<p>Applay the followning changes:</p>'
+        for (const [key, value] of dataList) {
+            messages += `<p>remove record with id ${value}</p>`
+        }
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        // applay changes
+        for (const [key, value] of dataList) {
+            const [deleted, errors] = await putData(submitUrl, {id: value})
+            if (deleted) {
+                // if deleted is activeRow
+                if (activeRow && activeRow.dataset.identifier === value){
+                    if (similarButton.dataset.active) {
+                        await unsetSimilar()
+                        similarButton.innerText = 'Similar off'
+                        similarButton.dataset.active = false
+                        similarLabel.style.display = 'none'
+                        selectButton.disabled = false
+                    }
+                    unsetActiveRow()
+                    activeRow = null
+                }
+                document.querySelector(`table tr[data-identifier="${value}"]`).remove()
+                displayMessages(`<p>Record with id: ${value} successfully deleted!</p>`)
+            } else {
+                let errors = ''
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errors += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                displayErros(errors)
+            }
+        }
+    }
+    // seletct all checkboxes with user id to delete
+    function toggleToDelete (element) {
+        if (!element) {
+            element = document.getElementById('select_all_to_delete')
+        }
+        const checkboxes = document.querySelectorAll('table input[name="id"]')
+        if (element.checked === true) {
+            checkboxes.forEach(checkbox => checkbox.checked = true)
+            selectToDelete = true
+        } else {
+            checkboxes.forEach(checkbox => checkbox.checked = false)
+            selectToDelete = false
+        }
+    }
+
+    window.onload = () => {
+        interact()
+    }
+</script>

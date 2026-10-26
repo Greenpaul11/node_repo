@@ -1,0 +1,4 @@
+{
+    "orm": "sequelize",
+    "dialect": "mysql"
+}

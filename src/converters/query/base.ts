@@ -5,7 +5,7 @@ import { Query, ConvertersBuild,
     ConverterDialectsBuild
 } from '../../types/entity/Query.js'
 import { overrideObject } from '../../lib/override.js'
-import { defaultConfig, validationOn, validationOff } from './config.js'
+import defaultConfig from './config.js'
 import { DialectOptions } from '../../types/Registry.js'
 
 /**
@@ -114,16 +114,15 @@ export abstract class QueryConverterBase<
      * @returns Merged configuration.
      */
     private _overrideConfig(target: QueryConverterConfig, source: OverridesQueryConverterConfig): QueryConverterConfig {
-        const normalized = { ...source } as Record<string, unknown>
-        if (source.hasOwnProperty('validation')) {
-            const validation = source.validation
-            normalized.validation = validation === true
-                ? validationOn
-                : validation === false
-                    ? validationOff
-                    : validation
+        const setValidation = source.validation
+        if (setValidation === true) {
+            const validation: QueryConverterConfig['validation'] = JSON.parse(JSON.stringify(defaultConfig.validation))
+            Object.values(validation).forEach((group: Record<string, boolean>) => 
+                Object.keys(group).forEach((key) => group[key] = true)
+            )
+            source['validation'] = validation
         }
-        return overrideObject(target, normalized) as QueryConverterConfig
+        return overrideObject(target, source) as QueryConverterConfig
     }
     
     /**

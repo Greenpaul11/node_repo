@@ -38,8 +38,14 @@ export type StringifyObjectProperties<T> = {
 export type DeepPartial<T> = T extends Record<string, unknown>
     ? { [K in keyof T]?: DeepPartial<T[K]> }
     : T
-
-
+/**
+ * DeepValue - recursiveley sets properties of the object to one type value
+ */
+export type DeepValue<T, V> = {
+  [K in keyof T]: T[K] extends Record<string, unknown>
+    ? DeepValue<T[K], V>
+    : V
+};
 /**
  * Expands nested object types to their full form.
  * Useful for debugging complex type transformations.

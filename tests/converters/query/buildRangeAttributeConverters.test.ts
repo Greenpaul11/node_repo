@@ -31,7 +31,7 @@ const validationOn = {
             group: true
         }
     },
-    subEntityRelationDepth: 2
+    subEntitiesDepth: 2
 }
 
 
@@ -53,7 +53,7 @@ export const validationOff = {
             group: false
         }
     },
-    subEntityRelationDepth: 2
+    subEntitiesDepth: 2
 }
 
 function buildRangeConverter<R extends keyof QueryRangeAttributeTypes, F extends OrmQuery>() {

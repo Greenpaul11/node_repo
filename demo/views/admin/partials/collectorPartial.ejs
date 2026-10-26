@@ -1,0 +1,395 @@
+<h3>Data collecting statistic</h3>
+<div class="message_cont" style="display: none;">
+    <div class="message_inner">
+        <div id="message_line"></div>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+</div>
+<div class="error_cont" style="display: none;">
+    <div class="error_inner">
+        <div id="error_line"></div> 
+        <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+        </div>
+    </div>
+</div>
+<div>
+    <% for (const [shop, current] of shops) { %> 
+        <% if (current) { %>
+        <a style="background-color: aquamarine;" href="/admin/collector/<%= shop %>"><%= shop.replace('_', ' ') %></a>
+        <% } else { %>
+        <a href="/admin/collector/<%= shop %>"><%= shop.replace('_', ' ') %></a>
+        <% } %>
+    <% } %>
+</div>
+<div>
+    <p>Runable: <b><%= runState %></b></p>
+    <div data-id="<%= target %> tC">
+        <p>Last test: <b data-attribute="time"><%= testStat.time %></b> 
+        <% if (testStat['running'] === 'tC') { %>
+        <button data-job="tC" data-job-running="true" data-target-name="<%= target %>" type="button">Cancel</button>
+        <% } else { %>
+        <button data-job="tC" data-job-running="" data-target-name="<%= target %>" type="button">Run</button>
+        <% } %>
+        <button data-test-show="false">Show more</button>
+        </p>
+        <p>Test stautus: <b data-attribute="status"><%= testStat.status %></b></p>
+        <div data-test-cont="" style="display: none;">
+            <% for (const[testName, sub] of Object.entries(testStat.tests)) { %> 
+            <div class="admin_stat_subrow" data-attribute="<%= testName %>">
+                <p><%= testName %>: <b data-subattribute="status"><%= sub.status %></b></p>
+                <div class="lds_roller_wrapper" data-subattribute="runner" <% if (testStat['running'] && sub === 'running') { %> style="display: block;"<% } %>>
+                    <div class="lds_roller_active"></div>
+                    <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                </div>
+            </div>
+            <% } %>
+            <div data-attribute="errors">
+                <% for (const [index, error] of testStat.errors.entries()) { %>
+                <% if (index === 0) { %> 
+                <p><%= error %></p>
+                <% } else { %>
+                <p>&emsp;<%= error %></p> 
+                <% } %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    <div class="admin_stat_subrow" data-id="<%= stat['name'] %> uC">
+        <p>Cookies collected: <b data-attribute="cookiesDate"><%= cookiesDate %></b></p>
+        <div class="lds_roller_wrapper" data-attribute="runner" <% if (stat['running'] === 'uC') { %> style="display: block;"<% } %>>
+            <div class="lds_roller_active"></div>
+            <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+        <% if (stat['running'] === 'uC') { %>
+        <button data-job="uC" data-job-running="true" data-runner="<%= stat['name'] %> Cookies" data-for-attribute="cookiesDate" data-target-name="<%= stat['name'] %>" type="button">Cancel</button>
+        <% } else { %>
+        <button data-job="uC" data-job-running="" data-runner="<%= stat['name'] %> Cookies" data-for-attribute="cookiesDate" data-target-name="<%= stat['name'] %>" type="button">Update</button>
+        <% } %>
+    </div>
+    <div class="job_error_cont" data-job-error="uC">
+    </div>
+    <div class="admin_stat_subrow" data-id="<%= stat['name'] %> tT">
+        <p>Target page: <b><a href="<%= stat['target url'] %>"><%= stat['target url'] %></a></b></p>
+        <img data-attribute="imagePath" src="<%= stat['target screenshot'] %>" alt="screenshot">
+        <b><span data-attribute="status"></span></b>
+        <div class="lds_roller_wrapper" data-attribute="runner" <% if (stat['running'] === 'tT') { %> style="display: block;"<% } %>>
+            <div class="lds_roller_active"></div>
+            <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+        <% if (stat['running'] === 'tT') { %>
+        <button data-job="tT" data-job-running="true" data-runner="<%= stat['name'] %> Screenshot" data-for-attribute="imagePath" data-target-name="<%= stat['name'] %>" type="button">Cancel</button>
+        <% } else { %>
+        <button data-job="tT" data-job-running="" data-runner="<%= stat['name'] %> Screenshot" data-for-attribute="imagePath" data-target-name="<%= stat['name'] %>" type="button">Test</button>
+        <% } %>
+    </div>
+    <div class="job_error_cont" data-job-error="tT">
+    </div>
+    <p>Statistic from: 
+        <select data-action-from>
+            <% if (stat['job dates'].length) { %>
+                <% for (const [index, date, active] of stat['job dates']) { %>
+                    <% if (active) { %>
+                    <option value="<%= index %>" selected><%= date %></option>
+                    <% } else { %>
+                    <option value="<%= index %>"><%= date %></option>
+                    <% } %>
+                <% } %>
+            <% } else { %>
+                <option value="">-- -- -- | -- -- --</option>
+            <% } %>
+            
+        </select>
+    </p>
+    <div id="result_items">
+        <%- include('./collector_results') %>
+    </div>
+</div>
+
+<script type="text/javascript">
+    let selectsStat
+    let backupStat
+    let jobButton
+    let showTest
+    let testCont
+    let currentJob
+    function interact() {
+        selectStat = document.querySelector('select[data-action-from]')
+        selectStat.addEventListener('change', async (event) => {
+            const statIndex = event.currentTarget.value
+            const url = updateUrl(window.location, {update_results: true, statI: statIndex})
+            const htmlBody = await getData(url)
+            if (htmlBody) {
+                const resultsHtml = document.querySelector('#result_items')
+                resultsHtml.innerHTML = htmlBody
+                setJobButtons()
+            }
+            const urlAfter = updateUrl(url, null, ['update_results'])
+            updateUrlHistory(urlAfter)
+        })
+        setJobButtons()
+        showButton = document.querySelector('button[data-test-show]')
+        testCont = document.querySelector('[data-test-cont]')
+        showButton.addEventListener('click', () => {
+            if (showButton.dataset.testShow === 'false') {
+                showTestCont()
+            } else {
+                hideTestCont()
+            }
+        })
+        reloadOnGoBack()
+    }
+
+    
+        
+    function showTestCont() {
+        testCont.style.display = 'block'
+        showButton.dataset.testShow = 'true'
+        showButton.innerText = 'Hide'
+    }
+    function hideTestCont() {
+        testCont.style.display = 'none'
+        showButton.dataset.testShow = 'false'
+        showButton.innerText = 'Show more'
+    }
+  
+    function setJobButtons() {
+        const jobButtons = document.querySelectorAll('button[data-job]')
+        jobButtons.forEach((button) => {
+            if (button.dataset.job.running) {
+                jobRunning = true
+                setEventSource()
+                button.addEventListener('click', closeEventSource)
+            } else {
+                button.addEventListener('click', openEventSource)
+            }
+        })
+    }
+
+
+    async function openEventSource(event) {
+        const button = event.currentTarget
+        const runTempTarget = button.dataset.targetName.split(',')
+        const job = button.dataset.job 
+        const parentCont = document.querySelector(`[data-id="${button.dataset.targetName} ${job}"]`)
+        const errorCont = document.querySelector(`[data-job-error="${job}"]`)
+        const runStart = Object.fromEntries([[job, runTempTarget]])
+        const submitUrl = parseUrl('/admin/request_collect_job')
+        const result = await fetch(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify({runStart: runStart}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const [accepted, error] = await result.json()
+        if (accepted) {
+            if (errorCont) errorCont.innerHTML = ''
+            const buttonText = button.innerText
+            backupStat = getStasData(parentCont)
+            const onStart = () => {
+                button.innerText = 'Cancel'
+                button.dataset.job.running = 'true'
+                currentJob = job
+            }
+            const onEnd = () => {
+                button.innerText = buttonText
+                button.dataset.job.running = ''
+                if (button.dataset.forAttribute) {
+                    parentCont.querySelector(`[data-attribute="${button.dataset.forAttribute}"]`).style.display = 'block'
+                }
+                button.removeEventListener('click', closeEventSource)
+                button.addEventListener('click', openEventSource)
+                currentJob = null
+            }
+            setEventSource(onStart, onEnd)
+            button.removeEventListener('click', openEventSource)
+            button.addEventListener('click', closeEventSource)
+        } else {
+            let errors = ''
+            for (const [errorKey, errorValues] of Object.entries(error) ) {
+                for (const error of errorValues) {
+                    errors += `<p>${errorKey} ${errorValues}</p>`
+                }
+            }
+            displayErros(errors) 
+        }
+    }
+
+    async function closeEventSource(event) {
+        const button = event.currentTarget
+        const job = button.dataset.job
+        const runStop = Object.fromEntries([[job, true]])
+        const submitUrl = parseUrl('/admin/request_collect_job')
+        const result = await fetch(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify({runStop: runStop}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const [stopped, error] = await result.json()
+        // restore stat data to previous state
+        if (backupStat) backupStat.forEach((backup) => updateStats(backup))
+        if (error) {
+            let errors = ''
+            for (const [errorKey, errorValues] of Object.entries(error) ) {
+                for (const error of errorValues) {
+                    errors += `<p>${errorKey} ${errorValues}</p>`
+                }
+            }
+            displayErros(errors)
+        }
+    }
+
+    function setEventSource(setOnStart, setOnEnd) {
+        const source = new EventSource(parseUrl('/admin/start_collect_job'))
+        source.addEventListener("open", (event) => {
+            if (setOnStart) setOnStart() 
+            console.log("The connection has been established.")
+        })
+        source.addEventListener("close", (event) => {
+            if (setOnEnd) setOnEnd() 
+            source.close()
+            console.log(event.data)
+        })
+        source.addEventListener("error", (error) => {
+            if (setOnEnd) setOnEnd() 
+            source.close()
+            displayErros('<p>Could not accomplish required job! Check logs on the server side.</p>')
+            console.log("An error occurred while attempting to connect.")
+        })
+        source.addEventListener('message', (event) => {  
+            const data = JSON.parse(event.data)
+            updateStats(data)
+        }, false)
+    }
+    
+    function updateStats(data) {
+        try {
+            let hasRunner
+            if (data['init']) return true
+            if (currentJob && !data['name'].includes(currentJob)) {
+                data['name'] += ` ${currentJob}`
+            }
+            const cont = document.querySelector(`[data-id="${data['name']}"]`)
+            if (data['errorMessage']) {
+                const errorCont =  document.querySelector(`div[data-job-error="${data['job']}"]`)
+                errorCont.innerHTML = data['errorMessage']
+                return true
+            } 
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'name') continue
+                const attributeEl = cont.querySelector(`[data-attribute="${key}"]`)
+                if (key === 'runner') {
+                    attributeEl.style.display = value
+                    continue
+                }
+                if (typeof value !== 'object') {
+                    if (key === 'imagePath') {
+                        attributeEl.src = value
+                    } else {
+                        if (key === 'time') {
+                            attributeEl.innerText = typeof Date.parse(value) === 'number' 
+                                ? value.slice(0, 19).replace('T', '~')
+                                : value
+                            if (currentJob === 'rU') {
+                                if (selectStat.value === '-- -- -- | -- -- --' || value === '-- -- -- | -- -- --') {
+                                    selectStat.remove(selectStat.selectedIndex)
+                                } 
+                                const option = document.createElement('option')
+                                option.text = value
+                                option.value = value
+                                option.checked = true
+                                selectStat.add(option, selectStat[0])
+                            }
+                        } else {
+                            attributeEl.innerText = value
+                        }
+                    }
+                } else {
+                    if (key === 'errors') {
+                        const formated = value.map((error) => error.replaceAll(/^\s+/g, '&emsp;')).map((error) => '<p>' + error + '</p>').join('')
+                        attributeEl.innerHTML = formated
+                    } else {
+                        if (key === 'new attributes') {
+                            attributeEl.querySelectorAll('a').forEach((a) => a.remove())
+                            value.forEach((attr, index) => {
+                                const a = document.createElement('a')
+                                a.innerText = index > 0 ? `, ${attr[0]}(${attr[1]})` : `${attr[0]}(${attr[1]})`
+                                a.href = `/admin/collector/inspect_attributes/${attr[0]}`
+                                attribute.appendChild(a)
+                            })
+                            continue
+                        }
+                        for (const [subKey, subValue] of Object.entries(value)) {
+                            const subAttributeEl = attributeEl.querySelector(`[data-subattribute="${subKey}"]`)
+                            if (subKey === 'percentage') {
+                                subAttributeEl.style.width = subValue + '%'
+                            } else if (subKey === 'runner') {
+                                subAttributeEl.style.display = subValue
+                            } else if (subKey === 'active'){
+                                if (subValue === true) {
+                                    cont.dataset.active = true
+                                }
+                            } else {
+                                subAttributeEl.innerText = subValue
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Update statistic error!')
+            console.log(error)
+        }
+    }
+
+    function getStasData(cont) {
+        const dataList = [] 
+        const data = {}
+        const id = cont.dataset.id
+        const attributes = cont.querySelectorAll('[data-attribute]')
+        // set name attribute to container data-id
+        data['name'] = id
+        attributes.forEach((attr) => {
+            const attrString = attr.dataset.attribute
+            const subAttr = attr.querySelectorAll('[data-subattribute]')
+            if (subAttr.length) {
+                data[attrString] = {}
+                subAttr.forEach((sub) => {
+                    const subString = sub.dataset.subattribute
+                    if (subString === 'percentage') {
+                        data[attrString][subString] = sub.style.width.replace('%', '')
+                    } else if (subString === 'runner') {
+                        data[attrString][subString] = 'none'
+                    } else {
+                        data[attrString][subString] = sub.innerText
+                    }
+                })
+            } else {
+                if (attrString === 'imagePath') {
+                    data[attrString] = attr.src
+                } else if (attrString === 'errors') {
+                    data[attrString] = attr.innerText[0] === '\n' ? attr.innerText : '\n' + attr.innerText
+                } else if (attrString === 'runner') {
+                    // display of the runner is always set to none when job not initialized
+                    data[attrString] = 'none'
+                } else {
+                    data[attrString] = attr.innerText
+                }
+            }
+        })
+        dataList.push(data)
+        return dataList
+    }
+
+    window.onload = () => {
+        interact()
+    }
+    
+
+
+</script>

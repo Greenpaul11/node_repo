@@ -1,0 +1,153 @@
+<h2>Collector settings</h2>
+<div class="message_cont" style="display: none;">
+    <div class="message_inner">
+        <div id="message_line"></div>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+</div>
+<div class="error_cont" style="display: none;">
+    <div class="error_inner">
+        <div id="error_line"></div> 
+        <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+        </div>
+    </div>
+</div>
+<form id="collector_settings_form" action="/admin/settings/collector" method="POST" autocomplete="off">
+    <label>Active shops:</label>
+    <div>
+        <% for (const shop of Object.keys(settings.shops)) { %> 
+        <% if (settings.shops[shop]) { %> 
+        <label><%= shop %> <input type="checkbox" value="true" name="<%= shop %>" checked></label>
+        <% } else { %>
+        <label><%= shop %> <input type="checkbox" value="false" name="<%= shop %>"></label>
+        <% } %>
+        <% } %>
+    </div>
+    <div>
+    <label>Collector run interval <select name="run interval">
+        <option value="24" <% if (settings['run interval'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['run interval'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['run interval'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['run interval'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['run interval'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['run interval'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['run interval'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['run interval'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['run interval'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    </div>
+    <div>
+        <label>Collector run time <input name="run time" type="time" value="<%= settings['run time'] %>"></input></label>
+    </div>
+    <div>
+        <label>Show max stat <input name="stat show max" type="number" value="<%= settings['stat show max'] %>"></input></label>
+    </div>
+    <div>
+        <label>Stat show from <select name="stat show from">
+            <option value="-24" <% if (settings['stat show from'] === -24) { %> selected <% } %>>last 24 hours</option>
+            <option value="-48" <% if (settings['stat show from'] === -48) { %> selected <% } %>>last 48 hours</option>
+            <option value="-72" <% if (settings['stat show from'] === -72) { %> selected <% } %>>last 3 days</option>
+            <option value="-96" <% if (settings['stat show from'] === -96) { %> selected <% } %>>last 4 days</option>
+            <option value="-120" <% if (settings['stat show from'] === -120) { %> selected <% } %>>last 5 days</option>
+            <option value="-144" <% if (settings['stat show from'] === -144) { %> selected <% } %>>last 6 days</option>
+            <option value="-168" <% if (settings['stat show from'] === -168) { %> selected <% } %>>last 7 days</option>
+            <option value="-288" <% if (settings['stat show from'] === -288) { %> selected <% } %>>last 14 days</option>
+            <option value="-720" <% if (settings['stat show from'] === -720) { %> selected <% } %>>last 30 days</option>
+        </select></label>
+    </div>
+    <div>
+        <label>Test collector url count <input name="test url count" type="number" value="<%= settings['test url count'] %>"></input></label>
+    </div>
+    <button id="submit_collector_settings" type="button">Save</button>
+</form>
+<script type="text/javascript">
+    let submitButton
+    let formCopy
+    let uncheckedBoxes
+
+    function interact() {
+        submitButton = document.getElementById('submit_collector_settings')
+        uncheckedBoxes = {}
+        updateFormCopy()
+        setUpCheckBoxes()
+        submitButton.addEventListener('click', updateData)
+        reloadOnGoBack()
+    }
+    
+    function updateFormCopy() {
+        let formElement = document.querySelector('#collector_settings_form')
+        let formData = new FormData(formElement)
+        const checkboxes = formElement.querySelectorAll('input[type="checkbox"]')
+        checkboxes.forEach((box) => {
+            let value = box.value
+            if (value === 'true') {
+                delete uncheckedBoxes[box['name']]
+            } else {
+                uncheckedBoxes[box['name']] = 'false'
+            }
+        })
+        formCopy = {
+            ...Object.fromEntries(formData.entries()),
+            ...uncheckedBoxes
+        }
+    }
+
+    function setUpCheckBoxes() {
+        const form = document.querySelector('#collector_settings_form')
+        const checkboxes = form.querySelectorAll('input[type="checkbox"]')
+        checkboxes.forEach((box) => {
+            box.addEventListener('change', (event) => {
+                let target = event.currentTarget
+                let value = target.value
+                if (value === 'true') {
+                    target.value = 'false'
+                    uncheckedBoxes[target['name']] = 'false'
+                } else {
+                    target.value = 'true'
+                    delete uncheckedBoxes[target['name']]
+                }
+            })
+        })
+    }
+
+    async function updateData() {
+        const form = document.querySelector('#collector_settings_form')
+        const formData = new FormData(form)
+        const dataObj =  {
+            ...Object.fromEntries(formData.entries()),
+            ...uncheckedBoxes
+        }
+        let countChanges = 0
+        let messages = ''
+        let errorsMessages = ''
+        // show user dialog with changes to be applayed
+        messages += '<p>Apply the followning changes:</p>'
+        Object.entries(formCopy).forEach(([key, value]) => {
+            if (dataObj[key] !== value) {
+                messages += `<p>Changes for ${key}:`
+                messages += `<p>${key}: ${value}  -->  ${dataObj[key]}</p>`
+                countChanges++
+            }
+        })
+        if (!countChanges) return
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        const [result, errors] = await putData(form.action, dataObj)
+        if (result) {
+            messages = ''
+            result.forEach((line) => messages += `<p>${line}</p>`)
+            displayMessages(messages)
+        } else {
+            errorsMessages
+            Object.entries(errors).forEach(([key, line]) => errorsMessages += `<p>${key}: ${line}</p>`)
+            displayErros(errorsMessages)
+        }
+        updateFormCopy()
+    }
+    window.onload = () => {
+        interact()
+    }
+</script>

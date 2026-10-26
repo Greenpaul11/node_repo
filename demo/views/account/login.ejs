@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+  <script src="https://kit.fontawesome.com/bd4791ad83.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<%- include('../partials/header') %>
+<div class="wrapper">
+    <div class="reg_log_cont">
+        <div class="reg_log_header">
+            <h2>Login</h2>
+            <p class="small_label">New to LAPTICO? <a href="/account/register">CREATE YOUR LAPTICO ACCOUNT
+                    NOW</a></p>
+        </div>
+        <form class="reg_log_form" action="/account/login" method="POST">
+            <% if (errors !== {}) { %>
+            <% for (const [errorType, errorList] of Object.entries(errors)) { %>
+            <div class="error_cont">
+                <% for (const error of errorList) { %>
+                <div class="error_inner">
+                <p><%= errorType %> <%= error %></p> 
+                <div class="error_img">
+                    <img src="/static_files/pictures/error.png"/>
+                </div>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+            <% } %>
+            <label>Login:</label><br>
+            <% if (login) { %>
+            <input class="custom_input" name="user_login" value="<%= login %>"><br>
+            <% } else { %>
+            <input class="custom_input" name="user_login" value=""><br>
+            <% } %>
+            <label>Password:</label><br>
+            <input class="custom_input" type="password" name="password"><br>
+            <div class="text_to_right">
+                <a class="small_label" href="/account/password_reset_request">Forgotten password?</a>
+            </div>
+            <button class="register_btn" type="submit">LOGIN</button>
+        </form>
+    </div>
+</div>
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>

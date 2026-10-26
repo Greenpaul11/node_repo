@@ -25,4 +25,20 @@ export const TEST_POSTGRES_PORT = 3003
 export const TEST_SQLITE_STORAGE = "./tests/dependency/sqlite:/data"
 
 
+// ==================== DEMO ====================
+
+// demo user
+export const DEMO_USER = 'demo_user' 
+export const DEMO_USER_PASSWORD = 'demoUserPass123' 
+// database
+export const DEMO_DATABASE = 'node_repo_demo'
+export const DEMO_HOST = '128.0.0.1'
+// dialect ports
+export const DEMO_MYSQL_PORT = 3011
+export const DEMO_MARIA_DB_PORT = 3012
+export const DEMO_POSTGRES_PORT = 3013
+// other dependencies
+export const DEMO_SQLITE_STORAGE = "./demo/dependency/sqlite:/data"
+
+
 

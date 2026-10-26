@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laptop Finder</title>
+</head>
+<body style="display: flex; flex-direction: column;">
+    <h1>Find your laptop</h1>
+    <form id="search_form" method="get" action="/search">
+        <input id="searchbar" type="text" name="search">
+        <button type="submit">Search</button>
+    </form>
+    <ul>
+        <% laptops.forEach(laptop => { %>
+            <li><%= laptop.name %> <%= laptop.variant %> </li>
+            <img src="<%= laptop.image_path %>">
+        <% }) %>
+    </ul>
+    
+</body>
+</html>

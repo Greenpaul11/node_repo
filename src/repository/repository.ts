@@ -7,9 +7,11 @@ import { CreationOptional, EntityCreationAttributes } from "../types/entity/Crea
 import { OrmManagerBase } from "../ormManager/base.js";
 import { Query, EntityQueryable, EntityProjection, QueryControl } from "../types/entity/Query.js";
 import { QueryConverterBase } from "../converters/query/base.js";
-import { ResolveManager } from "../types/entity/Repository.js";
+import { OverridesRepositoryConfig, ResolveManager } from "../types/entity/Repository.js";
 import { detectDialect, detectOrm } from "./detectors.js";
 import { OrmName } from "../types/Registry.js";
+import { RepositoryConfig } from "../types/entity/Repository.js";
+import defaultConfig  from "./config.js"
 
 
 /**
@@ -137,11 +139,12 @@ export class Repository<
      *                a Sequelize `Model<InferAttributes, InferCreationAttributes>`
      *                to match the dynamic-import resolution path.
      *
-     * @param connection Live ORM connection (e.g. a Sequelize instance).
-     *                    Currently only `Sequelize` is recognized.
-     * @param metadata   Entity metadata.
-     * @param ormManager  The ORM-specific model constructor (e.g. a
-     *                    Sequelize `ModelStatic<T>`).
+     * @param connection     Live ORM connection (e.g. a Sequelize instance).
+     *                       Currently only `Sequelize` is recognized.
+     * @param metadata       Entity metadata.
+     * @param ormManager     The ORM-specific model constructor (e.g. a
+     *                       Sequelize `ModelStatic<T>`).
+     * @param overrides Overrides repository configurations {@link RepositoryConfig}
      *
      * @returns A fully initialized `Repository` ready to use.
      *
@@ -172,12 +175,16 @@ export class Repository<
     >(
         connection: OrmOptions,
         metadata: EntityMetadata<E>,
-        ormManager: ResolveManager<T>
+        ormManager: ResolveManager<T>,
+        overrides?: OverridesRepositoryConfig 
     ): Promise<Repository<E, C, T, ResolveManager<T>>> {
 
-        const repository = new Repository<E, C, T>(metadata, connection);
+        const repository = new Repository<E, C, T>(metadata, connection)
         const orm = repository._resolveOrmName(connection)
-        const dialect = repository._resolveDialectName(connection, orm);
+        const dialect = repository._resolveDialectName(connection, orm)
+        const config = overrides
+            ? defaultConfig
+            : defaultConfig
 
         // place for implementation of QueryConverter
         const ormQueryModule = await import(`../layers/${orm}/query/converter.js`);

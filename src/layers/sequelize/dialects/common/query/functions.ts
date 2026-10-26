@@ -325,12 +325,12 @@ export function convertSortOptions<E extends EntityBase, A extends OrderItem[] |
     relAsString?: string
 ): void {
     if (typeof querySort === "string") {
-        applaySortOption(name, acc, sortOptions, querySort, valueFormater, fnFormater, relAsString)
+        applaySortOptions(name, acc, sortOptions, querySort, valueFormater, fnFormater, relAsString)
     } else if (Array.isArray(querySort)) {
         for (let i=0; i < querySort.length; i++) {
             const option = querySort[i]
             if (typeof option === "string") {
-                applaySortOption(name, acc, sortOptions, option, valueFormater, fnFormater, relAsString)
+                applaySortOptions(name, acc, sortOptions, option, valueFormater, fnFormater, relAsString)
             } else if (Array.isArray(option)) {
                 const entity = option[0]
                 const subOptions = option[1] as any // for deep relation type is changed
@@ -345,7 +345,7 @@ export function convertSortOptions<E extends EntityBase, A extends OrderItem[] |
     }
 }
 
-export const applaySortOption = <E extends EntityBase, A extends OrderItem[] | (string | Fn | Col)[]>(
+export const applaySortOptions = <E extends EntityBase, A extends OrderItem[] | (string | Fn | Col)[]>(
     name: string,
     acc: A,
     sortOptions: SortOptions<E>,
@@ -354,9 +354,9 @@ export const applaySortOption = <E extends EntityBase, A extends OrderItem[] | (
     fnFormater?: (<F extends EntityBase>(acc: A, value: SortFunction<F>, relAsString?: string) => void),
     relAsString?: string
 ): void => {
-    if (sortOptions.options[option]) {
+    if (Object.hasOwn(sortOptions.options, option)) {
         valueFormater(name, acc, sortOptions.options[option], relAsString)
-    } else if (fnFormater && sortOptions.fns[option]) {
+    } else if (fnFormater && Object.hasOwn(sortOptions.fns, option)) {
         fnFormater(acc, sortOptions.fns[option], relAsString)
     } else {
         throw new Error(`${sortOptions.sortType} has no "${option}"`)

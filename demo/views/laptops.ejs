@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+  <script src="https://kit.fontawesome.com/bd4791ad83.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<%- include('partials/header') %>
+<div class="wrapper">
+    <%- include('partials/laptop_search') %>
+</div>
+  
+
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>
+<script type="text/javascript">
+  // change url to url with current active queries
+  function updateUrlWithQuery(url, queries_to_set, queries_to_del) {
+        let newUrlQuery = new URL(url)
+        let queryParams = newUrlQuery.searchParams
+        if (typeof queries_to_set != 'undefined') {
+            Object.keys(queries_to_set).forEach((key) => {
+                queryParams.set(key, queries_to_set[key])
+            })
+        }
+        if (typeof queries_to_del != 'undefined') {
+            queries_to_del.forEach((query) => {
+                queryParams.delete(query)
+            })
+        }
+        newUrlQuery.search = queryParams.toString()
+        return newUrlQuery.toString()
+    } 
+    
+  // transform product price appearance
+  function setUpPriceLook() {
+        const priceContainers = document.querySelectorAll('.result_col_item')
+        priceContainers.forEach((container) => {
+            const prices = container.querySelectorAll('#product_price')
+            let bestPrice
+            prices.forEach((price, index) => {
+                if (index === 0) {
+                    bestPrice = price
+                } else if (parseFloat(bestPrice.innerHTML) > parseFloat(price.innerHTML)) {
+                    bestPrice = price
+                }
+                let price_list = price.innerHTML.split('.')
+                price.innerHTML = price_list[0]
+                let sub_price_cont = document.createElement('span')
+                sub_price_cont.classList.add('sub_price_cont')
+                let price_part1 = document.createElement('span')
+                price_part1.innerHTML = price_list[1]
+                let price_part2 = document.createElement('span') 
+                price_part2.innerHTML = 'zł'
+                price.appendChild(sub_price_cont)
+                sub_price_cont.appendChild(price_part1)
+                sub_price_cont.appendChild(price_part2)
+            })
+            bestPrice.setAttribute('data-active', 'true')
+        })
+        
+   }  
+  // send a request to the server to get specific page data 
+  function getPage(new_url) {
+        let request = new XMLHttpRequest()
+        let method = 'GET'
+        request.open(method, new_url);
+        request.onload = function () {
+            let newHtml = request.response
+            // set that HTML to the new, templated HTML returned by the server
+            let resultsHtml = document.querySelector('#result_items')
+            resultsHtml.outerHTML = newHtml 
+            setUpPages()
+            setUpPriceLook()
+            new_url = updateUrlWithQuery(new_url, undefined, ['update_results'])
+            let nextTitle = 'next page'
+            let nextState = { additionalInformation: 'Updated the URL with JS' };
+            window.history.pushState(nextState, nextTitle, new_url);
+        } 
+        request.send()  
+    }
+    
+    function setUpPages() {
+        let pagesLinksCont = document.querySelector('.paginator_cont')
+        let pagesLinks = pagesLinksCont.querySelectorAll('a')
+        pagesLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault()
+                // update url queries with specific page query
+                let page_queries = {
+                    'page': `${link.dataset.page}`,
+                    'update_results': 'true'
+                }
+                let new_url = updateUrlWithQuery(window.location.href, page_queries , undefined)
+                link.href = new_url
+                getPage(new_url)
+            })
+        })
+    }
+
+    // make dropdown filter selections
+    function setUpFilterDropdownBtns() {
+        const filterDropdownBtns = document.querySelectorAll('.filter_dropdown_btn[data-filter-btn]')
+        filterDropdownBtns.forEach((button) => {
+            // if dropdown expanded before form element replacment don't change dropdown state
+            if (uncoveredFilters[button.dataset.filterBtn]){
+                button.dataset.active = true
+                button.nextElementSibling.dataset.active = true
+            }
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (button.dataset.active) {
+                    delete button.dataset.active
+                    delete button.nextElementSibling.dataset.active
+                    if (uncoveredFilters[button.dataset.filterBtn]) {
+                        delete uncoveredFilters[button.dataset.filterBtn]
+                    }
+                } else {
+                    button.dataset.active = true
+                    button.nextElementSibling.dataset.active = true
+                    uncoveredFilters[button.dataset.filterBtn] = {}
+                }
+            })
+        })
+    }
+    // keep data about clicked filter dropdown buttons
+    // after replacing old form elements with new ones form expanded dropdowns remain unchanged
+    const uncoveredFilters = {}
+    // add event listener to each 'active filter' button 
+    function addRemoveActiveFilters() {
+        let form = document.querySelector('.filter_col form')
+        let formInputs = form.querySelectorAll('input')
+        let filterButtons = document.querySelectorAll('.active_filter_row button')
+        filterButtons.forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                let removed = null
+                if (button.value === 'all') {
+                    formInputs.forEach((input) => {
+                        if (input.hasAttribute('checked')) {
+                            input.removeAttribute('checked')
+                        }
+                         else {
+                            input.value = ""
+                        }
+                    })
+                } else {
+                    removed = button.value.replace(/ /g, '_')
+                    formInputs.forEach((input) => {
+                        if (input.name == removed) {
+                            if (input.type === 'checkbox') {
+                                input.removeAttribute('checked');
+                            } else {
+                                input.value = ""
+                            }
+                        }
+                    })
+                }
+                submitForm(removed)
+            })
+        })
+    }
+    // update search results automatically after selecting filter
+    function formInputsAction() {
+        let submitTimeout 
+        let executeQuery = true
+        let form = document.querySelector('.filter_col form')
+        let formInputs = form.querySelectorAll('input')
+        formInputs.forEach((input) => {
+            input.addEventListener('change', () => {
+                if (executeQuery === true) {
+                    submitTimeout = setTimeout(submitForm, 2000)
+                    executeQuery = false
+                } else {
+                    clearTimeout(submitTimeout)
+                    submitTimeout = setTimeout(submitForm, 2000)
+                }
+            })
+        })
+    }
+    
+    function formSelectsAction() {
+        let formSelects = document.querySelector('.result_col').querySelectorAll('select')
+        formSelects.forEach((select) => {
+            select.addEventListener('change', () => {
+                submitForm()
+            })
+        })
+        let formSelectsCheck = document.querySelector('.result_col').querySelector('#id_not_available')
+        formSelectsCheck.addEventListener('change', () => {
+            submitForm()
+        })
+    }
+    
+    function setUpForm() {
+        // scroll brand logos after clicking left/right buttons
+        const logoCont = document.querySelector('.brand_logo_cont')
+        const firstLogoImage = logoCont.firstElementChild.getBoundingClientRect().right
+        const leftLogoButton = document.querySelector('[data-logo-btn="prev"]')
+        const rightLogoButton = document.querySelector('[data-logo-btn="next"]')
+        const logoImageWidth = logoCont.querySelector('li').getBoundingClientRect().width
+        const leftCont = logoCont.getBoundingClientRect().left
+        const rightCont = logoCont.getBoundingClientRect().right
+        leftLogoButton.addEventListener('click', () => {
+            logoCont.scrollLeft -= 2 * logoImageWidth
+            rightLogoButton.style.display = 'block'
+            leftLogoActionButton(2.2)
+        })
+        rightLogoButton.addEventListener('click', () => {
+            logoCont.scrollLeft += 2 * logoImageWidth
+            leftLogoButton.style.display = 'block'
+            rightLogoActionButton(2.2)
+        })
+        // hide/show brand logo buttons if there is or there is no possiblilty for scrolling
+        // predict_scroll argument predict scroll movement after updating DOM
+        function leftLogoActionButton(predict_scroll) {
+            if (logoCont.firstElementChild.getBoundingClientRect().left + (predict_scroll * logoImageWidth)
+                    >= logoCont.getBoundingClientRect().left) {
+                leftLogoButton.style.display = 'none'
+            } else {
+                leftLogoButton.style.display = 'block'
+            }
+        }
+        function rightLogoActionButton(predict_scroll) {
+            if (logoCont.lastElementChild.getBoundingClientRect().right - (predict_scroll * logoImageWidth)
+                    <= logoCont.getBoundingClientRect().right) {
+                rightLogoButton.style.display = 'none'
+            } else {
+                rightLogoButton.style.display = 'block'
+            }
+        }
+        // enable to check only one checkbox from touchscreen section
+        const touchscreenYes = document.getElementById('id_touchscreen_yes')
+        const touchscreenNo = document.getElementById('id_touchscreen_no')
+        touchscreenYes.addEventListener('change', (event) => {
+            if (event.target.checked === true) {
+                touchscreenNo.disabled = true
+            } else {
+                touchscreenNo.disabled = false
+            }
+        })
+        touchscreenNo.addEventListener('change', (event) => {
+            if (event.target.checked === true) {
+                touchscreenYes.disabled = true
+            } else {
+                touchscreenYes.disabled = false
+            }
+        })
+        // add funcionality to 'show more' button in filter sections
+        const optionsDropdownBtns = document.querySelectorAll('.filter_dropdown_btn[data-options-more]')
+        optionsDropdownBtns.forEach((button) => {
+            let filterCategoryCont = button.parentNode.parentNode.dataset.filterCategory
+            let filterSubcategoryId = button.parentNode.id
+            let addButton = false
+            // if button clicked and options revealed before form replacment make options revealed again 
+            if (uncoveredFilters[filterCategoryCont] === undefined) {
+                addButton = true
+            } else if (uncoveredFilters[filterCategoryCont][filterSubcategoryId] === undefined) {
+                addButton = true
+            }
+            if (addButton) {
+                button.addEventListener('click', (event) => {
+                    let hiddenOptions = button.parentNode.querySelectorAll(`[data-option-show='false']`)
+                    hiddenOptions.forEach((option) => {
+                        option.dataset.optionShow = true
+                    })
+                    if (uncoveredFilters[filterCategoryCont] === undefined) {
+                        uncoveredFilters[filterCategoryCont] = {}
+                    }
+                    uncoveredFilters[filterCategoryCont][filterSubcategoryId] = 'removed'
+                    button.remove()
+                })
+            } else {
+                let hiddenOptions = button.parentNode.querySelectorAll(`[data-option-show='false']`)
+                hiddenOptions.forEach((option) => {
+                    option.dataset.optionShow = true
+                })
+                button.remove()
+            }
+        })
+        // add funcionality to 'show more' button in links section
+        const linksDropdownBtn = document.querySelector('.filter_dropdown_btn[data-filter-link-btn]')
+        let showLaptopsLinks = true
+        function showMoreLaptosLinks() {
+            const laptopsLinks = linksDropdownBtn.previousElementSibling
+            if (showLaptopsLinks) {
+                laptopsLinks.previousElementSibling.style.display = 'none'
+                laptopsLinks.style.display = 'block'
+                linksDropdownBtn.innerText = 'Show less'
+                showLaptopsLinks = false
+                linksDropdownBtn.dataset.active = true
+            } else {
+                laptopsLinks.style.display = 'none'
+                laptopsLinks.previousElementSibling.style.display = 'block'
+                linksDropdownBtn.innerText = 'Show more'
+                delete linksDropdownBtn.dataset.active
+                showLaptopsLinks = true
+            }
+        }
+        linksDropdownBtn.addEventListener('click', showMoreLaptosLinks, true)
+        
+        // submit form only with brand value after clicking brand logo
+        const brandImages = document.querySelectorAll('.result_col [data-logo-image]')
+        brandImages.forEach((img) => {
+            img.addEventListener('click', () => {
+                let form = document.createElement('form')
+                form.setAttribute('method', "get")
+                form.setAttribute('action', '/laptops')
+                let brandInput = img.nextElementSibling
+                form.appendChild(brandInput)
+                img.parentElement.appendChild(form)
+                form.submit()
+            })
+        })
+        leftLogoActionButton(0.2)
+        rightLogoActionButton(0.2)
+        setUpPages()
+        setUpFilterDropdownBtns()
+        addRemoveActiveFilters()
+        formInputsAction()
+        formSelectsAction()
+        setUpPriceLook()
+    }
+    // get query results from the server and update filter form and result column
+    function submitForm(removed=null) {
+        document.querySelector('.lds_roller_wrapper').style.display = 'block'
+        let url = window.location.href.split('?')[0]
+        let newQuery 
+        if (removed) {
+            let queryList = window.location.href.split('?')[1]
+            let querySublist = queryList.split('&')
+            let queryListUpdated = querySublist.map((query) => {
+                if (!query.split('=').includes(removed)) {
+                    return query
+                }
+            })
+            newQuery = queryListUpdated.join('&')
+        } else {
+            let form = document.querySelector('.filter_col form')
+            let formData = new FormData(form)
+            newQuery = formData
+        }
+        url += '?update_search=true&' + (new URLSearchParams(newQuery)).toString();
+        let request = new XMLHttpRequest()
+        let method = 'GET'
+        request.open(method, url);
+        request.onload = function() {
+            let newHtml = request.response
+            let searchHtml = document.querySelector('#laptop_search')
+            searchHtml.outerHTML = newHtml
+            setUpForm()
+            let new_url = updateUrlWithQuery(url, undefined, ['update_search'])
+            let nextTitle = 'next page'
+            let nextState = { additionalInformation: 'Updated the URL with JS' };
+            window.history.pushState(nextState, nextTitle, new_url);
+            executeQuery = true
+        }
+        request.send()
+    }
+    // get sorted data from the server and update only result column
+    function submitForm2() {
+        document.querySelector('.lds_roller_wrapper').style.display = 'block'
+        let form = document.querySelector('.filter_col form')
+        let formData = new FormData(form)
+        let url = window.location.href.split('?')[0]
+        url += '?update_results=true&' + (new URLSearchParams(formData)).toString();
+        let request = new XMLHttpRequest()
+        let method = 'GET'
+        request.open(method, url)
+        request.onload = function() {
+            let newHtml = request.response
+            let resultsHtml = document.querySelector('#result_items')
+            resultsHtml.outerHTML = newHtml 
+            setUpPages()
+            setUpPriceLook()
+
+            document.querySelector('.lds_roller_wrapper').style.display = 'none'
+            let new_url = updateUrlWithQuery(url, undefined, ['update_results'])
+            let nextTitle = 'next page'
+            let nextState = { additionalInformation: 'Updated the URL with JS' };
+            window.history.pushState(nextState, nextTitle, new_url);
+        }
+        request.send()
+    }
+    
+    window.addEventListener('popstate', (event) => {
+        location.reload()
+    })
+    
+    
+    
+    
+    setUpForm()
+    console.log(uncoveredFilters['brand'], 'bibib')
+</script>

@@ -1,0 +1,89 @@
+<div id="result_items">
+    <div class="paginator_cont">
+        <% if (has_previous) { %>
+            <a href="" data-page="<%= previous_page_number %>" data-start-anchor>&#10094;</a>
+            <% if (page > 2 && num_pages > 3) { %>
+                <a href="" data-page="1">1</a>
+                <div><span>...</span></div>
+            <% } %>
+            <% if (page === num_pages && previous_page_number > 1) { %>
+                <a href="" data-page="<%= previous_page_number - 1 %>"><%= previous_page_number - 1 %></a>
+            <% } %>
+            <a href="" data-page="<%= previous_page_number %>"><%= previous_page_number %></a>
+        <% } %>
+        <a href="" data-active-page ><%= page %></a>
+        <% if (has_next) { %>
+            <a href="" data-page="<%= next_page_number %>"><%= next_page_number %></a>
+            <% if (next_page_number + 1 === 3 && num_pages > 2) { %>
+                <a href="" data-page="3">3</a>
+            <% } %>
+            <% if (num_pages > next_page_number && num_pages > 3) { %>
+                <div><span>...</span></div>
+                <a href="" data-page="<%= num_pages %>"><%= num_pages %></a>
+            <% } %>
+            <a href="" data-page="<%= next_page_number %>" data-end-anchor>&#10095;</a>
+        <% } %>
+    </div>
+    <% for (const laptop of queryResult) { %>
+    <div class="result_col_item">
+        <div>
+            <div>
+                <h3><%= laptop.brand %> <%= laptop.model %> | <%= laptop.processor %> | <%= laptop.screen_size %>-<%= laptop.screen_type %>-<%= laptop.screen_refresh %> | <%= laptop.disk_size %> | <%= laptop.ram_size %> <%= laptop.ram_type %> | <%= laptop.color %></h3>
+            </div>
+            <div>
+                <div>
+                    <img id='product_photo_r1' src="<%= laptop.image_path %>">
+                    <div id='parts_logo_r1'>
+                        <% if (laptop.processor_short) { %>
+                        <img src='/static_files/logos/logo_processor/<%= laptop.processor_short %>.jpg'>
+                        <% } %>
+                        <% if (laptop.graphic_card_short) { %>
+                        <img src='/static_files/logos/logo_gpu/<%= laptop.graphic_card_short %>.jpg'>
+                        <% } %>
+                    </div>
+                    
+                </div>
+                <div>
+                    <div>
+                        <p>Operating system: <b><%= laptop.operating_system %></b></p>
+                        <p>Laptop category: <b>Gaming laptops</b></p>
+                        <p>Screen resolution: <b><%= laptop.screen_resolution %></b></p>
+                        <p>Screen type: <b><%= laptop.screen_type %></b></p>
+                        <p>Screen coat: <b><%= laptop.screen_coat %></b></p>
+                        <p>Screen refresh: <b><%= laptop.screen_refresh %></b></p>
+                        <p>Processor model: <b><%= laptop.processor %></b></p>
+                        <p>Processor cores: <b><%= laptop.processor_cores %></b></p>
+                        <p>Graphic card: <b><%= laptop.graphic_card %></b></p>
+                    </div>
+                    <div>
+                        <p>Graphic card memory: <b><%= laptop.graphic_card_memory %></b></p> 
+                        <% if (laptop.graphic_card_tgp) { %>
+                            <p>Graphic card tgp: <b><%= laptop.graphic_card_tgp %></b></p> 
+                        <% } %>
+                        <p>Ram size: <b><%= laptop.ram_size %></b></p>
+                        <p>Ram speed: <b><%= laptop.ram_speed %></b></p>
+                        <p>Ram type: <b><%= laptop.ram_type %></b></p>
+                        <p>Disc capacity: <b><%= laptop.disk_size %></b></p>
+                        <p>Disc type: <b><%= laptop.disk_type %></b></p>
+                        <p>Case color: <b><%= laptop.color %></b></p>
+                        <p>Weight: <b><%= laptop.weight %></b></p>
+                        <p>Variant: <%= laptop.variant %></p>
+                    </div>
+                </div>
+                
+                <button><span>&duarr;</span> Compare</button>
+            </div>
+            <div>
+                <% for (const price of laptop.prices) { %>
+                <a class="shop_link" href="<%= price.url %>">
+                    <img src="/static_files/logos/logo_shops/<%= price.shop %>.jpg">
+                    <div id="product_price"><%= price.price %></div>
+                </a>
+                <% } %>
+            </div>
+        </div>
+        
+    </div>
+    <% } %>
+</div>
+

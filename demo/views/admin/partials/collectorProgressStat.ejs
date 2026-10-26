@@ -1,0 +1,175 @@
+<% if (stat) { %> 
+<div class="collector-progress-wrapper" data-id-progress="<%= stat['name'] %>">
+  <div data-attribute="collect urls">
+      <p>Urls collecting job:</p>
+      <div class="collector-progress-container">
+        <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['collect urls']['percentage'] %>%"></div>
+        <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['collect urls']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>total: <b data-subattribute="total string"><%= stat['collect urls']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['collect urls']['errors'] %></b></span>
+  </div>
+  <div data-attribute="collect price">
+      <p>Price collecting job:</p>
+      <div class="collector-progress-container">
+        <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['collect price']['percentage'] %>%"></div>
+        <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['collect price']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['collect price']['success'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['collect price']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['collect price']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['collect price']['errors'] %></b></span>
+  </div>
+  <div data-attribute="format price">
+      <p>Price formating job:</p>
+      <div class="collector-progress-container">
+        <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['format price']['percentage'] %>%"></div>
+        <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['format price']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['format price']['success'] %></b></span>
+      <span>merged: <b data-subattribute="merged"><%= stat['format price']['merged'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['format price']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['format price']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['format price']['errors'] %></b></span>
+  </div>
+  <div data-attribute="inject price">
+      <p>Price injecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['inject price']['percentage'] %>%"></div>
+          <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['inject price']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['inject price']['success'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['inject price']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['inject price']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['inject price']['errors'] %></b></span>
+  </div>
+  <div data-attribute="collect product">
+      <p>Laptops collecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['collect product']['percentage'] %>%"></div>
+          <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['collect product']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['collect product']['success'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['collect product']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['collect product']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['collect product']['errors'] %></b></span>
+  </div>
+  <div data-attribute="format product">
+      <p>Laptops formating job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['format product']['percentage'] %>%"></div>
+          <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['format product']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['format product']['success'] %></b></span>
+      <span>pending: <b data-subattribute="pending"><%= stat['format product']['pending'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['format product']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['format product']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['format product']['errors'] %></b></span>
+  </div>
+  <div data-attribute="collect images">
+    <p>Images collecting job:</p>
+    <div class="collector-progress-container">
+        <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['collect images']['percentage'] %>%"></div>
+        <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['collect images']['percentage success'] %>%"></div>
+    </div>
+    <span data-subattribute="message"></span>
+    <span>success: <b data-subattribute="success"><%= stat['collect images']['success'] %></b></span>
+    <span>failed: <b data-subattribute="failed"><%= stat['collect images']['failed'] %></b></span>
+    <span>total: <b data-subattribute="total string"><%= stat['collect images']['total string'] %></b></span>
+    <span>errors: <b data-subattribute="errors"><%= stat['collect images']['errors'] %></b></span>
+</div>
+  <div data-attribute="inject product">
+      <p>Laptop injecting job:</p>
+      <div class="collector-progress-container">
+        <div class="collector-progress-bar" data-subattribute="percentage" style="width: <%= stat['inject product']['percentage'] %>%"></div>
+        <div class="collector-progress-bar progress-success" data-subattribute="percentage success" style="width: <%= stat['inject product']['percentage success'] %>%"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success"><%= stat['inject product']['success'] %></b></span>
+      <span>merged: <b data-subattribute="merged"><%= stat['inject product']['merged'] %></b></span>
+      <span>failed: <b data-subattribute="failed"><%= stat['inject product']['failed'] %></b></span>
+      <span>total: <b data-subattribute="total string"><%= stat['inject product']['total string'] %></b></span>
+      <span>errors: <b data-subattribute="errors"><%= stat['inject product']['errors'] %></b></span>
+  </div>
+</div>
+<% } else { %>
+<div data-id-progress="">
+  <div data-attribute="collect urls">
+      <p>Urls collecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="collect price">
+      <p>Price collecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="format price">
+      <p>Price formating job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>merged: <b data-subattribute="merged">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="inject price">
+      <p>Price injecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="collect product">
+      <p>Laptops collecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="format product">
+      <p>Laptops formating job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>pending: <b data-subattribute="pending">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+  <div data-attribute="inject product">
+      <p>Laptop injecting job:</p>
+      <div class="collector-progress-container">
+          <div class="collector-progress-bar" data-subattribute="percentage" style="width: 0"></div>
+      </div>
+      <span data-subattribute="message"></span>
+      <span>success: <b data-subattribute="success">0</b></span>
+      <span>merged: <b data-subattribute="merged">0</b></span>
+      <span>failed: <b data-subattribute="failed">0</b></span>
+      <span>total: <b data-subattribute="total string">0</b></span>
+  </div>
+</div>
+<% } %>

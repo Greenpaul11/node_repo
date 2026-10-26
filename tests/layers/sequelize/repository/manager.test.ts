@@ -737,6 +737,9 @@ describe('manager: Test Repository manager functions createOne, deleteOne, destr
                 const before = await ProductImporter.findAll()
                 assert(before.length > 0, 'should have product importers before destroy')
 
+                //const ii = await productImporterRepository.getManyBy({products: {prices: {product: {prices: {shop: {}}}}}})
+                //console.log(ii[0].products[0].prices[0].product.prices[0].shop)
+
                 const count = await productImporterRepository.destroyAll()
                 assert.strictEqual(count, before.length, 
                     'destroyAll should return number of deleted records')

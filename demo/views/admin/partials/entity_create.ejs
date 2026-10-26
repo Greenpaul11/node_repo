@@ -1,0 +1,114 @@
+<% if (errors !== {}) { %>
+<% for (const [errorType, errorList] of Object.entries(errors)) { %>
+<div class="error_cont">
+    <% for (const error of errorList) { %>
+    <div class="error_inner">
+    <p><%= errorType %> <%= error %></p> 
+    <div class="error_img">
+        <img src="/static_files/pictures/error.png"/>
+    </div>
+    </div>
+    <% } %>
+</div>
+<% } %>
+<% } %>
+<% if (messages.length) { %>
+<div>
+    <div class="message_cont">
+        <% for (const message of messages) { %>
+        <div class="message_inner">
+            <p><%= message %></p>
+            <div class="message_img">
+                <img src="/static_files/logos/check-mark.png"/>
+            </div>
+        </div>
+        <% } %>
+    </div>
+</div>
+<% } %>
+<div class="admin_filter_row">
+    <div>
+        <label for="action_select"><p>Action: </p></label> 
+        <select id="action_select" name="action" class="custom_input">
+        <option value="CR" selected>create</option>
+        <option value="UP">update</option>
+        <option value="DE">delete</option> 
+    </select>
+    </div>
+</div>
+<form id="entity_form" class="reg_log_form" action="/admin/<%= entity %>/create" method="POST">
+    <% for (const [attribute, options] of Object.entries(queryConfig.attributes)) { %>
+        <% if (!options.associated || options.associated === 'inside') { %>
+            <% if (options.required) { %>
+            <p><%= attribute %>:</p></br>
+            <% } else { %>
+            <p>*<%= attribute %></p></br>
+            <% } %>
+            <% if (options.input === 'checkbox') { %>
+                <% if (data[attribute] && data[attribute] === 'true') { %>
+                    <label><input type="checkbox" name="<%= attribute %>" value="true" checked>
+                        <span class="checkmark"></span> Yes</label>
+                    <label><input type="checkbox" name="<%= attribute %>" value="false">
+                        <span class="checkmark"></span> No</label>
+                <% } else if (data[attribute] && data[attribute] === 'false') { %>
+                    <label><input type="checkbox" name="<%= attribute %>" value="true">
+                        <span class="checkmark"></span> Yes</label>
+                    <label><input type="checkbox" name="<%= attribute %>" value="false" checked>
+                        <span class="checkmark"></span> No</label>
+                <% } else { %>
+                    <label><input type="checkbox" name="<%= attribute %>" value="true">
+                        <span class="checkmark"></span> Yes</label>
+                    <label><input type="checkbox" name="<%= attribute %>" value="false" checked>
+                        <span class="checkmark"></span> No</label>
+                <% } %>
+            <% } else if (options.input === 'select') { %> 
+                <select name="<%= attribute %>" class="custom_input">
+                <% for (const option of selectOptions[attribute]) { %> 
+                    <% if (data[attribute] && data[attribute] === option) { %>
+                        <option value="<%= option %>" selected><%= option %></option>
+                    <% } else { %>
+                        <option value="<%= option %>"><%= option %></option>
+                    <% } %>
+                <% } %>
+                </select>
+            <% } else { %> 
+                <% if (data[attribute]) { %>
+                <input class="custom_input" type="<%= options.input %>" name="<%= attribute %>" value="<%= data[attribute] %>" <% if (options.required) { %> required <% } %>><br />
+                <% } else { %>
+                <input class="custom_input" type="<%= options.input %>" name="<%= attribute %>" value="" <% if (options.required) { %> required <% } %>><br />
+                <% } %>
+            <% } %>
+        <% } %>
+    <% } %>
+    <% if (entity === 'user') { %>
+        <p>Password: </p><br />
+        <input class="custom_input" type="password" name="password" value="" required><br />
+        <p>Confirm password: </p><br />
+        <input class="custom_input" type="password" name="password_confirm" value="" required><br />
+    <% } %> 
+
+    <button id="admin_submit_entity" class="register_btn" type="button">CREATE <%= entity.toUpperCase() %></button>
+</form>
+
+<script type="text/javascript">
+    const selectAction = document.getElementById('action_select')
+    selectAction.addEventListener('change', (event) => {
+        if (event.target.value === 'UP') {
+            window.location = updateUrl(parseUrl(sectionPath), {'action': 'UP'})
+        } else if (event.target.value === 'DE') {
+            window.location = updateUrl(parseUrl(sectionPath), {'action': 'DE'})
+        }
+    })
+    // clean form from empty values
+    const submitButton = document.getElementById('admin_submit_entity')
+    submitButton.addEventListener('click', (event) => {
+        const form = document.getElementById('entity_form')
+        const inputs = form.querySelectorAll('input')
+        inputs.forEach(input => {
+            if (!input.value) {
+                input.setAttribute('disabled', '')
+            }
+        })
+        form.submit()
+    })
+</script>

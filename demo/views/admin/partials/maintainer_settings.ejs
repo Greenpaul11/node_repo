@@ -1,0 +1,134 @@
+<h2>Maintainer settings</h2>
+<% if (locals.messages && messages.length) { %> 
+<div class="message_cont">
+    <% for (const message of messages) { %>
+    <div class="message_inner">
+        <p id="message_line"><%= message %></p>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+    <% } %>
+</div>
+<% } %>
+<% if (locals.errors && Object.keys(errors).length) { %> 
+<div class="error_cont">
+    <% for (const[key, values] of Object.entries(errors)) { %>
+        <div class="error_inner">
+            <% for (const error of values) { %>
+            <p id="error_line"><%= key %><%= error %></p> 
+            <div class="error_img">
+                <img src="/static_files/pictures/error.png"/>
+            </div>
+            <% } %>
+        </div>
+    <% } %>
+</div>
+<% } %>
+
+<form action="/admin/settings/maintainer" method="POST" autocomplete="off">
+    <% if (settings['price deactivation on']) { %> 
+    <h3>Deactivate prices <input type="checkbox" value="true" name="price deactivation on" checked></h3>
+    <% } else { %>
+    <h3>Deactivate prices <input type="checkbox" value="true" name="price deactivation on"></h3>
+    <% } %>
+   <label>Run interval <select name="interval price deactivation">
+        <option value="24" <% if (settings['interval price deactivation'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['interval price deactivation'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['interval price deactivation'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['interval price deactivation'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['interval price deactivation'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['interval price deactivation'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['interval price deactivation'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['interval price deactivation'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['interval price deactivation'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <label>Expired after<select name="expired price deactivation">
+        <option value="24" <% if (settings['expired price deactivation'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['expired price deactivation'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['expired price deactivation'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['expired price deactivation'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['expired price deactivation'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['expired price deactivation'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['expired price deactivation'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['expired price deactivation'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['expired price deactivation'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <% if (settings['laptop deactivation on']) { %> 
+    <h3>Deactivate laptops with no active prices <input type="checkbox" value="true" name="laptop deactivation on" checked></h3>
+    <% } else { %>
+    <h3>Deactivate laptops with no active prices <input type="checkbox" value="true" name="laptop deactivation on"></h3>
+    <% } %>
+    <label>Run interval <select name="interval laptop deactivation">
+        <option value="24" <% if (settings['interval laptop deactivation'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['interval laptop deactivation'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['interval laptop deactivation'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['interval laptop deactivation'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['interval laptop deactivation'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['interval laptop deactivation'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['interval laptop deactivation'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['interval laptop deactivation'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['interval laptop deactivation'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <% if (settings['price removal on']) { %> 
+    <h3>Remove prices <input type="checkbox" value="true" name="price removal on" checked></h3>
+    <% } else { %>
+    <h3>Remove prices <input type="checkbox" value="true" name="price removal on"></h3>
+    <% } %>
+    <label>Run interval <select name="interval price removal">
+        <option value="24" <% if (settings['interval price removal'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['interval price removal'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['interval price removal'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['interval price removal'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['interval price removal'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['interval price removal'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['interval price removal'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['interval price removal'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['interval price removal'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <label>Expired after<select name="expired price removal">
+        <option value="720" <% if (settings['expired price removal'] === 720) { %> selected <% } %>>30 days</option>
+        <option value="1440" <% if (settings['expired price removal'] === 1440) { %> selected <% } %>>60 days</option>
+        <option value="2160" <% if (settings['expired price removal'] === 2160) { %> selected <% } %>>90 days</option>
+        <option value="2880" <% if (settings['expired price removal'] === 2880) { %> selected <% } %>>120 days</option>
+    </select></label>
+    <% if (settings['laptop removal on']) { %> 
+    <h3>Remove laptops without prices <input type="checkbox" value="true" name="laptop removal on" checked></h3>
+    <% } else { %>
+    <h3>Remove laptops without prices <input type="checkbox" value="true" name="laptop removal on"></h3>
+    <% } %>
+    <label>Run interval <select name="interval laptop removal">
+        <option value="24" <% if (settings['interval laptop removal'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['interval laptop removal'] === 48) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['interval laptop removal'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['interval laptop removal'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['interval laptop removal'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['interval laptop removal'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['interval laptop removal'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['interval laptop removal'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['interval laptop removal'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <% if (settings['file removal on']) { %> 
+    <h3>Remove job files <input type="checkbox" value="true" name="file removal on" checked></h3>
+    <% } else { %>
+    <h3>Remove job files <input type="checkbox" value="true" name="file removal on"></h3>
+    <% } %>
+    <label>Run interval <select name="interval file removal">
+        <option value="24" <% if (settings['interval file removal'] === 24) { %> selected <% } %>>24 hours</option>
+        <option value="48" <% if (settings['interval file removal'] === 40) { %> selected <% } %>>48 hours</option>
+        <option value="72" <% if (settings['interval file removal'] === 72) { %> selected <% } %>>3 days</option>
+        <option value="96" <% if (settings['interval file removal'] === 96) { %> selected <% } %>>4 days</option>
+        <option value="120" <% if (settings['interval file removal'] === 120) { %> selected <% } %>>5 days</option>
+        <option value="144" <% if (settings['interval file removal'] === 144) { %> selected <% } %>>6 days</option>
+        <option value="168" <% if (settings['interval file removal'] === 168) { %> selected <% } %>>7 days</option>
+        <option value="288" <% if (settings['interval file removal'] === 288) { %> selected <% } %>>14 days</option>
+        <option value="720" <% if (settings['interval file removal'] === 720) { %> selected <% } %>>30 days</option>
+    </select></label>
+    <label>Expired after<select name="expired file removal">
+        <option value="720" <% if (settings['expired file removal'] === 720) { %> selected <% } %>>30 days</option>
+        <option value="1440" <% if (settings['expired file removal'] === 1440) { %> selected <% } %>>60 days</option>
+        <option value="2160" <% if (settings['expired file removal'] === 2160) { %> selected <% } %>>90 days</option>
+        <option value="2880" <% if (settings['expired file removal'] === 2880) { %> selected <% } %>>120 days</option>
+    </select></label>
+    <button type="submit">Save</button>
+</form>

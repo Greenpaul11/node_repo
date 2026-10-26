@@ -246,7 +246,8 @@ src/
       convertRow.ts               Single-row recursive transformation
       mapSelects.ts               QuerySelect → MapEntitySelect
     query/                        Domain query → ORM query conversion
-      base.ts                     Abstract query converter
+      base.ts    
+      buildConfig.ts                 Abstract query converter
       buildConverters.ts          Builds per-attribute converter dispatch table
       config.ts                   Default config, validation presets
       validators.ts               Type validators (string, number, date, boolean, range, select)
@@ -453,12 +454,12 @@ const raw = await repo.getOneBy({ brand: 'Apple' }, { native: true })
 
 This project supports automated testing with database integration using Docker containers. By default, tests run against pre-configured databases in Docker containers.
 
-# Connecting to Custom Databases
+**Connecting to Custom Databases**
 
 To use your own database instead of the default Docker setup modify
 `registry/constants.js` with your database connection details.
 
-# Connecting to Docker Databases
+**Connecting to Docker Databases**
 
 1. (Optional) If you have made changes to `registry/constants.js`, update the Docker Compose configuration and initialization files in `docker/init/...` by running:
 ```bash
@@ -469,14 +470,14 @@ npm run generate-docker-compose
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-# Migrating Test Entities
+**Migrating Test Entities**
 
 Once the databases are ready, migrate the test entities:
 ```bash
 npm run migrate-test-entities
 ```
 
-# Run Tests
+**Run Tests**
 
 To make testing easier, tests are organized and executed using a custom test runner.
 To see the available commands and instructions for running tests, execute:

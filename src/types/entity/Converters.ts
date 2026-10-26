@@ -4,7 +4,19 @@ import { SwitchType } from '../Global.js'
 import { AggregateAsKey, Query, EntityAggregateAttributes, QueryFunctions} from './Query.js'
 import { OutputConverterBase } from '../../converters/output/base.js'
 import { EntityAttributes } from './Metadata.js'
+import { DeepPartial } from '../Global.js'
 
+/**
+ * Configurations for output converter.
+ */
+export type OutputConverterConfig = {
+    subEntitiesDepth: number
+}
+/**
+ * Override base configuration for output converter
+ */
+export type OverridesOutputConverterConfig = 
+    DeepPartial<Omit<OutputConverterConfig, 'subEntitiesDepth'>> 
 
 /**
  * Maps aggregate operators to transformed types.
@@ -134,7 +146,7 @@ export type BaseAttributeConvertersInfer<E extends EntityBase> = {
  * }
  */
 export type ExternalConvertersInfer<E extends EntityBase> = {
-    [Key in keyof ExternalReferences<E>]: ConverterFunctionsInfer<ExternalReferences<E>[Key]>
+    [Key in keyof ExternalReferences<E>]: ConverterFunctionsInfer<ExternalReferences<E>[Key]> | Error
 }
 
 /**

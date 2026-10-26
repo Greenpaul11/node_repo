@@ -1,4 +1,4 @@
-import { EntityBase } from '../../types/entity/Root.js'
+import { EntityBase, ExternalReferences } from '../../types/entity/Root.js'
 import { 
     QueryEntityAttributeTypes, 
     QueryEntityAttributeTypeTransform, ConvertersBuild, 
@@ -324,25 +324,32 @@ export function buildRelationAttributeConverters<E extends EntityBase, F>(
 ): QueryRelationTransform<E, F>{
     const transform = {} as QueryRelationTransform<E, F>
     
-    // limit recursion depth
-    if (config.subEntityRelationDepth < depth) {
-        return transform
-    }
-    
     const subEntities = metadata.subEntities
 
     if (!subEntities) {
         return transform
     }
     const converter = convertersBuild['relationAttributes']['relations']
-
+    
     for (const key in subEntities) {
         const subMetadata = subEntities[key].metadata
         const relationDepth = depth
-        const queryConvertObject = queryConvertObjectFactory(convertersBuild, config, subMetadata, relationDepth)
-        transform[key] = {
-            queryConvertObject: queryConvertObject,
-            convert: (value: unknown, converted: F) => converter(value, converted, key, queryConvertObject)
+        if (depth < config.subEntitiesDepth) {
+            const queryConvertObject = queryConvertObjectFactory(convertersBuild, config, subMetadata, relationDepth)
+            transform[key] = {
+                queryConvertObject,
+                convert: (value: unknown, converted: F) => converter(value, converted, key, queryConvertObject)
+            }
+        // limit recursion depth
+        } else {
+            transform[key] = {
+                queryConvertObject: {} as QueryConvertObject<
+                    ExternalReferences<E>[Extract<keyof ExternalReferences<E>, string>], F>,
+                convert: () => {
+                    throw new Error(`Depth limit exceeded (maximum: ${depth}) when converting ` + 
+                        `query for entity "${String(key)}".`)
+                }
+            }
         }
     }
 

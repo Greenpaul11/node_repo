@@ -1,0 +1,32 @@
+<form style="display: flex; flex-direction: column;" id='search1' action="/query_laptop" method="get">
+    <% for (const [select, options] of Object.entries(selectOptions)) { %>
+      <% if (options.length === 1 && activeQuery.includes(select, 0)) { %>
+        <div style="display: flex;">
+          <span><%= options[0] %></span><button type="button" value="<%= select %>" onclick="removeQuery(this)">x</button>
+        </div>
+        <select hidden name="<%= select %>">
+          <option selected value="<%= options[0] %>"><%= options[0] %></option>
+        </select>
+      <% } else if (options.length === 1){ %>  
+        <div style="display: flex;">
+          <span><%= options[0] %></span>
+        </div>
+        <select hidden name="<%= select %>">
+          <option value=""><%= options[0] %></option>
+        </select>
+      <% } else { %>
+        <select name="<%= select %>">
+          <option value="">SELECT</option>
+          <% for (const option of options) { %>
+            <option value="<%= option %>"><%= option %></option>
+          <% } %>
+        </select>
+      <% } %>
+
+    <% } %>
+    <% if (resultsCount === 1) { %>
+      <button type="submit">Show <%= resultsCount %> laptop</button>
+    <% } else { %>
+      <button type="submit">Show <%= resultsCount %> laptops</button>
+  <% } %>
+</form>

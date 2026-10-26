@@ -1,0 +1,92 @@
+<div class="message_cont" style="display: none;">
+    <div class="message_inner">
+        <div id="message_line"></div>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+</div>
+<div class="error_cont" style="display: none;">
+    <div class="error_inner">
+        <div id="error_line"></div> 
+        <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+        </div>
+    </div>
+</div>
+<div class="paginator_cont">
+    <% if (has_previous) { %>
+        <a href="" data-page="<%= previous_page_number %>" data-start-anchor>&#10094;</a>
+        <% if (page > 2 && num_pages > 3) { %>
+            <a href="" data-page="1">1</a>
+            <div><span>...</span></div>
+        <% } %>
+        <% if (page === num_pages && previous_page_number > 1) { %>
+            <a href="" data-page="<%= previous_page_number - 1 %>"><%= previous_page_number - 1 %></a>
+        <% } %>
+        <a href="" data-page="<%= previous_page_number %>"><%= previous_page_number %></a>
+    <% } %>
+    <a href="" data-active-page ><%= page %></a>
+    <% if (has_next) { %>
+        <a href="" data-page="<%= next_page_number %>"><%= next_page_number %></a>
+        <% if (next_page_number + 1 === 3 && num_pages > 2) { %>
+            <a href="" data-page="3">3</a>
+        <% } %>
+        <% if (num_pages > next_page_number && num_pages > 3) { %>
+            <div><span>...</span></div>
+            <a href="" data-page="<%= num_pages %>"><%= num_pages %></a>
+        <% } %>
+        <a href="" data-page="<%= next_page_number %>" data-end-anchor>&#10095;</a>
+    <% } %>
+</div>
+<div>
+    <% if (action === 'UP') { %> 
+    <form id="update_form" method="post" action="/admin/<%= entity %>/update" autocomplete="off">
+    <% } else if (action === 'DE') { %>
+    <form id="delete_form" method="post" action="/admin/<%= entity %>/delete" autocomplete="off">
+    <% } %>
+        <table id="admin_result_table" class="admin_table" data-edit="false">
+            <tr>
+                <td></td> 
+                <% for (const property of select) { %>
+                <td><%= property %></td>
+                <% } %>
+            </tr>
+            <% for (const record of entities) { %>
+            <tr data-identifier="<%= record.id %>">
+                <td><img src="<%= record.image_path %>"></td>
+            <% for (const property of select) { %>
+                <% if (queryConfig.attributes[property]['associated'] === 'inside') { %>
+                <% if (record[property]) { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>"  data-identifier="<%= record.id %>"><a href="/admin/<%= queryConfig.attributes[property]['as'] %>?action=<%= action %>&id=<%= record[property] %>"><%= record[property] %></a></td>
+                <% } else { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>" data-identifier="<%= record.id %>">null</td>
+                <% } %>
+                <% } else if (queryConfig.attributes[property]['associated'] === 'outside') { %>
+                <% if (record[property]) { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>"  data-identifier="<%= record.id %>"><a href="/admin/<%= queryConfig.attributes[property]['as'] %>?action=<%= action %>&id=<%= record[property]['id'] %>"><%= record[property]['id'] %></a></td>
+                <% } else { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>" data-identifier="<%= record.id %>">null</td>
+                <% } %>
+                <% } else { %>
+                <% if (record[property] !== null) { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>" data-identifier="<%= record.id %>" data-property="<%= property %>" data-type="<%= queryConfig.attributes[property]['input'] %>" data-attributes="<%= queryConfig.attributes[property]['setAttributes'] %>"><%= record[property] %></td>
+                <% } else { %>
+                <td data-locked="<%= queryConfig.attributes[property]['locked'] %>" data-identifier="<%= record.id %>" data-property="<%= property %>" data-type="<%= queryConfig.attributes[property]['input'] %>" data-attributes="<%= queryConfig.attributes[property]['setAttributes'] %>">null</td>
+                <% } %>
+                <% } %>
+            <% } %>
+            <% if (action === 'DE') { %> 
+                <td>
+                    <label>
+                        <input type="checkbox" name="id" value="<%= record.id %>">
+                        <span class="checkmark"></span>
+                    </label>
+                </td>
+            <% } %>
+            </tr>
+            <% } %>
+        </table>
+    </form>
+</div>
+

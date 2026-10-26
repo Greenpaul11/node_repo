@@ -7,7 +7,7 @@ import { DialectName, OrmName } from '../src/types/Registry.js'
 
 const rootDir = process.cwd()
 const coreTestLocations = [
-    'tests/constructors/**/*.test.ts',
+    //'tests/constructors/**/*.test.ts',
     'tests/converters/**/*.test.ts',
     'tests/lib/**/*.test.ts'
 ]

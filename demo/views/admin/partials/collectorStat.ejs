@@ -1,0 +1,66 @@
+<div>
+    <div class="collector-chart-wrapper">
+        <div id="shops-chart-container" class="collector-chart-container">
+            <img src="/static_files/charts/collectedTest/shops/<%= collectorStat['pid'] %>.png" onerror='this.style.display = "none"'>
+        </div>
+    </div>
+    <div data-id="collector stat" data-job="<%= job %>" class="admin_stat_row">
+        <p>Pid: <b id="collector-job-pid" data-attribute="pid"><%= collectorStat['pid'] %></b></p>
+        <p>Started at: <b data-attribute="time"><%= collectorStat['time'] %></b></p>
+        <p>Duration: <b data-attribute="duration time"><%= collectorStat['duration time'] %></b></p>
+        <p>Status: <b data-attribute="status"><%= collectorStat['status'] %></b></p>
+        <p>Urls founded: <b data-attribute="urls founded"><%= collectorStat['urls founded'] %></b></p>
+        <p>Laptops new founded: <b data-attribute="product new founded"><%= collectorStat['laptops new founded'] %></b></p>
+        <p>Laptops added: <b data-attribute="product added"><%= collectorStat['laptops added'] %></b></p>
+        <p>Laptops merged: <b data-attribute="product merged""><%= collectorStat['laptops merged'] %></b></p>
+        <p>Laptops images added: <b data-attribute="images added"><%= collectorStat['laptops images added'] %></b></p>
+        <p>Prices updated: <b data-attribute="price updated"><%= collectorStat['prices updated'] %></b></p>
+        <p>Prices added: <b data-attribute="price added"><%= collectorStat['prices added'] %></b></p>
+        <p>New attribute options: 
+            <b data-attribute="new attributes">
+            <% if (collectorStat['new attributes'].length) { %>
+            <% collectorStat['new attributes'].forEach((option, index) => { %>
+            <a href="/admin/collectorTest/inspect_attributes/<%= option[0].replace(/ /g, '_') %>"><% if (index !== collectorStat['new attributes'].length - 1) { %><%= option[0] %>(<%= option[1] %>), <% } else { %><%= option[0] %>(<%= option[1] %>)<% } %></a>
+            <% }) %>
+            <% } else { %>
+            0
+            <% } %>
+            </b> 
+        </p>
+        <div data-attribute="errors">
+            <% for (const [index, error] of collectorStat['errors'].entries()) { %>
+            <% if (index === 0) { %> 
+            <p><%= error %></p>
+            <% } else { %>
+            <p>&emsp;<%= error %></p> 
+            <% } %>
+            <% } %>
+        </div>
+        <p>Target shops: </p>
+        <div class="collector-target-shop-button-wrapper" data-stat-button-wrapper>
+            <% for (const shop of collectorStat['target shops']) { %>
+            <% if (shop === statTargetName) { %>
+            <button data-target-active="true" data-target-shop="<%= shop %>"><%= shop %></button>
+            <% } else { %>
+            <button data-target-active="false" data-target-shop="<%= shop %>"><%= shop %></button>
+            <% } %>
+            <% } %>
+        </div>
+        <div class="collector-shop-stat-wrapper" data-stat-target-wrapper>
+            <div data-target-active="false" data-target-shop="">
+                <%- include('./shopStat', {stat: shopStatBlueprint}) %>
+            </div>
+            <% for (const stat of shopStatsList) { %>
+            <% if (stat['name'] === statTargetName) { %>
+            <div data-target-active="true" data-target-shop="<%= stat['name'] %>">
+                <%- include('./shopStat', {stat: stat}) %>
+            </div>
+            <% } else { %>
+            <div data-target-active="false" data-target-shop="<%= stat['name']%>">
+                <%- include('./shopStat', {stat: stat}) %>
+            </div>
+            <% } %>
+            <% } %>
+        </div>
+    </div>
+</div>

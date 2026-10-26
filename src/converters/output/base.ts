@@ -2,13 +2,17 @@ import { EntityBase } from '../../types/entity/Root.js'
 import { EntityMetadata, EntityRelationTree } from '../../types/entity/Metadata.js'
 import { Query, MapEntitySelect, EntityProjection } from '../../types/entity/Query.js'
 import {
+    OutputConverterConfig,
+    OverridesOutputConverterConfig,
     EntityConverters,
     EntityConverterDialects,
     ConverterFamilesInfer,
     ConverterDialectsBuild
 } from '../../types/entity/Converters.js'
+import { overrideObject } from '../../lib/override.js'
 import { buildConverters } from './buildConverters.js'
 import { entitySelectToMapSelect, mapNestedSelects } from './mapSelects.js'
+import defaultConfig  from './config.js'
 
 
 /**
@@ -97,19 +101,38 @@ export abstract class OutputConverterBase<
     public converterDialectsBuild!: C;
 
     /**
-     * @param metadata    Entity metadata describing base attributes and
-     *                    relations.
-     * @param relationTree Relation tree derived from `metadata`; controls
-     *                    nested select mapping.
-     * @param dialect     Active dialect key. Must be a key of `C`
-     *                    (e.g. `"mysql"`).
+     * Configuration options for this converter instance.
+     */
+    public config: OutputConverterConfig
+
+    /**
+     * @param metadata      Entity metadata describing base attributes and
+     *                      relations.
+     * @param relationTree  Relation tree derived from `metadata`; controls
+     *                      nested select mapping.
+     * @param dialect       Active dialect key. Must be a key of `C`
+     *                      (e.g. `"mysql"`).
+     * @param config        Optional override configuration for this converter.
      */
     constructor(
         public metadata: EntityMetadata<E>,
         public relationTree: EntityRelationTree<E>,
-        public dialect: keyof C 
-    ) {}
-
+        public dialect: keyof C, 
+        config?: OutputConverterConfig
+    ) {
+        this.config = config ? this._overrideConfig(defaultConfig, config) : defaultConfig
+    }
+    
+    /**
+     * Override default configuration with provided values.
+     *
+     * @param target - Default configuration object.
+     * @param source - User-provided override configuration.
+     * @returns Merged configuration.
+     */
+    private _overrideConfig(target: OutputConverterConfig, source: OverridesOutputConverterConfig): OutputConverterConfig {
+        return overrideObject(target, source) as OutputConverterConfig
+    }
 
     /**
      * Build a flat per-attribute selection map from the `select` attribute
@@ -149,11 +172,11 @@ export abstract class OutputConverterBase<
      * @returns A {@link ConverterFamilesInfer} keyed by family name.
      */
     public converterFactory(
-        typeConverters: ConverterDialectsBuild<C>[typeof this.dialect]
+        typeConverters: ConverterDialectsBuild<C>[typeof this.dialect],
     ): ConverterFamilesInfer<E> {
         const converters: ConverterFamilesInfer<E> = {}
         for (const family in typeConverters) {
-            converters[family] = buildConverters(this.metadata, typeConverters[family])
+            converters[family] = buildConverters(typeConverters[family], this.config, this.metadata)
         }
         return converters
     }

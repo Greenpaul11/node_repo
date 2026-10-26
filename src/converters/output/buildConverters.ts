@@ -3,7 +3,8 @@ import {
     BaseAttributeConvertersInfer,
     ExternalConvertersInfer,
     EntityConvertersBuild,
-    ConverterFunctionsInfer
+    ConverterFunctionsInfer,
+    OutputConverterConfig
 } from '../../types/entity/Converters.js'
 import { EntityMetadata } from '../../types/entity/Metadata.js'
 
@@ -34,11 +35,12 @@ import { EntityMetadata } from '../../types/entity/Metadata.js'
  *
  * @typeParam E - Entity whose metadata drives the converter set.
  *
- * @param metadata   Entity metadata providing `baseAttributesList`,
- *                   `attributesConfig`, and `subEntities`.
  * @param converters Type-keyed converter definitions (built once per
  *                   dialect) that get bound to specific attribute names
  *                   here.
+ * @param config     Configuration object with control converter properties.
+ * @param metadata   Entity metadata providing `baseAttributesList`,
+ *                   `attributesConfig`, and `subEntities`.
  * @param depth      Current recursion depth. Defaults to `0` (root call).
  *                   Each sub-entity recursion increments this by one.
  *                   Hard-capped at `5` — deeper relations are skipped to
@@ -52,7 +54,7 @@ import { EntityMetadata } from '../../types/entity/Metadata.js'
  *
  * @example
  * ```ts
- * const converters = buildConverters(productMetadata, mysqlConverters)
+ * const converters = buildConverters(mysqlConverters, {relationDepth: 3}, productMetadata)
  *
  * converters.baseAttributes.brand   // (v: string) => string
  * converters.subEntities.prices     // nested ConverterFunctionsInfer<Price>
@@ -60,16 +62,19 @@ import { EntityMetadata } from '../../types/entity/Metadata.js'
  * ```
  */
 export function buildConverters<E extends EntityBase>(
-    metadata: EntityMetadata<E>,
     converters: EntityConvertersBuild,
+    config: OutputConverterConfig,
+    metadata: EntityMetadata<E>,
     depth = 0
 ): ConverterFunctionsInfer<E> {
     // 1. Base attributes — bind each attribute's declared type to a converter
     const baseAttributes = {} as BaseAttributeConvertersInfer<E>
+    const relationDepth = config.subEntitiesDepth
 
     for (const attribute of metadata.baseAttributesList) {
-        const config = metadata.attributesConfig[attribute]
-        const type = config.type
+
+        const attrConfig = metadata.attributesConfig[attribute]
+        const type = attrConfig.type
         const converter = converters.baseAttributes[type]
 
         if (!converter) continue
@@ -77,14 +82,19 @@ export function buildConverters<E extends EntityBase>(
         baseAttributes[attribute] = converter
     }
 
-    // 2. Relations — recurse for each sub-entity, capped at depth 5
+    // 2. Relations — recurse for each sub-entity, limiy the depth by relationDepth
     const subEntities = {} as ExternalConvertersInfer<E>
 
-    if (depth < 5 && metadata.subEntities) {
+    if (metadata.subEntities) {
         for (const key of Object.keys(metadata.subEntities)) {
             const entity = key as keyof typeof metadata.subEntities
-            const subMeta = metadata.subEntities[entity].metadata
-            subEntities[entity] = buildConverters(subMeta, converters, depth + 1)
+            if (depth < relationDepth) {
+                const subMeta = metadata.subEntities[entity].metadata
+                subEntities[entity] = buildConverters(converters, config, subMeta, depth + 1)
+            } else {
+                subEntities[entity] = new Error(`Depth limit exceeded (maximum: ${depth}) when converting ` + 
+                        `output for entity "${String(key)}".`)
+            }
         }
     }
 

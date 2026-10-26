@@ -1,7 +1,8 @@
 import { 
     NonUndefined, NullableFromObject, NonNullableFromObject, PickByType, 
     DeepPartial, DeepStringArray,
-    DeepStringTuple
+    DeepStringTuple,
+    DeepValue
 } from '../Global.js'
 import { EntityBase, ExternalReferences, EntityNoExternal, AggregateBase } from './Root.js'
 import { EntityMetadata } from './Metadata.js'
@@ -118,15 +119,16 @@ export type QueryConverterConfig = {
             group: boolean
         }
     }
-    subEntityRelationDepth: number
+    subEntitiesDepth: number
 }
 
-export type OverridesQueryConverterConfig = DeepPartial<QueryConverterConfig> & {
-    validation?: boolean | DeepPartial<QueryConverterConfig['validation']> & {
-        baseAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['baseAttributes']>
-        rangeAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['rangeAttributes']>
-        queryAttributes?: boolean | DeepPartial<QueryConverterConfig['validation']['queryAttributes']>
+export type OverridesQueryConverterConfig = {
+    validation?: true | DeepPartial<DeepValue<QueryConverterConfig['validation'], true>> & {
+        baseAttributes?: true | DeepPartial<DeepValue<QueryConverterConfig['validation']['baseAttributes'], true>>
+        rangeAttributes?: true | DeepPartial<DeepValue<QueryConverterConfig['validation']['rangeAttributes'], true>>
+        queryAttributes?: true | DeepPartial<DeepValue<QueryConverterConfig['validation']['queryAttributes'], true>>
     }
+    subEntitiesDepth?: number
 }
 
 export type QueryEntityAttributeTypes = {
@@ -258,7 +260,7 @@ export type ConvertersBuild<F> = {
            value: unknown,
            converted: F,
            attribute: K,
-           queryConvertObject: QueryConvertObject<ExternalReferences<E>[K], F>
+           queryConvertObject: QueryConvertObject<ExternalReferences<E>[K], F> 
         ) => F
     }
     

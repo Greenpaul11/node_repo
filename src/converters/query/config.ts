@@ -1,59 +1,23 @@
-import { group } from "node:console"
+import { SUB_ENTITIES_DEPTH } from "../../repository/config.js"
 
-export const defaultConfig = {
+export default {
     validation: {
         baseAttributes: {
-            string: true,
-            number: true,
-            date: true,
-            boolean: true
+            string: false,
+            number: false,
+            date: false,
+            boolean: false
         },
         rangeAttributes: {
-            number: true,
-            date: true
+            number: false,
+            date: false
         },
         queryAttributes: {
-            select: true,
-            order: true,
-            group: true
+            select: false,
+            order: false,
+            group: false
         }
     },
-    subEntityRelationDepth: 5
+    subEntitiesDepth: SUB_ENTITIES_DEPTH
 }
 
-export const validationOn = {
-    baseAttributes: {
-        string: true,
-        number: true,
-        date: true,
-        boolean: true
-    },
-    rangeAttributes: {
-        number: true,
-        date: true
-    },
-    queryAttributes: {
-        select: true,
-        order: true,
-        group: true
-    }
-}
-
-export const validationOff = {
-    baseAttributes: {
-        string: false,
-        number: false,
-        date: false,
-        boolean: false
-    },
-    rangeAttributes: {
-        number: false,
-        date: false
-    },
-    queryAttributes: {
-        select: false,
-        order: false,
-        group: false
-    }
-    
-}

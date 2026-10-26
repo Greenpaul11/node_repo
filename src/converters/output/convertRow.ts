@@ -98,6 +98,10 @@ export function convertRow<E extends EntityBase, T extends EntityTransformRules>
         const subEntitiesList = Object.keys(subEntities) as Array<keyof typeof subEntities>
         for (const subEntity of subEntitiesList) {
             const subConverters = converters.subEntities[subEntity]
+            // limit depth of subEntities
+            if (subConverters instanceof Error) {
+                throw subConverters
+            }
             if (subConverters) {
                 const subRows = row[subEntity] as EntityTransform<
                     ExternalReferences<E>[keyof ExternalReferences<E>], T

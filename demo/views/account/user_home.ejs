@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="stylesheet" href="/static_files/css/style.css">
+  <meta charset="utf-8">
+  <title>Laptico</title>
+  <script src="https://kit.fontawesome.com/bd4791ad83.js" crossorigin="anonymous"></script>
+</head>
+<body>
+<%- include('../partials/header') %>
+<div class="wrapper">
+    <div class="account_base_cont">
+        <div id='account_colI' class="account_colI">
+            <a class="account_colI_a" href=""
+               data-link-index='0'>
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/my_account.png">
+                <span class="account_colI_span">My Account</span>
+            </a>
+            <a class="account_colI_a" href="/account/user/my_data"
+               data-link-index='3'>
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/my_data.png">
+                <span class="account_colI_span">My Data</span>
+            </a>
+            <a class="account_colI_a" href="/dupa/">
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/compared.png">
+                <span class="account_colI_span">Compared Products</span>
+            </a>
+            <a class="account_colI_a" href="/dupa/">
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/storage.png">
+                <span class="account_colI_span">Storage</span>
+            </a>
+            <a class="account_colI_a" href="/dupa/">
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/last_watched.png">
+                <span class="account_colI_span">Last Watched</span>
+            </a>
+            <a class="account_colI_a" href="/dupa/">
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/security.png">
+                <span class="account_colI_span">Security</span>
+            </a>
+            <a class="account_colI_a" href="/account/logout">
+                <span class="account_strip"></span>
+                <img class="account_colI_img" src="/static_files/logos/logout.png">
+                <span class="account_colI_span">Logout</span>
+            </a>
+        </div>
+        <div class="account_colII">
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/my_data.png">
+                <span class="account_colII_span">My Data</span>
+            </a>
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/compared.png">
+                <span class="account_colII_span">Compared Products</span>
+            </a>
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/storage.png">
+                <span class="account_colII_span">Storage</span>
+            </a>
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/last_watched.png">
+                <span class="account_colII_span">Last Watched</span>
+            </a>
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/security.png">
+                <span class="account_colII_span">Security</span>
+            </a>
+            <a class="account_colII_a">
+                <img class="account_colII_img" src="/static_files/logos/logout.png">
+                <span class="account_colII_span">Logout</span>
+            </a>
+        </div>
+    </div>
+</div>
+<script defer type="text/javascript">
+    // Set up indicator of the current section:
+    const leftColumn = document.getElementById('account_colI')
+    const leftColumnLinks = leftColumn.querySelectorAll('a')
+    const sitePath = document.querySelector('.path')
+    leftColumnLinks.forEach((link) => {
+        if (link.dataset.linkIndex == sitePath.dataset.linkIndex) {
+            link.dataset.active = true
+        }
+    })
+</script>

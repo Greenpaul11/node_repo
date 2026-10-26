@@ -1,0 +1,730 @@
+<h3>Inspect attributes</h3>
+<div class="message_cont" style="display: none;">
+    <div class="message_inner">
+        <div id="message_line"></div>
+        <div class="message_img">
+            <img src="/static_files/logos/check-mark.png"/>
+        </div>
+    </div>
+</div>
+<div class="error_cont" style="display: none;">
+    <div class="error_inner">
+        <div id="error_line"></div> 
+        <div class="error_img">
+            <img src="/static_files/pictures/error.png"/>
+        </div>
+    </div>
+</div>
+<div class="admin_filter_row">
+    <div>
+        <label><p>Inspect attribute:</p></label> 
+        <select id="attributeSelect" name="attribute" class="custom_input">
+            <% for (const [attr, active] of attributes) { %> 
+            <% if (active) { %>
+            <option value="<%= attr %>" selected><%= attr %></option>
+            <% } else { %>
+            <option value="<%= attr %>"><%= attr %></option>
+            <% } %>
+            <% } %>
+        </select>
+    </div>
+    <div>
+        <label><p>Sort options:</p></label> 
+        <select id="orderSelect" name="order" class="custom_input">
+            <% for (const [key, text, value] of order) { %> 
+            <% if (value) { %>
+            <option value="<%= key %>" selected><%= text %></option>
+            <% } else { %>
+            <option value="<%= key %>"><%= text %></option>
+            <% } %>
+            <% } %>
+        </select>
+    </div>
+    <div>
+        <label><p>Action: </p></label> 
+        <select id="action_select" name="action" class="custom_input">
+            <% if (action === 'UP') { %>
+            <option value="UP" selected>update</option>
+            <% } else { %>
+            <option value="UP">update</option>
+            <% } %>
+            <% if (action === 'DE') { %>
+            <option value="DE" selected>delete</option>
+            <% } else { %>
+            <option value="DE">delete</option>
+            <% } %>
+            <% if (action === 'CR') { %>
+            <option value="CR" selected>create</option>
+            <% } else { %>
+            <option value="CR">create</option>
+            <% } %>
+        </select>
+    </div>
+</div>
+<div class="admin_action_container">
+    <% if (action === 'UP') { %>
+        <button id='start_edit' type="button">edit<img src="/static_files/logos/edit.png" alt="edit logo"></button>
+        <button id="save_edit" type="button" data-on-submit="current" style="display: none;">Save</button>
+        <button id="cancel_edit" type="button" style="display: none;">Cancel</button>
+        <button id="select_row" type="button" data-selection="false">Select off</button>
+    <% } else if (action === 'DE') { %>
+        <label><input id="select_no_record" type="checkbox"><span class="checkmark"></span>select no record</label>
+        <button id="submit_to_delete" type="button">Delete</button>
+    <% } %>
+</div>
+<div data-attr-action-for="" style="display: none;">
+    <p>Action for: <b><span></span></b></p>
+    <p><button data-attr-btn="confirm">Confirm</button><button data-attr-btn="merge" data-active="false">Merge off</button>
+        <button data-attr-btn="similar" data-active="false">Similar off</button></p>    
+</div>
+<form id="<%= action %>_form_attr" method="post" action="/admin/collector/inspect_attributes/<%= target %>" autocomplete="off">
+    <table id="admin_result_table" class="admin_table">
+        <tr>
+            <td><b>Formated</b></td>
+            <td><b>Match</b></td>
+            <td><b>Record count</b></td>
+            <td><b>Status</b></td>
+            <% if (action === 'DE') { %>
+            <td><b>Delete</b></td>
+            <% } %>
+        </tr>
+        <% if (action === 'CR') { %> 
+        <tr data-create="">
+            <td><input class="custom_input" type="text" name="key" value=""></td>
+            <td><input class="custom_input" type="text" name="value" value=""></td>
+            <td><a href="/admin/laptop">-</a></td>
+            <td>-</td>
+            <td><button data-on-submit='create' type="button">Add</button></td>
+        </tr>
+        <% } %>
+        <% for (const [formated, match] of Object.entries(attributeObj['current'])) { %> 
+        <tr data-parent-for="<%= formated %>">
+            <td data-locked="false" data-type="text" data-on-submit="current" data-property="<%= formated %>"><%= formated %></td>
+            <td><%= match[0].join(', ') %></td>
+            <td><a href="/admin/laptop?<%= attributes.filter(attr => !!attr[1])[0][0] %>=<%= formated %>"><%= match[1] %></a></td>
+            <% if (attributeObj['pending'].includes(formated)) { %> 
+            <% if (action === 'UP') { %> 
+            <td><button type="button" data-on-submit="pending">Confirm</button></td>
+            <% } else { %>
+            <td>pending</td>
+            <% } %>
+            <% } else { %>
+            <td>active</td>
+            <% } %>
+            <% if (action === 'DE') { %> 
+            <td>
+                <label>
+                    <input type="checkbox" name="option" value="<%= formated %>">
+                    <span class="checkmark"></span>
+                </label>
+            </td>
+            <% } %>
+        </tr>
+        <% } %>
+    </table>
+</form>
+
+
+
+
+
+<script type="text/javascript">
+
+    let editElements = {}
+    let table
+    let editButton
+    let selectButton
+    let mergeBtn
+    let saveButton
+    let cancelButton
+    let currentAttribute
+    let confirmBtn
+    let selectAttribute
+    let selectAction
+    let currentAction
+    let selectOrder
+    let currentOrder
+    let activeRow
+    let actionPanel
+    let selectRows
+    let similarBtn
+    let selectSimilar
+    let similarElements = []
+    
+    function interact() {
+        table = document.querySelector('table')
+        selectAttribute = document.querySelector('#attributeSelect')
+        currentAttribute = selectAttribute.value
+        selectAction = document.getElementById('action_select')
+        currentAction = selectAction.value
+        form = document.querySelector(`#${currentAction}_form_attr`)
+        selectOrder = document.querySelector('#orderSelect')
+        currentOrder = selectOrder.value
+        selectAttribute.addEventListener('change', (event) => window.location 
+            = parseUrl(`admin/collector/inspect_attributes/${event.target.value}`))
+        selectAction.addEventListener('change', (event) => window.location 
+            = parseUrl(`admin/collector/inspect_attributes/${currentAttribute}?action=${event.target.value}&order=${currentOrder}`))
+        selectOrder.addEventListener('change', (event) => window.location 
+            = parseUrl(`admin/collector/inspect_attributes/${currentAttribute}?action=${currentAction}&order=${event.target.value}`))
+        if (currentAction === 'DE') {
+            const deleteButton = document.querySelector('#submit_to_delete')
+            const deleteCheck = document.getElementById('select_no_record')
+            deleteButton.addEventListener('click', deleteData)
+            if (deleteCheck.checked) toggleToDelete(true)
+            deleteCheck.addEventListener('click', (event) => {
+                if (event.target.checked) {
+                    toggleToDelete(true)
+                } else {
+                    toggleToDelete(false)
+                }
+            })
+        } else if (currentAction === 'CR') {
+            const addButton = document.querySelector('button[data-on-submit="create"]')
+            addButton.addEventListener('click', addData)
+        } else if (currentAction === 'UP') {
+            // set up update buttons
+            editButton = document.querySelector('#start_edit')
+            saveButton = document.querySelector('#save_edit')
+            cancelButton = document.querySelector('#cancel_edit')
+            selectButton = document.querySelector('#select_row')
+            actionPanel = document.querySelector('[data-attr-action-for]')
+            selectRows = document.querySelectorAll('tr[data-parent-for]')
+            editButton.addEventListener('click', () => {
+                if (mergeBtn.dataset.active === 'true') return
+                setToEdit()
+                selectButton.disabled = true
+                if (selectButton.dataset.selection === 'true') {
+                    enableDisableSelection(false)
+                } 
+            })
+            saveButton.addEventListener('click', async() => {
+                //roller.style.display = 'block'
+                try {
+                    await updateData()
+                } catch(error) {
+                    console.log(error)
+                    document.querySelector('#error_line').innerHTML = '<p>Could not update data!</p>'
+                    document.querySelector('.error_cont').style.display = 'block'
+                }
+                //roller.style.display = 'none'
+            })
+            cancelButton.addEventListener('click', setToNormal)
+            selectButton.addEventListener('click', toggleSelection)
+            similarBtn = actionPanel.querySelector('[data-attr-btn="similar"]')
+            similarBtn.addEventListener('click', (event) => {
+                if (!activeRow) return
+                if (similarBtn.dataset.active === 'false') {
+                    getSimilarRows(event)
+                    similarBtn.dataset.active = true
+                    similarBtn.innerText = 'Similar on'
+                    selectSimilar = true
+                } else {
+                    resetSimilar()
+                    similarBtn.dataset.active = false
+                    similarBtn.innerText = 'Similar off'
+                    selectSimilar = false
+                }
+            })
+            mergeBtn = actionPanel.querySelector('[data-attr-btn="merge"]')
+            mergeBtn.addEventListener('click', (event) => {
+                if (mergeBtn.dataset.active === 'false') {
+                    setRowsOnMerge()
+                } else {
+                    unsetRowsOnMerge()
+                }
+            })
+            confirmBtn = document.querySelectorAll('button[data-on-submit="pending"]')
+            confirmBtn.forEach((button) => button.addEventListener('click', updateData))
+        }
+    }
+    
+    function selectToAction(event) {
+        // switch to orginal one if row is a clone
+        const row = event.currentTarget.hasAttribute('data-similar')
+            ? document.querySelectorAll(`tr[data-parent-for="${event.currentTarget.dataset.parentFor}"]`)[1]
+            : event.currentTarget
+        unsetActiveRow()
+        setActiveRow(row)
+    }
+
+    function setActiveRow(row) {
+        activeRow = row
+        activeRow.dataset.active = true
+        const actionPanel = document.querySelector('[data-attr-action-for]')
+        actionPanel.firstElementChild.querySelector('span').innerText = activeRow.dataset.parentFor
+        if (selectSimilar) {
+            resetSimilar()
+            getSimilarRows()
+        }
+    }
+
+    function unsetActiveRow(row) {
+        if (!activeRow) return
+        activeRow.dataset.active = false
+    }
+
+    function toggleSelection() {
+        selectButton.dataset.selection = selectButton.dataset.selection === 'true' ? false : true
+        const selection = selectButton.dataset.selection
+        selectButton.innerText = selection === 'true' ? 'Select on' : 'Select off'
+        selectRows = document.querySelectorAll('tr[data-parent-for]')
+        if (selection === 'true') {
+            table.dataset.toSelection = true
+            selectRows.forEach((row) => row.addEventListener('click', selectToAction))
+            actionPanel.style.display = 'block'
+        } else {
+            table.dataset.toSelection = false
+            actionPanel.firstElementChild.querySelector('span').innerText = ''
+            actionPanel.style.display = 'none'
+            selectRows.forEach((row) => row.removeEventListener('click', selectToAction))
+            if (mergeBtn.dataset.active === 'true') {
+                unsetRowsOnMerge()
+            }
+            if (similarBtn.dataset.active === 'true') {
+                resetSimilar()
+            }
+            unsetActiveRow()
+        }
+    }
+
+    function enableDisableSelection(enable) {
+        if (!enable) {
+            table.dataset.toSelection = false
+            actionPanel.style.display = 'none'
+            selectRows.forEach((row) => row.removeEventListener('click', selectToAction))
+            if (mergeBtn.dataset.active === 'true') {
+                unsetRowsOnMerge()
+            }
+        } else {
+            table.dataset.toSelection = true
+            actionPanel.style.display = 'block'
+            selectRows.forEach((row) => row.addEventListener('click', selectToAction))
+        }
+        
+    }
+        
+    function setRowsOnMerge() {
+        mergeBtn.dataset.active = true
+        mergeBtn.innerText = 'Merge on'
+        selectRows.forEach((row) => row.removeEventListener('click', selectToAction))
+        selectRows.forEach((row) => row.addEventListener('click', mergeRows))
+        if (selectSimilar) {
+            similarElements.forEach((el) => el.removeEventListener('click', selectToAction))
+            similarElements.forEach((el) => el.addEventListener('click', mergeRows))
+        }
+        table.dataset.onMerge = true
+    }
+
+    function unsetRowsOnMerge() {
+        mergeBtn.dataset.active = false
+        mergeBtn.innerText = 'Merge off'
+        selectRows.forEach((row) => row.removeEventListener('click', mergeRows))
+        selectRows.forEach((row) => row.addEventListener('click', selectToAction))
+        if (selectSimilar) {
+            similarElements.forEach((el) => el.removeEventListener('click', mergeRows))
+            similarElements.forEach((el) => el.addEventListener('click', selectToAction))
+        }
+        table.dataset.onMerge = false
+    }
+
+    async function mergeRows(event) {
+        let messages = ''
+        let errorsMessages = ''
+        // check if the row is not a clone element
+        const toRow = event.currentTarget
+        const orginalToRow = toRow.dataset.similar 
+            ? document.querySelectorAll(`tr[data-parent-for="${toRow.dataset.parentFor}"]`)[1]
+            : toRow 
+        const fromRow = activeRow
+        const fromFormat = fromRow.dataset.parentFor
+        const toMatches = toRow.querySelector('td:nth-of-type(2)')
+        const toCount = toRow.querySelector('td:nth-of-type(3)')
+        const toFormat = toRow.dataset.parentFor
+        const data = {
+            from: fromFormat,
+            to: toFormat
+        }
+        // show user dialog with changes to be applayed
+        messages += '<p>Applay the followning changes:</p>'
+        messages += `<p>==> Merge attribute option "${fromFormat}" to "${toFormat}"</p>`
+        messages += `<p>All records in database with "${fromFormat}" will be replaced with "${toFormat}".</p>`
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        const submitUrl = parseUrl(form.action)
+        const [merged, errors] = await putData(submitUrl, {actionOn: 'merge', data: data})
+        if (merged) {
+            const [count, matches] = merged
+            toMatches.innerText = matches.join(', ')
+            toCount.firstElementChild.innerText = merged[0]
+            resetSimilar()
+            fromRow.remove()       
+            setActiveRow(orginalToRow)
+            messages = '<p>Merge action ended successfully!</p>'
+            messages += `<p>All records in database with "${fromFormat}" heve been replaced with "${toFormat}".</p>`
+        } else {
+            if (errors) {
+                errorsMessages += `<p>Merge action failure!</p>`
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errorsMessages += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                errorsMessages += '<br>'
+            } else {
+                errorsMessages += `<p>Connection error: connection has been broken!</p>`
+            } 
+        }
+        if (messages) {
+            displayMessages(messages)
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+        }
+    }
+
+    function getSimilarRows() {
+        const str1 = activeRow.dataset.parentFor
+        // get all rows
+        const rows = document.querySelectorAll('tr[data-parent-for]')
+        const rowsList = [...rows].map((row) => [row.dataset.parentFor,
+                        [row.dataset.parentFor, ...(row.querySelector('td:nth-of-type(2)').innerText.split(','))]])
+        rowsList.forEach((row) => {
+            let count = 0
+            row[1].forEach((str) => {
+                let score = getSimilarRate(str1, str)
+                if (score > count) {
+                    count = score
+                }
+            })
+            row.push(count)
+        })
+        const similarRows = rowsList.filter((row) => row[2] > 0.75)
+        if (similarRows.length) {
+            similarRows.forEach((row, index) => {
+                const element = document.querySelector(`tr[data-parent-for="${row[0]}"]`)
+                const clone = element.cloneNode(true)
+                similarElements.push(clone)
+                element.style.display = 'none'
+            })
+            // add empty row to make visul diffrence
+            const firstRow = document.querySelector('tr:nth-of-type(1)')
+            // make space after similar rows
+            const br = document.createElement('br')
+            let similarFrom
+            similarElements.forEach((el, index) => {
+                el.dataset.similar = true
+                if (index === 0) {
+                    firstRow.after(br)
+                }
+                if (el.dataset.parentFor === str1) {
+                    similarFrom = el
+                } else {
+                    el.addEventListener('click', selectToAction)
+                    firstRow.after(el)
+                }
+                // place "similar from" as the first row
+                if (index === similarElements.length - 1) {
+                    firstRow.after(similarFrom)
+                }
+            })
+            similarElements.push(br)
+        }
+    }
+
+    function resetSimilar() {
+        if (!similarElements.length) return 
+        similarElements.forEach((el) => {
+            if (el.nodeName === 'TR') {
+                const parentFor = el.dataset.parentFor
+                el.removeAttribute('data-parent-for')
+                const prev = document.querySelector(`tr[data-parent-for="${parentFor}"]`)
+                prev.style.display = 'table-row'
+                prev.innerHTML = el.innerHTML
+                el.remove()
+            } else {
+                el.remove()
+            }
+        })
+        similarElements = []
+    }
+        
+    function getSimilarRate(str1, str2, substringLength, caseSensitive) {
+        if (!substringLength) substringLength = 2
+        if (!caseSensitive) caseSensitive = false
+        if (!caseSensitive) {
+            str1 = str1.toLowerCase()
+            str2 = str2.toLowerCase()
+        }
+        if (str1.length < substringLength || str2.length < substringLength)
+            return 0
+        const map = new Map();
+        for (var i = 0; i < str1.length - (substringLength - 1); i++) {
+            var substr1 = str1.slice(i, i + substringLength);
+            map.set(substr1, map.has(substr1) ? map.get(substr1) + 1 : 1);
+        }
+        let match = 0;
+        for (var j = 0; j < str2.length - (substringLength - 1); j++) {
+            var substr2 = str2.slice(j, j + substringLength);
+            var count = map.has(substr2) ? map.get(substr2) : 0;
+            if (count > 0) {
+                map.set(substr2, count - 1);
+                match++;
+            }
+        }
+        return (match * 2) / (str1.length + str2.length - ((substringLength - 1) * 2));
+    }
+
+    // set table to editable
+    function setToEdit() {
+        saveButton.style.display = 'inline-block'
+        cancelButton.style.display = 'inline-block'
+        // hide pencil button
+        editButton.style.display = 'none'
+        const tableParts = table.querySelectorAll('td[data-on-submit="current"]')
+        tableParts.forEach((record) => {
+            record.addEventListener('click', addInput)
+        })
+        table.dataset.edit = true
+        updateRecords = true
+    }
+
+    // set table back to only display records
+    function setToNormal() {
+        const tableParts = table.querySelectorAll('td[data-locked="false"]')
+        tableParts.forEach((record) => {
+            record.removeEventListener('click', addInput)
+        })
+        Object.entries(editElements).forEach((el) => el[1].onChange())
+        editButton.style.display = 'inline-block'
+        saveButton.style.display = 'none'
+        cancelButton.style.display = 'none'
+        table.dataset.edit = false
+        updateRecords = false
+        selectButton.disabled = false
+        if (selectButton.dataset.selection === 'true') {
+            enableDisableSelection(true)
+        }
+    }
+    
+    // transform table record to the input
+    function addInput(event) {
+        const record = event.target
+        const property = record.dataset.property
+        const type = record.dataset.type
+        const textValue = record.innerText
+        const input = document.createElement('input')
+        input.type = record.dataset.type
+        input.classList.add('custom_input')
+        input.value = textValue
+        input.name = property
+        input.dataset.onSubmit = record.dataset.onSubmit
+        record.appendChild(input)
+        editElements[property] = {
+            record: record,
+            value: textValue,
+            parent: record.parentElement,
+            onChange: () => {
+                input.remove()
+            }
+        }
+        input.focus()
+        record.removeEventListener('click', addInput)
+    }
+
+    function toggleToDelete(check) {
+        const form = document.getElementById('DE_form_attr')
+        const rows = form.querySelectorAll('tr[data-parent-for]')
+        let inputs
+        [...rows].forEach((row) => {
+            const zeroRecord = row.querySelector('td:nth-child(3)').innerText === '0'
+            if (zeroRecord) row.querySelector('input').checked = check
+        })
+    }
+    
+    async function addData() {
+        let messages = ''
+        let errorsMessages = ''
+        const form = document.getElementById('CR_form_attr')
+        let dataObj = Object.fromEntries(new FormData(form))
+        if (!dataObj['key']) {
+                errorsMessages += `<p>Option name can not be empty!</p>`
+        }
+        if (!dataObj['value']) {
+            errorsMessages += `<p>Option match can not be empty!</p>`
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+            return
+        }
+        // show user dialog with changes to be applayed
+        messages += '<p>Applay the followning changes:</p>'
+        messages += `<p>==> add attribute option with formated "${dataObj['key']}" and matches "${dataObj['value']}"</p>`
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        // applay changes
+        messages = ''
+        const [created, errors] = await putData(form.action, {actionOn: 'create', data: dataObj})
+        if (created) {
+            const [key, values] = created
+            const targetRow = form.querySelector('tr[data-create]')
+            const copyRow = targetRow.cloneNode(true)
+            copyRow.querySelectorAll('input').forEach((input) => input.value = '')
+            copyRow.querySelector('td:nth-child(5) > button').addEventListener('click', addData)
+            targetRow.querySelectorAll('input').forEach((input) => input.remove())
+            targetRow.querySelector('td:nth-child(1)').innerText = key
+            targetRow.querySelector('td:nth-child(2)').innerText = values[0].join(', ')
+            targetRow.querySelector('td:nth-child(3) > a').innerText = values[1]
+            targetRow.querySelector('td:nth-child(3) > a').href += `?${currentAttribute}=${key}`
+            targetRow.querySelector('td:nth-child(4)').innerText = 'active'
+            targetRow.querySelector('td:nth-child(5)').remove()
+            targetRow.parentNode.insertBefore(copyRow, targetRow)
+            messages = '<p>Create action ended successfully!</p>'
+            messages += `<p>Added new attribute option with formated "${dataObj['key']}" and matches "${dataObj['value']}"</p> `
+        } else {
+            if (errors) {
+                errorsMessages += `<p>Create action failure!</p>`
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errorsMessages += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                errorsMessages += '<br>'
+            } else {
+                errorsMessages += `<p>Connection error: connection has been broken!</p>`
+            } 
+        }
+        if (messages) {
+            displayMessages(messages)
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+        }
+    }
+
+    async function deleteData() {
+        let messages = ''
+        let errorsMessages = ''
+        const form = document.getElementById('DE_form_attr')
+        const formData = new FormData(form)
+        const dataList = [...formData.entries()].map((de) => de[1])
+        // show user dialog with changes to be applayed
+        messages += '<p>Applay the followning changes:</p>'
+        for (const key of dataList) {
+            messages += `<p>==> remove attribute option with key ${key}</p>`
+        }
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        // applay changes
+        const [deleted, errors] = await putData(form.action, {actionOn: 'delete', data: dataList})
+        if (deleted) {
+            messages = '<p>Delete action ended successfully!</p>'
+            for (const key of dataList) {
+                messages += `<p>Option with key: ${key} deleted`
+                document.querySelector(`tr[data-parent-for="${key}"]`).remove()
+            }
+        } else {
+            if (errors) {
+                errorsMessages += `<p>Delete action failure!</p>`
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errorsMessages += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                errorsMessages += '<br>'
+            } else {
+                errorsMessages += `<p>Connection error: connection has been broken!</p>`
+            } 
+        }
+        if (messages) {
+            displayMessages(messages)
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+        }
+    }
+
+    // update user data and update html elements to reflect changes
+    async function updateData() {
+        let messages = ''
+        let errorsMessages = ''
+        const button = event.currentTarget
+        const actionOn = button.dataset.onSubmit
+        if (actionOn === 'current') {
+            // validate inputs
+            const inputs = document.querySelectorAll(`input[data-on-submit="${actionOn}"]`)
+            if (!inputs.length) return
+            inputs.forEach(input => {
+                if (!input.value) {
+                    errorsMessages += `<p>Value for "${input.name}" can not be empty!</p>`
+                } else {
+                    input.value = input.value.trim()
+                }
+            })
+            if (errorsMessages) {
+                displayErros(errorsMessages)
+                return
+            }
+        }
+        console.log(form)
+        let dataObj = actionOn === 'pending' 
+            ? {[currentAttribute]: button.parentElement.parentElement.dataset.parentFor} 
+            : Object.fromEntries(new FormData(form))
+        // show user dialog with changes to be applayed
+        messages += '<p>Apply the followning changes:</p>'
+        for (const[key, value] of Object.entries(dataObj)) {
+            messages += actionOn === 'current'
+                ? `<p>change formated "${key}" ==> "${value}"</p>`
+                : `<p>Accept new option "${value}" for attribute ${key}</p>`
+        }
+        const acceptChanges = await actionDialog(messages)
+        if(!acceptChanges) return
+        messages = ''
+        const [updated, errors] = await putData(form.action, {actionOn: actionOn, data: dataObj})
+        if (updated) {
+            if (actionOn === 'current') {
+                messages = '<p>Attribute options successfully updated!</p>'
+                for (const [propertyKey, propertyValues] of Object.entries(updated)) {
+                    messages += `<p>Option "${propertyValues['prev']}" changed to "${propertyKey}"</p>`
+                    editElements[propertyValues['prev']]['record'].innerText = propertyKey
+                    editElements[propertyValues['prev']]['record'].dataset.property = propertyKey
+                    editElements[propertyValues['prev']]['parent'].dataset.parentFor = propertyKey
+                    editElements[propertyValues['prev']].onChange() 
+                    // check if updated element is a clone
+                    if (editElements[propertyValues['prev']]['parent'].hasAttribute('data-similar')) {
+                        // if it is - update true one 
+                        const trueOne = document.querySelector(`tr[data-parent-for="${propertyValues['prev']}"]`)
+                        trueOne.dataset.parentFor = propertyKey
+                    }
+                }
+                editElements = {}
+                setToNormal()
+            } else {
+                messages = `<p>Confirmed new option "${updated[0]}" with matches "${updated[1].join(', ')}" for attribute ${currentAttribute}.</p>`
+                button.parentElement.innerText = 'active'
+                button.remove()
+            }
+        } else {
+            if (errors) {
+                errorsMessages += `<p>Attribute options update failure!</p>`
+                for (const [errorKey, errorValues] of Object.entries(errors) ) {
+                    for (const error of errorValues) {
+                    errorsMessages += `<p>${errorKey} ${errorValues}</p>`
+                    }
+                }
+                errorsMessages += '<br>'
+            } else {
+                errorsMessages += `<p>Connection error: connection has been broken!</p>`
+            }
+        }
+        if (messages) {
+            displayMessages(messages)
+        }
+        if (errorsMessages) {
+            displayErros(errorsMessages)
+        }
+    }
+    window.onload = () => {
+        interact()
+    }
+
+</script>

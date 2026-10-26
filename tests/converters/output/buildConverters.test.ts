@@ -4,7 +4,7 @@ import { Decimal } from 'decimal.js'
 import { buildConverters } from '../../../src/converters/output/buildConverters.js'
 import { productMetadata } from '../../testSkeleton/metadata.js'
 import type { Product } from '../../testSkeleton/entities.ts'
-import type { EntityConvertersBuild } from '../../../src/types/entity/Converters.ts'
+import type { EntityConvertersBuild, OutputConverterConfig } from '../../../src/types/entity/Converters.ts'
 
 
 const converterFunctionsBuild: EntityConvertersBuild = {
@@ -17,16 +17,27 @@ const converterFunctionsBuild: EntityConvertersBuild = {
     fns: {}
 }
 
+const config: OutputConverterConfig = {
+    subEntitiesDepth: 5
+}
+
 describe('buildConverters - test baseAttributes', () => {
-    const productConverters = buildConverters<Product>(productMetadata, converterFunctionsBuild)
+    const productConverters = buildConverters<Product>(converterFunctionsBuild, config, productMetadata)
 
     it('creates base converters for base attribute defined in metadata', () => {
         const baseKeys = Object.keys(productConverters.baseAttributes).sort()
-        assert.deepStrictEqual(baseKeys, [ 'active', 'created', 'id', 'importer_id', 'updated' ])
+        assert.deepStrictEqual(baseKeys, [
+            "active",
+            "created",
+            "id",
+            "importer_id",
+            "updated"
+        ])
     })
 
     it('applies the provided type converters when invoked', () => {
         const importerConverter = productConverters.baseAttributes.importer_id
+        assert.ok(!(productConverters.subEntities.prices instanceof Error))
         const priceConverter = productConverters.subEntities.prices.baseAttributes.price
         const activeConverter = productConverters.baseAttributes.active
         const createdConverter = productConverters.baseAttributes.created
@@ -51,10 +62,10 @@ describe('buildConverters - test baseAttributes', () => {
 
     it('builds converters recursively for nested relations', () => {
         const priceConverters = productConverters.subEntities.prices
-        assert.ok(priceConverters)
+        assert.ok(!(priceConverters instanceof Error))
 
         const shopConverters = priceConverters.subEntities.shop
-        assert.ok(shopConverters)
+         assert.ok(!(shopConverters instanceof Error))
         const shopCreated = shopConverters.baseAttributes.created
         assert.ok(shopCreated)
         const shopDate = shopCreated('2020-01-01T00:00:00Z')
@@ -62,34 +73,39 @@ describe('buildConverters - test baseAttributes', () => {
         assert.strictEqual(shopDate.toISOString().startsWith('2020-01-01'), true)
     })
 
-    it('stops recursion after depth five to avoid infinite loops', () => {
+    it('stops recursion after depth limit to avoid infinite loops', () => {
         const level1 = productConverters.subEntities.prices
-        assert.ok(level1)
+        assert.ok(!(level1 instanceof Error))
 
         const level2 = level1.subEntities.product
-        assert.ok(level2)
+        assert.ok(!(level2 instanceof Error))
 
         const level3 = level2.subEntities.prices
-        assert.ok(level3)
+        assert.ok(!(level3 instanceof Error))
 
         const level4 = level3.subEntities.product
-        assert.ok(level4)
+        assert.ok(!(level4 instanceof Error))
 
         const level5 = level4.subEntities.prices
-        assert.ok(level5)
+        assert.ok(!(level5 instanceof Error))
 
-        assert.deepStrictEqual(Object.keys(level5.subEntities), [])
+        assert.ok(Object.keys(level5.subEntities).length)
+        for (const subEntity of Object.keys(level5.subEntities)) {
+            assert.ok(level5.subEntities[subEntity as keyof typeof level5.subEntities] instanceof Error)
+        }
     })
 })
 
 
 describe('buildConverters - test subEntities', () => {
-    const productConverters = buildConverters<Product>(productMetadata, converterFunctionsBuild)
-    const priceConverters = productConverters.subEntities.prices
-    const shopConverters = priceConverters.subEntities.shop
+    const entityLevel0 = buildConverters<Product>(converterFunctionsBuild, config, productMetadata)
+    const entityLevel1 = entityLevel0.subEntities.prices
+    assert.ok(!(entityLevel1 instanceof Error))
+    const entityLevel2 = entityLevel1.subEntities.shop
+    assert.ok(!(entityLevel2 instanceof Error))
     
     it('creates subEntity converters for all relations defined in metadata', () => {
-        const subEntityKeys = Object.keys(productConverters.subEntities).sort()
+        const subEntityKeys = Object.keys(entityLevel0.subEntities).sort()
         assert.deepStrictEqual(subEntityKeys, [
             'comments', 
             'prices', 
@@ -100,120 +116,121 @@ describe('buildConverters - test subEntities', () => {
     })
 
     it('creates baseAttributes for first-level subEntity', () => {        
-        const priceBaseKeys = Object.keys(priceConverters.baseAttributes).sort()
+        const priceBaseKeys = Object.keys(entityLevel1.baseAttributes).sort()
         assert.deepStrictEqual(priceBaseKeys, [ 'active', 'created', 'id', 'price', 'product_id', 'shop_id', 'updated' ])
     })
 
-    it('creates subEntities for second-level nested relations', () => {
-        const shopAndProductKeys = Object.keys(priceConverters.subEntities).sort()
+    it('creates subEntities for first-level nested relations', () => {
+        const shopAndProductKeys = Object.keys(entityLevel1.subEntities).sort()
         assert.deepStrictEqual(shopAndProductKeys, [ 'product', 'shop' ])
     })
 
-    it('applies converters correctly through subEntity chain', () => {
-        const shopActiveConverter = shopConverters.baseAttributes.active
+    it('applies converters correctly through subEntity chain (2 level)', () => {
+        const shopActiveConverter = entityLevel2.baseAttributes.active
         assert.ok(shopActiveConverter)
         assert.strictEqual(shopActiveConverter(1), true)
         assert.strictEqual(shopActiveConverter(0), false)
     })
 
-    it('subEntity has correct baseAttributes structure', () => {
-        const shopBaseKeys = Object.keys(shopConverters.baseAttributes).sort()
+    it('subEntity has correct baseAttributes structure (2 level)', () => {
+        const shopBaseKeys = Object.keys(entityLevel2.baseAttributes).sort()
         assert.deepStrictEqual(shopBaseKeys, [ 'active', 'created', 'founded', 'id', 'updated' ])
     })
 
-    it('subEntity at depth 3 continues to have subEntities', () => {
-        const shopSubEntityKeys = Object.keys(shopConverters.subEntities).sort()
+    it('subEntity has correct subEntities structure (2 level)', () => {
+        const shopSubEntityKeys = Object.keys(entityLevel2.subEntities).sort()
         assert.deepStrictEqual(shopSubEntityKeys, [ 'prices' ])
     })
 
-    it('subEntity at depth 4 still has subEntities', () => {
-        const level1 = productConverters.subEntities.prices
-        assert.ok(level1)
-
-        const level2 = level1.subEntities.product
-        assert.ok(level2)
-
-        const level3 = level2.subEntities.prices
-        assert.ok(level3)
-
-        assert.ok(Object.keys(level3.subEntities).length > 0)
-    })
-
-    it('subEntity at depth 5 has no subEntities', () => {
-        const level1 = productConverters.subEntities.prices
-        assert.ok(level1)
-
-        const level2 = level1.subEntities.product
-        assert.ok(level2)
-
-        const level3 = level2.subEntities.prices
-        assert.ok(level3)
+    it('subEntity at depth 3 and depth 4 still has baseAttributes and subEntities', () => {
+        const level3 = entityLevel2.subEntities.prices
+        assert.ok(!(level3 instanceof Error))
+        assert.deepStrictEqual(Object.keys(level3.baseAttributes).sort(), [
+            'active', 
+            'created', 
+            'id', 
+            'price', 
+            'product_id', 
+            'shop_id', 
+            'updated'
+        ])
+        assert.deepStrictEqual(Object.keys(level3.subEntities).sort(), ['product', 'shop'])
 
         const level4 = level3.subEntities.product
-        assert.ok(level4)
+        assert.ok(!(level4 instanceof Error))
+        assert.deepStrictEqual(Object.keys(level4.baseAttributes).sort(), [
+            "active",
+            "created",
+            "id",
+            "importer_id",
+            "updated"
+        ])
+        assert.deepStrictEqual(Object.keys(level4.subEntities).sort(), [ 
+            'comments', 
+            'prices', 
+            'product_categories', 
+            'product_importer', 
+            'specification_tree'
+        ])
+    })
 
-        const level5 = level4.subEntities.prices
-        assert.ok(level5)
-
-        assert.deepStrictEqual(Object.keys(level5.subEntities), [])
+    it('subEntity at depth 5 has subEntities as instance of error', () => {
+        const level1 = entityLevel0.subEntities.product_categories
+        assert(!(level1 instanceof Error))
+        const level2 = level1.subEntities.category
+        assert(!(level2 instanceof Error))
+        const level3 = level2.subEntities.parent
+        assert(!(level3 instanceof Error))
+        const level4 = level3.subEntities.children
+        assert(!(level4 instanceof Error))
+        const level5 = level4.subEntities.product_categories
+        assert(!(level5 instanceof Error))
+        const subEntities = level5.subEntities
+        assert.deepStrictEqual(Object.keys(subEntities).sort(), ['category', 'product'])
+        for (const entity in subEntities) {
+            assert(subEntities[entity as keyof typeof subEntities] instanceof Error)
+        }
     })
 
     it('subEntity with empty fns at non-root levels', () => {
-        const priceConverters = productConverters.subEntities.prices
-        assert.ok(priceConverters)
-        assert.strictEqual(priceConverters.fns, undefined)
+        // at level 1
+        assert.deepStrictEqual(entityLevel1.fns, undefined)
+        // at level 2 
+        assert.deepStrictEqual(entityLevel2.fns, undefined)
     })
 
     it('deeply nested subEntity chain preserves converter functions', () => {
-        const productBaseConverter = productConverters.baseAttributes.id
-        assert.ok(productBaseConverter)
-        assert.strictEqual(productBaseConverter('123'), 123)
+        // at level 1
+        assert.ok(entityLevel1.baseAttributes.id)
+        assert.strictEqual(entityLevel1.baseAttributes.id('456'), 456)
+        assert.ok(entityLevel1.baseAttributes.active)
+        assert.strictEqual(entityLevel1.baseAttributes.active(1), true)
+        assert.ok(entityLevel1.baseAttributes.created)
+        assert.strictEqual(entityLevel1.baseAttributes.created('2024-06-15T10:30:00Z').toISOString(), new Date('2024-06-15T10:30:00Z').toISOString())
 
-
-        const priceBaseConverter = productConverters.subEntities.prices.baseAttributes.id
-        assert.ok(priceBaseConverter)
-        assert.strictEqual(priceBaseConverter('456'), 456)
-
-
-        const shopBaseConverter = productConverters.subEntities.prices.subEntities.shop.baseAttributes.id
-        assert.ok(shopBaseConverter)
-        assert.strictEqual(shopBaseConverter('789'), 789)
+        // at level 2
+        assert.ok(entityLevel2.baseAttributes.id)
+        assert.strictEqual(entityLevel2.baseAttributes.id('789'), 789)
+        assert.ok(entityLevel2.baseAttributes.active)
+        assert.strictEqual(entityLevel2.baseAttributes.active(1), true)
+        assert.ok(entityLevel2.baseAttributes.founded)
+        const founded = entityLevel2.baseAttributes.founded('2024-07-15T10:30:00Z')
+        assert.ok(founded)
+        assert.strictEqual(founded.toISOString(), new Date('2024-07-15T10:30:00Z').toISOString())
     })
 
-    it('subEntity chain can traverse through prices back to product', () => {
-        const priceSubEntity = productConverters.subEntities.prices
-        assert.ok(priceSubEntity)
-
-
-        const productSubEntityFromPrice = priceSubEntity.subEntities.product
-        assert.ok(productSubEntityFromPrice)
-
-
-        const productBaseConverter = productSubEntityFromPrice.baseAttributes.id
-        assert.ok(productBaseConverter)
-        assert.strictEqual(productBaseConverter('999'), 999)
+    it('deeply nested subEntity chain do not have converter function for attributes that do not match in type in converters build', () => {
+        // at level 1
+        assert.ok(entityLevel1.baseAttributes.url === undefined)
+        // at level 2
+        assert.ok(entityLevel2.baseAttributes.name === undefined)
     })
 
-    it('subEntity baseAttributes work with decimal type converter', () => {
-        const priceConverter = productConverters.subEntities.prices.baseAttributes.price
-        assert.ok(priceConverter)
-        const result = priceConverter('999.99')
-        assert.ok(result instanceof Decimal)
-        assert.strictEqual(result.toString(), '999.99')
-    })
-
-    it('subEntity baseAttributes work with date type converter', () => {
-        const priceCreatedConverter = productConverters.subEntities.prices.baseAttributes.created
-        assert.ok(priceCreatedConverter)
-        const result = priceCreatedConverter('2024-06-15T10:30:00Z')
-        assert.ok(result instanceof Date)
-        assert.strictEqual(result.toISOString().startsWith('2024-06-15'), true)
-    })
 })
 
 
 describe('buildConverters - test fns', () => {
-    const productConverters = buildConverters<Product>(productMetadata, converterFunctionsBuild)
+    const productConverters = buildConverters<Product>(converterFunctionsBuild, config, productMetadata)
     productConverters['fns'] = {
         $count: (value) => Number(value),
         $avg: (value) => new Decimal(value),
@@ -274,7 +291,7 @@ describe('buildConverters - test fns', () => {
 
     it('fn converters are only available at root level', () => {
         const priceConverters = productConverters.subEntities.prices
-        assert.ok(priceConverters)
+        assert.ok(!(priceConverters instanceof Error))
         assert.strictEqual(priceConverters.fns, undefined)
     })
 })

@@ -1,0 +1,149 @@
+<div data-id="<%= stat['name'] %>" class="collector-shop-stat-container" data-active="false" data-shop-stat class="admin_stat_row">
+    <% if (!['running', 'uninitialized'].includes(stat['status']) || stat['name'] === 'shop stat') {%>
+        <%- include('./collectorProgressStat', {stat: stat}) %>
+    <% } %>
+    <div class="collector-shop-stat">
+        <p>Pid: <b data-attribute="pid"><%= stat['pid'] %></b></p>
+        <p>Started at: <b data-attribute="time"><%= stat['time'] %></b></p>
+        <p>Duration: <b data-attribute="duration time"><%= stat['duration time'] %></b></p>
+        <p>Status: <b data-attribute="status"><%= stat['status'] %></b></p>
+        <p>Urls data integrity: <b data-attribute="urls data integrity"><%= stat['urls data integrity'] %></b></p>
+        <p>Prices data integrity: <b data-attribute="price data integrity"><%= stat['price data integrity'] %></b></p>
+        <p>Laptops data integrity: <b data-attribute="product data integrity"><%= stat['product data integrity'] %></b></p>
+        <p>Prices urls: 
+            <b>
+                <% if (stat['price urls'] > 0) { %>
+                <a data-attribute="price urls" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceUrls%2F" target="_blank"><%= stat['price urls'] %></a>
+                <% } else { %>
+                <a data-attribute="price urls" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceUrls%2F" target="_blank"><%= stat['price urls'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices raw: 
+            <b>
+                <% if (stat['price raw'] > 0) { %>
+                <a data-attribute="price raw" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceRaw%2F" target="_blank"><%= stat['price raw'] %></a>
+                <% } else { %>
+                <a data-attribute="price raw" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceRaw%2F" target="_blank"><%= stat['price raw'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices failed urls: 
+            <b>
+                <% if (stat['price failed urls'] > 0) { %>
+                <a data-attribute="price failed urls" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFailedUrls%2F" target="_blank"><%= stat['price failed urls'] %></a>
+                <% } else { %>
+                <a data-attribute="price failed urls" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFailedUrls%2F" target="_blank"><%= stat['price failed urls'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices fetch errors: 
+            <b>
+                <% if (stat['price fetch errors'] > 0) { %>
+                <a data-attribute="price fetch errors" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFetchErrors%2F" target="_blank"><%= stat['price fetch errors'] %></a>
+                <% } else { %>
+                <a data-attribute="price fetch errors" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFetchErrors%2F" target="_blank"><%= stat['price fetch errors'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices formated: 
+            <b>
+                <% if (stat['price formated'] > 0) { %>
+                <a data-attribute="price formated" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFormated%2F" target="_blank"><%= stat['price formated'] %></a>
+                <% } else { %>
+                <a data-attribute="price formated" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceFormated%2F" target="_blank"><%= stat['price formated'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices updated: <b data-attribute="price updated"><%= stat['price updated'] %></b></p>
+        <p>Prices after: 
+            <b>
+                <% if (stat['price after'] > 0) { %>
+                <a data-attribute="price after" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceAfter%2F" target="_blank"><%= stat['price after'] %></a>
+                <% } else { %>
+                <a data-attribute="price after" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FpriceAfter%2F" target="_blank"><%= stat['price after'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Prices added: <b data-attribute="price added"><%= stat['price added'] %></b></p>
+        <p>Laptops urls: 
+            <b>
+                <% if (stat['product urls'] > 0) { %>
+                <a data-attribute="product urls" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductUrls%2F" target="_blank"><%= stat['product urls'] %></a>
+                <% } else { %>
+                <a data-attribute="product urls" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductUrls%2F" target="_blank"><%= stat['product urls'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops raw: 
+            <b>
+                <% if (stat['product raw'] > 0) { %>
+                <a data-attribute="product raw" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductRaw%2F" target="_blank"><%= stat['product raw'] %></a>
+                <% } else { %>
+                <a data-attribute="product raw" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductRaw%2F" target="_blank"><%= stat['product raw'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops failed urls: 
+            <b>
+                <% if (stat['product failed urls'] > 0) { %>
+                <a data-attribute="product failed urls" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFailedUrls%2F" target="_blank"><%= stat['product failed urls'] %></a>
+                <% } else { %>
+                <a data-attribute="product failed urls" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFailedUrls%2F" target="_blank"><%= stat['product failed urls'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops fetch errors: 
+            <b>
+                <% if (stat['product fetch errors'] > 0) { %>
+                <a data-attribute="product failed urls" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFetchErrors%2F" target="_blank"><%= stat['product fetch errors'] %></a>
+                <% } else { %>
+                <a data-attribute="product fetch errors" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFetchErrors%2F" target="_blank"><%= stat['product fetch errors'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops formated: 
+            <b>
+                <% if (stat['product formated'] > 0) { %>
+                <a data-attribute="product formated" href="" data-linked-count="true" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFormated%2F" target="_blank"><%= stat['product formated'] %></a>
+                <% } else { %>
+                <a data-attribute="product formated" data-linked-count="false" data-href="/admin/file/%2Fcollector%2FcollectedTest%2FproductFormated%2F" target="_blank"><%= stat['product formated'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops with images: 
+            <b>
+                <% if (stat['product images'] > 0) { %>
+                <a data-attribute="product images" href="" data-linked-count="true" data-href="/admin/file_with_img/%2Fcollector%2FcollectedTest%2FproductFormatedWithImg%2F" target="_blank"><%= stat['product images'] %></a>
+                <% } else { %>
+                <a data-attribute="product images" data-linked-count="false" data-href="/admin/file_with_img/%2Fcollector%2FcollectedTest%2FproductFormatedWithImg%2F" target="_blank"><%= stat['product images'] %></a>
+                <% } %>
+            </b>
+        </p>
+        <p>Laptops added: <b data-attribute="product added"><%= stat['product added'] %></b></p>
+        <p>Laptops merged: <b data-attribute="product merged"><%= stat['product merged'] %></b></p>  
+        <p>Added new attribute options: 
+            <b data-attribute="new attributes">
+            <% if (stat['new attributes'].length) { %>
+            <% stat['new attributes'].forEach((option, index) => { %>
+            <a data-new-attribute-options href="/admin/collector/inspect_attributes/<%= option[0].replace(/ /g, '_') %>"><% if (index !== stat['new attributes'].length - 1) { %><%= option[0] %>(<%= option[1] %>), <% } else { %><%= option[0] %>(<%= option[1] %>)<% } %></a>
+            <% }) %>
+            <% } else { %>
+            0
+            <% } %>
+            </b> 
+        </p>
+        <% if (stat.hasOwnProperty('empty attribute options')) { %>
+        <p>Empty attribute options: <b data-attribute="empty attribute options"><%= stat['empty attribute options'] %></b></p>
+        <% } %>
+        <div data-attribute="errors">
+            <% for (const [index, error] of stat['errors'].entries()) { %>
+            <% if (index === 0) { %> 
+            <p><%= error %></p>
+            <% } else { %>
+            <p>&emsp;<%= error %></p> 
+            <% } %>
+            <% } %>
+        </div>
+    </div>
+</div>

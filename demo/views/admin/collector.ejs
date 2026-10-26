@@ -1,0 +1,644 @@
+<div class="admin-section-wrapper">
+    <div class="header-wrapper-section">
+        <h2>Collector Test</h2>
+    </div>
+    <div class="admin-section-content-wrapper">
+        <div>
+            <%- include('../partials/message') %>
+            <%- include('../partials/error') %>
+        </div>
+        <% if (isTest) { %>
+            <%- include('./partials/collectorTestRunner', {currentJob, activeShopStat, job}) %>
+        <% } else { %>
+            <%- include('./partials/collectorRunner', {currentJob, activeShopStat, job}) %>
+        <% } %>
+        <div class="admin-paragraph-wrapper">
+            <p><% if (isTest) { %>
+                <span>Test statistic from: </span>
+                <% } else { %>
+                <span>Statistic from: </span>
+                <% } %>
+                <select class="input-base" data-action-from data-stat-type="statII">
+                    <% if (jobsList.length) { %>
+                    <% for (const [index, date, active] of jobsList) { %>
+                    <% if (active) { %>
+                    <option value="<%= index %>" selected><%= date %></option>
+                    <% } else { %>
+                    <option value="<%= index %>"><%= date %></option>
+                    <% } %>
+                    <% } %>
+                    <% } else { %>
+                    <option value="">-- -- -- | -- -- --</option>
+                    <% } %>
+                </select>
+            </p>
+        </div>
+        <div id="collector-stat-wrapper" class="collector-stat-wrapper">
+            <div id="collector-stat-container">
+                <%- include('./partials/collectorStat', {collectorStat, job, shopStatsList, statTargetName}) %>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var activeSelectStatIndex
+    var currentEventSource
+    var collectorMode
+    var jobButton
+    var jobActionsContainer
+    var showTest
+    var testCont
+    var currentJob
+    var testTargetsInputs
+    var collectorButton
+    var statTargetButtons
+    var statTargetDataCont
+    var activeTargetButton
+    var activeTargetData
+    var previousActiveTargetData
+    var targetButtonWrapper
+    var shopStatBlueprint
+    var targetButtonClone
+    var progressElementWrapper
+    var currentProgressElement
+    var progressElementClone
+    var progressContainer
+    var rerunCollectorSwitch
+    var collectorRerun 
+
+    function interact() {
+        selectStat = document.querySelector('select[data-action-from]')
+        selectStat.addEventListener('change', async (event) => {
+            const activeSelectStatIndex = event.currentTarget.value
+            await getStatData(activeSelectStatIndex)
+            setUpCollectorStat()
+        })
+        activeSelectStatIndex = selectStat.selectedOptions[0].value
+        setJobButtons()
+
+        collectorButton = document.querySelector('button[data-job="RC"]') || document.querySelector('button[data-job="TC"]') 
+        collectorMode = collectorButton.dataset.job
+        jobActionsContainer = document.getElementById('run-collector-options-container')
+        rerunCollectorSwitch = document.getElementById('show-run-collector-options')
+        rerunCollectorSwitch.addEventListener('click', (event) => {
+            showCollectorOptionsJob(event.currentTarget)
+        })
+        showCollectorOptionsJob(rerunCollectorSwitch)
+        setUpCollectorOptionsJobBoxes()
+        
+
+        setUpCollectorStat()
+        reloadOnGoBack()
+        progressElementWrapper = document.getElementById('collector-progress-column-wrapper')
+        currentProgressElement = progressContainer.querySelector('div[data-id-progress]')
+    }
+
+    function showCollectorOptionsJob(checkbox) {
+        // check if any job session available
+        if (isNaN(parseInt(selectStat.value))) checkbox.checked = false
+        const textNote = document.querySelector('[data-on-off-collector-options]')
+        if (checkbox.checked) {
+            jobActionsContainer.dataset.active = 'true'
+            textNote.innerText = 'on'
+        } else {
+            delete jobActionsContainer.dataset.active
+            textNote.innerText = 'off'
+        }
+    }
+
+    function setUpCollectorOptionsJobBoxes() {
+        // allow checking/unchecking by order(from min to max index and vice versa)
+        // last item must be allways checked
+        const checkboxes = jobActionsContainer.querySelectorAll('input[type="checkbox"]')
+        const checked = Array.from(checkboxes).filter((box) => box.checked)
+        const unChecked = Array.from(checkboxes).filter((box) => !box.checked)
+        checked.forEach((box, index) => {
+            if (index !== 0) box.disabled = true
+        })
+        unChecked.forEach((box, index) => {
+            if (unChecked.length > 1 && index !== unChecked.length - 1) box.disabled = true
+        })
+        checkboxes.forEach((box, index) => {
+            box.addEventListener('change', (event) => {
+                const checkboxes = jobActionsContainer.querySelectorAll('input[type="checkbox"]')
+                if (!box.checked) {
+                    if (checkboxes.item(index + 1)) {
+                        if (index + 1 !== checkboxes.length - 1) {
+                            checkboxes[index + 1].removeAttribute('disabled')
+                        }
+                    }
+                    if (checkboxes.item(index - 1)) {
+                        checkboxes[index - 1].disabled = true
+                    }
+                } else if (box.checked) {
+                    if (checkboxes.item(index - 1)) {
+                        checkboxes[index - 1].removeAttribute('disabled')
+                    } 
+                    if (checkboxes.item(index + 1)) {
+                        checkboxes[index + 1].disabled = true
+                    }
+                }
+            })
+        })
+    }
+
+    function setUpCollectorStat() {
+        setUpStatTargetButtons()
+        shopStatBlueprint = document.querySelector('div[data-target-shop]')
+        let shopProgressElement = shopStatBlueprint.querySelector('div[data-id-progress]')
+        progressElementClone = shopProgressElement.cloneNode(true)
+        shopProgressElement.remove()
+        progressContainer = document.getElementById('collector-progress-column')
+        targetButtonWrapper = document.querySelector('div[data-stat-button-wrapper]')
+        let targetButtonToClone = targetButtonWrapper.querySelector('button')
+        if (targetButtonToClone) {
+            targetButtonClone = targetButtonToClone.cloneNode(true)
+            targetButtonClone.dataset.targetActive = 'false'
+            targetButtonClone.dataset.targetShop = ''
+        }
+        let shopStats = document.querySelectorAll('div[data-shop-stat]')
+        shopStats.forEach((stat) => {
+            setUpDataLinkedForShopStat(stat)
+        })
+    }
+
+    function setUpDataLinkedForShopStat(shopStat) {
+        const linkedToData = shopStat.querySelectorAll('[data-linked-count="true"]')
+        linkedToData.forEach((a) => {
+            setUpDataLinked(a)
+        })
+    }
+
+    function setUpDataLinked(a) {
+        a.addEventListener('click', (e) => {
+            e.preventDefault()
+            const pidElement = activeTargetData.querySelector('[data-attribute="pid"]')
+            const url = e.currentTarget.dataset.href + activeTargetData.firstElementChild.dataset.id.replace(' ', '_') + '_' + pidElement.innerText + '.json'
+            window.open(url, '_blank')
+        })
+    }
+
+    async function getStatData(index) {
+        const wrapper = document.getElementById('collector-stat-wrapper')
+        const runnerOnWait = document.getElementById('admin-right-roller')
+        const statContainer = wrapper.querySelector('#collector-stat-container')
+        runnerOnWait.style.display = 'block'
+        let statTarget = encodeURIComponent(activeTargetButton.dataset.targetShop)
+        let url = updateUrl(window.location, {stat: index, stat_target: statTarget, get_collector_stat: true})
+        let data = await getData(url)
+        if (!data) {
+            displayError('<p>Could not fetch collector stat data!</p>')
+            return
+        }
+        activeSelectStatIndex = index
+        updateUrlHistory(updateUrl(window.location, {stat: activeSelectStatIndex, stat_target: statTarget}))
+        runnerOnWait.style.display = 'none'
+        statContainer.innerHTML = data
+    }
+
+    function setUpStatElements(target, index) {
+        const targetButtonClone2 = targetButtonClone.cloneNode(true)
+        targetButtonClone2.innerText = target
+        targetButtonClone2.dataset.targetShop = target
+        targetButtonWrapper.appendChild(targetButtonClone2)
+        const shopStatClone = shopStatBlueprint.cloneNode(true)
+        shopStatClone.dataset.targetShop = target
+        shopStatClone.firstElementChild.dataset.id = target
+        statTargetDataCont.appendChild(shopStatClone)
+        if (index === 0) {
+            switchTargetData(targetButtonClone2)
+        }
+    }
+
+    function setUpStatTargetButtons() {
+        targetButtonWrapper = document.querySelector('div[data-stat-button-wrapper]')
+        statTargetDataCont = document.querySelector('div[data-stat-target-wrapper]')
+        activeTargetData = statTargetDataCont.querySelector('div[data-target-active="true"]')
+        statTargetButtons = document.querySelectorAll('button[data-target-active]')
+        statTargetButtons.forEach((button) => {
+            let isActive = button.dataset.targetActive === 'true'
+            if (isActive) {
+                activeTargetButton = button
+            }
+            button.addEventListener('click', (event) => {
+                switchTargetData(event.currentTarget)
+            })
+        })
+    }
+
+    function switchTargetData(button) {
+        activeTargetButton.dataset.targetActive = 'false'
+        button.dataset.targetActive = 'true'
+        activeTargetButton = button
+        activeTargetData.dataset.targetActive = 'false'
+        let statDataToActive = statTargetDataCont.querySelector(`div[data-target-shop="${button.dataset.targetShop}"]`)
+        statDataToActive.dataset.targetActive = 'true'
+        activeTargetData = statDataToActive
+        let statTarget = encodeURIComponent(activeTargetButton.dataset.targetShop)
+        updateUrlHistory(updateUrl(window.location, {stat_target: statTarget}))
+    }
+
+    function onShopFetchEnd(id) {
+        // check if the current stat is the right one
+        // stat for current job(job that is currently running) has always value = 0
+        if (activeSelectStatIndex === '0') {
+            const parent = document.querySelector(`div[data-id="${id}"]`)
+            const copyProgress = currentProgressElement.cloneNode(true)
+            parent.prepend(copyProgress)
+        }
+        currentProgressElement.remove()
+    }
+
+    function onShopFetchInit(id) {
+        const button = document.querySelector(`button[data-target-shop="${id}"]`)
+        setUpProgressColumn(id)
+        if (activeSelectStatIndex === '0') {
+            switchTargetData(button)
+        }
+    }
+
+    function setUpProgressColumn(id) {
+        progressContainer.appendChild(progressElementClone.cloneNode(true))
+        currentProgressElement = progressContainer.querySelector('div[data-id-progress]')
+        currentProgressElement.dataset.idProgress = id
+        let targetName = progressElementWrapper.querySelector('[data-current-progress-on]')
+        targetName.innerText = id
+    }
+
+    function showTestCont() {
+        testCont.style.display = 'block'
+        showButton.dataset.testShow = 'true'
+        showButton.innerText = 'Hide'
+    }
+
+    function hideTestCont() {
+        testCont.style.display = 'none'
+        showButton.dataset.testShow = 'false'
+        showButton.innerText = 'Show more'
+    }
+
+    function setJobButtons() {
+        const jobButtons = document.querySelectorAll('button[data-job]')
+        jobButtons.forEach((button) => {
+            if (button.dataset.jobRunning === 'true') {
+                jobRunning = true
+                currentJob = button.dataset.job
+                setEventSource(jobActionsObject[currentJob]['onStart'], jobActionsObject[currentJob]['onEnd'], button)
+                button.addEventListener('click', closeEventSource)
+            } else {
+                button.addEventListener('click', openEventSource)
+            }
+        })
+    }
+    
+    const collectorActions = {
+        onStart(button) {
+            const collectorStatus = document.querySelector('[data-collector-status]')
+            const lightOnOff = document.getElementById('on-off-wrapper')
+            const collectorProgressDropdown = document.getElementById('collector-progress-column-wrapper')
+            const container = document.querySelector(`div[data-job="${button.dataset.job}"]`)
+            const runTargets = button.dataset.targetName ? button.dataset.targetName.split(',') : null
+            button.innerText = 'Stop'
+            button.dataset.job.running = 'true'
+            collectorStatus.innerText = 'active'
+            lightOnOff.dataset.active = 'true'
+            if (!currentJob) {
+                activeSelectStatIndex = '0'
+                updateUrlHistory(updateUrl(window.location, {stat: activeSelectStatIndex}))
+                let shopsChart = document.getElementById('shops-chart-container').firstElementChild
+                shopsChart.style.display = 'none'
+                let targetButtons = container.querySelectorAll('button[data-target-shop]')
+                targetButtons.forEach((e) => e.remove())
+                let shopStats = container.querySelectorAll('div[data-target-shop]')
+                shopStats.forEach((s) => {
+                    if (s.dataset.targetShop) s.remove()
+                })
+                runTargets.forEach((target, index) => {
+                    setUpStatElements(target, index)
+                    if (index === 0) {
+                        setUpProgressColumn(target)
+                    }
+                })
+                setUpStatTargetButtons()
+            }
+            collectorProgressDropdown.dataset.active = 'true'
+            button.removeEventListener('click', openEventSource)
+            button.addEventListener('click', closeEventSource)
+        },
+        onEnd(button) {
+            const collectorStatus = document.querySelector('[data-collector-status]')
+            const lightOnOff = document.getElementById('on-off-wrapper')
+            const collectorProgressDropdown = document.getElementById('collector-progress-column-wrapper')
+            button.innerText = 'Run'
+            button.dataset.job.running = ''
+            button.removeEventListener('click', closeEventSource)
+            button.addEventListener('click', openEventSource)
+            collectorStatus.innerText = 'inactive'
+            delete collectorProgressDropdown.dataset.active
+            delete lightOnOff.dataset.active
+            let shopsChart = document.getElementById('shops-chart-container').firstElementChild
+            let pidElement = document.getElementById('collector-job-pid')
+            let imgSrcList = shopsChart.src.split('/')
+            imgSrcList[imgSrcList.length - 1] = pidElement.innerText + '.png'
+            shopsChart.src = imgSrcList.join('/')
+            shopsChart.style.display = 'block'
+            currentJob = null
+        },
+        enforceExit(button) {
+            setTimeout(() => {
+                if (currentEventSource && currentEventSource.readyState === 1) {
+                    currentEventSource.close()
+                    jobActionsObject[button.dataset.job]['onEnd'](button)
+                    currentEventSource.close()
+                    currentEventSource = null
+                    displayMessage(['collector job has been enforced to exit!'])
+                }
+            }, 2000)
+        },
+        getRunConfig() {
+            let shopsRun = document.querySelectorAll('input:checked[data-target]')
+            let actions = document.getElementById('show-run-collector-options').checked 
+                ? Array.from(jobActionsContainer.querySelectorAll('input:checked'))
+                    .map((box) => box.dataset.collectorAction)
+                : null
+            collectorRerun = actions 
+                ? true
+                : false
+            return {
+                'test': collectorMode === 'TC'
+                    ? true
+                    : false,
+                'url test count': collectorMode === 'TC'
+                    ? document.getElementById('url-test-count').value
+                    : null,
+                'actions': actions,
+                'pid': actions
+                    ? document.getElementById('collector-job-pid').innerText
+                    : null,
+                'shops run': shopsRun
+                    ? Array.from(shopsRun).map((box) => box.dataset.target)
+                    : []
+            }
+        }
+
+    }
+    // setup onEnd and onStart - actions to perform before and at the end of the specific job
+    const jobActionsObject = {
+        'RC': collectorActions,
+        'TC': collectorActions,
+        'TD': {
+            getRunConfig() {
+                return null
+            },
+            onStart(button) {
+                const container = document.querySelector(`div[data-job="${button.dataset.job}"]`)
+                const runner = container.querySelector('#test-data-space-runner')
+                button.style.display = 'none'
+                runner.style.display = 'flex'
+            },
+            async onEnd(button) {
+                const container = document.querySelector(`div[data-job="${button.dataset.job}"]`)
+                const runner = container.querySelector('#test-data-space-runner')
+                await getStatData(0)
+                setUpCollectorStat()
+                shopStats = document.querySelectorAll('div[data-shop-stat]')
+                shopStats.forEach((stat) => {
+                    setUpDataLinkedForShopStat(stat)
+                })
+                runner.style.display = 'none'
+                button.style.display = 'block'
+                // clear all options from selectStat
+                Array.from(selectStat.options).forEach((option) => option.remove())
+                let emptyOption = document.createElement('option')
+                emptyOption.innerText = '-- -- -- | -- -- --'
+                emptyOption.value = ''
+                selectStat.appendChild(emptyOption)
+                showCollectorOptionsJob(rerunCollectorSwitch)
+                currentJob = null
+            },
+            enforceExit(button) {
+                setTimeout(() => {
+                    if (currentEventSource && currentEventSource.readyState === 1) {
+                        currentEventSource.close()
+                        jobActionsObject[button.dataset.job]['onEnd'](button)
+                        currentEventSource.close()
+                        currentEventSource = null
+                        displayMessage(['"cleanTestCollectorData" job has been enforced to exit!'])
+                    }
+                }, 2000)
+            }
+        }
+    }
+
+    async function openEventSource(event) {
+        const button = event.currentTarget
+        const job = button.dataset.job
+        const configUrl = parseUrl(`/admin/config_jobs/${job}`)
+        const requestJobUrl = parseUrl('/admin/request_job')
+        const jobConfig = jobActionsObject[job].getRunConfig()
+        const jobStart = {runStart: job}
+        // save configuration for job
+        if (jobConfig) {
+            const saveJobConfig = await fetch(configUrl, {
+                method: 'POST',
+                body: JSON.stringify(jobConfig),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })          
+            const [saved, configError] = await saveJobConfig.json()
+            if (configError) {
+                displayError(configError)
+                return
+            }
+        }
+        // request job start
+        const requestJobStart = await fetch(requestJobUrl, {
+           method: 'POST',
+           body: JSON.stringify(jobStart),
+           headers: {
+               "Content-Type": "application/json"
+           }
+        })
+        const [accepted, requestError] = await requestJobStart.json()
+        if (requestError) {
+            displayError(requestError)
+            return
+        }
+        setEventSource(jobActionsObject[job]['onStart'], jobActionsObject[job]['onEnd'], button)
+    }
+
+    async function closeEventSource(event) {
+        const button = event.currentTarget
+        const job = button.dataset.job
+        const runStop = {runStop: job}
+        const submitUrl = parseUrl('/admin/request_job')
+        const requestJobStop = await fetch(submitUrl, {
+            method: 'POST',
+            body: JSON.stringify(runStop),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const [stopped, error] = await requestJobStop.json()
+        if (error) {
+            displayError(error)
+        }
+    }
+
+    function setEventSource(setOnStart, setOnEnd, button) {
+        const source = new EventSource(parseUrl(`/admin/listen_to_job/${button.dataset.job}`))
+        setOnStart(button)
+        source.addEventListener("open", (event) => {
+            console.log('EventSource is open.')
+        })
+        source.addEventListener("close", (event) => {
+            if (setOnEnd) setOnEnd(button)
+            const data = JSON.parse(event.data)
+            if (data.hasOwnProperty('message')) {
+                displayMessage(data['message'])
+            }
+            source.close()
+            console.log('EventSource has been closed.')
+        })
+        source.addEventListener("error", (event) => {
+            if (setOnEnd) setOnEnd(button)
+            displayError(['Could not accomplish required job! Check logs on the server side.'])
+            source.close()
+            console.log('EventSource error.')
+        })
+        source.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data)
+            updateStat(data)
+        }, false)
+        window.addEventListener('beforeunload', () => source.close())
+        currentEventSource = source
+    }
+
+    function updateStat(data) {
+        try {
+            switch (true) {
+                case !!data['init']:
+                    return;
+                case !!data['exit']:
+                    let button = document.querySelector(`button[data-job="${data["job"]}"]`);
+                    jobActionsObject[data['job']]['enforceExit'](button);
+                    return;
+                case !!data['initShop']:
+                    onShopFetchInit(data['name']);
+                    return;
+                case !!data['finishShop']:
+                    onShopFetchEnd(data['name']);
+                    return;
+                case !!data['error']:
+                    displayError(data['error']);
+                    return;
+            }
+            let statContainer;
+            if ((currentJob === 'TC' || currentJob === 'RC') && activeSelectStatIndex !== '0') {
+                statContainer = null;
+            } else {
+                statContainer = document.querySelector(`[data-id="${data['name']}"]`);
+            }
+            const progressContainer = document.querySelector(`[data-id-progress="${data['name']}"]`)
+            for (const [key, value] of Object.entries(data)) {
+                if (key === 'name') continue
+                let attributeElement = statContainer ? statContainer.querySelector(`[data-attribute="${key}"]`) : null;
+                if (!attributeElement && progressContainer) {
+                    attributeElement = progressContainer.querySelector(`[data-attribute="${key}"]`)
+                }
+                if (!attributeElement) continue
+                if (key === 'runner') {
+                    attributeElement.style.display = value
+                    continue
+                }
+                if (key === 'percentage') {
+                    attributeElement.style.width = value + '%'
+                    continue
+                }
+                if (typeof value !== 'object') {
+                    if (key === 'imagePath') {
+                        attributeElement.src = value
+                    } else {
+                        if (key === 'time') {
+                            if (value === '-- -- -- | -- -- --') continue
+                            attributeElement.innerText = typeof Date.parse(value) === 'number'
+                                ? value.slice(0, 19).replace('T', '~')
+                                : value
+                            if (data['name'] === 'collector stat') {
+                                console.log(selectStat.value, 'VVaaaa')
+                                if (collectorRerun) {
+                                    selectStat.options[selectStat.selectedIndex].text = value
+                                    continue
+                                }
+                                if (selectStat.value === '') {
+                                    selectStat.remove(selectStat.selectedIndex)
+                                }
+                                selectStat.childNodes.forEach((option) => {
+                                    if (option.selected) {
+                                        option.removeAttribute('selected')
+                                    }
+                                    option.value = parseInt(option.value) + 1
+                                })
+                                const option = document.createElement('option')
+                                option.text = value
+                                option.value = 0
+                                option.setAttribute('selected', 'true')
+                                selectStat.add(option, selectStat[0])
+                            }
+                        } else {
+                            if (attributeElement.dataset.linkedCount && value > 0) {
+                                attributeElement.setAttribute('href', '')
+                                setUpDataLinked(attributeElement)
+                            }
+                            attributeElement.innerText = value
+                        }
+                    }
+                } else {
+                    if (key === 'errors') {
+                        const formated = value.map((error) => error.replaceAll(/^\s+/g, '&emsp;')).map((error) => '<p>' + error + '</p>').join('')
+                        attributeElement.innerHTML = formated
+                    } else {
+                        if (key === 'new attributes') {
+                            attributeElement.innerHTML = ''
+                            if (value && !value.length) {
+                                attributeElement.innerHTML = 0
+                            } else {
+                                value.forEach((attr, index) => {
+                                    const a = document.createElement('a')
+                                    a.innerText = index > 0 ? `, ${attr[0]}(${attr[1]})` : `${attr[0]}(${attr[1]})`
+                                    a.href = `/admin/collector/inspect_attributes/${attr[0].replace(/_/g, ' ')}`
+                                    attributeElement.appendChild(a)
+                                })
+                            }
+                            continue
+                        }
+                        for (const [subKey, subValue] of Object.entries(value)) {
+                            const subAttributeElement = attributeElement.querySelector(`[data-subattribute="${subKey}"]`)
+                            if (subKey === 'percentage' || subKey === 'percentage success') {
+                                subAttributeElement.style.width = subValue + '%'
+                            } else if (subKey === 'runner') {
+                                subAttributeElement.style.display = subValue
+                            } else if (subKey === 'active'){
+                                if (subValue === true) {
+                                    statContainer.dataset.active = true
+                                }
+                            } else {
+                                subAttributeElement.innerText = subValue
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.log('Update statistic error!')
+            console.log(error)
+        }
+    }
+
+    window.onload = () => {
+        interact()
+    }
+</script>
+
+

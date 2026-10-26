@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Laptico</title>
+</head>
+<body>
+  <%- include('partials/header') %>
+  <div id="form_container">
+    <%- include('partials/laptop_form_1') %>
+  </div>
+</body>
+<footer>
+  <div class="top-footer">
+  </div>
+</footer>
+</html>
+<script type="text/javascript">
+
+
+
+function formSelectsAction() {
+  let form = document.querySelector('#search1')
+  let formSelects = form.querySelectorAll('select')
+  formSelects.forEach((select) => {
+      select.addEventListener('change', async () => {
+        await submitForm(form)
+        formSelectsAction()
+      })
+  })
+}
+
+async function removeQuery(element) {
+  let form = document.querySelector('#search1')
+  const targetSelect = form.querySelector(`select[name='${element.value}']`)
+  const targetOption = targetSelect.firstElementChild
+  targetOption.value = ''
+  await submitForm(form)
+  formSelectsAction()
+ 
+}
+
+async function submitForm(form) {
+  let formData = new FormData(form)
+  let url = form.action + '?' + (new URLSearchParams(formData)).toString();  
+  const response = await fetch(url)
+  
+  if (!response.ok) {
+    const message = `An error has occured: ${response.status}`
+    throw new Error(message)
+  }
+
+  const updatedForm = await response.text()
+  const formCont = form.parentElement
+  await form.remove()
+  formCont.innerHTML = updatedForm
+}
+
+
+
+
+
+formSelectsAction()
+
+</script>

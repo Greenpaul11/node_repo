@@ -1,0 +1,692 @@
+<div id="laptop_search" class="section flex">
+    <div>
+        <div class="l_link_col">
+            <h3>Laptops</h3>
+            <div>
+                <div>
+                    <a href="?productcategory__name=Gaming+laptops">Gaming laptops</a>
+                    <a href="?graphic_card_series=NR">GeForce RTX laptops</a>
+                    <a href="?productcategory__name=Business+laptops">Business laptops</a>
+                    <a href="?screen_size=17,3">17 Inch Screen laptops</a>
+                    <a href="?processor_series=I7">Intel Core i7 laptops</a>
+                </div>
+                <div style="display: none;">
+                    <a href="?operating_system=No+system">Laptops without OS</a>
+                    <a href="?system=W11">Laptops with Windows 11</a>
+                    <a href="?color=BLAC">Black laptops</a>
+                    <a href="?color=WHIT">White laptops</a>
+                    <a href="?color=PINK">Pink laptops</a>
+                    <a href="?screen_resolution=FLHD">Full HD laptops</a>
+                    <a href="?productcategory__name=Gaming+laptops">Gaming laptops</a>
+                    <a href="?graphic_card_series=NR">GeForce RTX laptops</a>
+                    <a href="?graphic_card_dedicated__model=NR17">Laptops with RTX 3050</a>
+                    <a href="?graphic_card_dedicated__model=NR22">Laptops with RTX 3060</a>
+                    <a href="?graphic_card_dedicated__model=NR24">Laptops with RTX 3070</a>
+                    <a href="?graphic_card_dedicated__model=NR26">Laptops with RTX 3080</a>
+                    <a href="?graphic_card_dedicated__model=NR28">Laptops with RTX 4050</a>
+                    <a href="?graphic_card_dedicated__model=NR30">Laptops with RTX 4060</a>
+                    <a href="?graphic_card_dedicated__model=NR31">Laptops with RTX 4070</a>
+                    <a href="?graphic_card_dedicated__model=NR32">Laptops with RTX 4080</a>
+                    <a href="?graphic_card_series=AR">Radeon RX laptops</a>
+                    <a href="?graphic_card_dedicated__model=AR5">Laptops with RX 6600</a>
+                    <a href="?graphic_card_dedicated__model=AR6">Laptops with RX 6800</a>
+                    <a href="?productcategory__name=Student+laptops">Student laptops</a>
+                    <a href="?productcategory__name=Business+laptops">Business laptops</a>
+                    <a href="?processor_series=I">Intel family laptops</a>
+                    <a href="?processor_series=I3">Intel Core i3 laptops</a>
+                    <a href="?processor_series=I5">Intel Core i5 laptops</a>
+                    <a href="?processor_series=I7">Intel Core i7 laptops</a>
+                    <a href="?processor_series=R">AMD family laptops</a>
+                    <a href="?processor_series=R3">Ryzen 3 laptops</a>
+                    <a href="?processor_series=R5">Ryzen 5 laptops</a>
+                    <a href="?processor_series=R7">Ryzen 7 laptops</a>
+                    {% for choice in form.fields.ram.choices %}
+                    <a href="?brand={{ choice.0 }}">{{ choice.1 }} ram laptops</a>
+                    {% endfor %}
+                    <a href="?screen_type=IPS">Laptops with IPS panel</a>
+                    <a href="?screen_type=OLED">Laptops with OLED panel</a>
+                    <a href="?screen_coat=AR">Laptops with matte matrix</a>
+                    <a href="?screen_coat=AR">Laptops with shiny matrix</a>
+                    {% for choice in form.fields.screen_size.choices %}
+                    <a href="?brand={{ choice.0 }}">{{ choice.1 }} screen laptops</a>
+                    {% endfor %}
+                    {% for choice in form.fields.brand.choices %}
+                    <a href="?brand={{ choice.0 }}">{{ choice.1 }} laptops</a>
+                    {% endfor %}
+                </div>
+                <button type="button" class="filter_dropdown_btn" data-filter-link-btn>Show more</button>
+            </div>
+        </div>
+        <div class="filter_col">
+            <h3>Filters</h3>
+            <form id="filter_form" method="get" action="/filter_laptops" autocomplete="off">
+                <% if (!activeFilters.length === false) { %>
+                    <% for (const [query, values] of activeFilters) { %>
+                    <div class="active_filter_row">
+                        <div>
+                            <p><%= query %> : <% for (const [index, value] of values.entries()) { %>
+                                <% if (values.length === 1 || index === values.length - 1) { %>
+                                <b><%= value %></b>
+                                <% } else { %>
+                                <b><%= value %>,</b>
+                                <% } %>
+                            <% } %></p>
+                        </div>
+                        <button type="submit" value="<%= query %>">&#10005;</button>             
+                    </div>
+                    <% } %>
+                    <div id="filter_remove_all" class="active_filter_row">
+                        <div>
+                            <p>Remove all</p>
+                        </div>
+                        <button type="submit" value="all">&#10005;</button>     
+                    </div>
+                <% } %>
+                <div class="filter_row">
+                    <p>Price</p>
+                    <input type="number" name="from_price" placeholder="from" step="0.01" class="filter_input" id="id_from_price" value="<%= laptopOptions.from_price %>"> <input type="number" name="to_price" placeholder="to" step="0.01" class="filter_input" id="id_to_price" value="<%= laptopOptions.to_price %>">
+                </div>
+                <div class="filter_row" data-filter-category="brand">
+                    <p>Brand</p>
+                    <div id="id_brand">
+                        <% for (const [index, option] of laptopOptions.brand.entries()) { %>
+                        <% if (index === 5) { %>
+                        <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.brand.length - 5 %>)</button>
+                        <% } %>
+                        <% if (index < 5) { %>
+                        <div data-option-show="true">
+                        <% } else { %>
+                        <div data-option-show="false">
+                        <% } %>
+                        <% if (option.disabled) { %>
+                            <label for="<%= option.value %>"><input disabled type="checkbox" name="brand" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else if (option.checked) { %>
+                            <label for="<%= option.value %>"><input checked type="checkbox" name="brand" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else { %>
+                            <label for="<%= option.value %>"><input type="checkbox" name="brand" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="filter_row" data-filter-category="model">
+                    <p>Model</p>
+                    <div id="id_model">
+                        <% for (const [index, option] of laptopOptions.model.entries()) { %>
+                        <% if (index === 5) { %>
+                        <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.model.length - 5 %>)</button>
+                        <% } %>
+                        <% if (index < 5) { %>
+                        <div data-option-show="true">
+                        <% } else { %>
+                        <div data-option-show="false">
+                        <% } %>
+                        <% if (option.disabled) { %>
+                            <label for="<%= option.value %>"><input disabled type="checkbox" name="model" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else if (option.checked) { %>
+                            <label for="<%= option.value %>"><input checked type="checkbox" name="model" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else { %>
+                            <label for="<%= option.value %>"><input type="checkbox" name="model" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="filter_row" data-filter-category="operating_system">
+                    <p>Operating system</p>
+                    <div id="id_operating_system">
+                        <% for (const [index, option] of laptopOptions.operating_system.entries()) { %>
+                        <% if (index === 5) { %>
+                        <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.operating_system.length - 5 %>)</button>
+                        <% } %>
+                        <% if (index < 5) { %>
+                        <div data-option-show="true">
+                        <% } else { %>
+                        <div data-option-show="false">
+                        <% } %>
+                        <% if (option.disabled) { %>
+                            <label for="<%= option.value %>"><input disabled type="checkbox" name="operating_system" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else if (option.checked) { %>
+                            <label for="<%= option.value %>"><input checked type="checkbox" name="operating_system" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } else { %>
+                            <label for="<%= option.value %>"><input type="checkbox" name="operating_system" value="<%= option.value %>" id="<%= option.value %>">
+                            <%= option.value %><span class="checkmark"></span></label>
+                        <% } %>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="display">Display</button>
+                <ul class="filter_dropdown_list" data-filter-category="display">
+                    <li class="filter_row" data-filter-category="screen_size">
+                        <p>Screen size</p>
+                        <div id="id_screen_size">
+                            <% for (const [index, option] of laptopOptions.screen_size.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.screen_size.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="screen_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="screen_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="screen_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Screen resolution</p>
+                        <div id="id_screen_resolution">
+                            <% for (const [index, option] of laptopOptions.screen_resolution.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.screen_resolution.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="screen_resolution" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="screen_resolution" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="screen_resolution" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Screen refresh rate</p>
+                        <div id="id_screen_refresh">
+                            <% for (const [index, option] of laptopOptions.screen_refresh.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.screen_refresh.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="screen_refresh" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="screen_refresh" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="screen_refresh" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Screen type</p>
+                        <div id="id_screen_type">
+                            <% for (const [index, option] of laptopOptions.screen_type.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.screen_type.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="screen_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="screen_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="screen_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Screen coat</p>
+                        <div id="id_screen_coat">
+                            <% for (const [index, option] of laptopOptions.screen_coat.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.screen_coat.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="screen_coat" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="screen_coat" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="screen_coat" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Touchscreen</p>
+                        <div>
+                            <label><input type="checkbox" name="touchscreen" id="id_touchscreen_yes" value="1">
+                                <span class="checkmark"></span> Yes</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="touchscreen" id="id_touchscreen_no" value="0">
+                                <span class="checkmark"></span> No</label>
+                        </div>
+                    </li>
+                </ul>
+               
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="processor">Processor</button>
+                <ul class="filter_dropdown_list" data-filter-category="processor">
+                    <li class="filter_row">
+                        <p>Processor type</p>
+                        <div id="id_processor">
+                            <% for (const [index, option] of laptopOptions.processor.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.processor.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="processor" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="processor" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="processor" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Processor cores</p>
+                        <div id="id_processor_cores">
+                            <% for (const [index, option] of laptopOptions.processor_cores.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.processor_cores.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="processor_cores" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="processor_cores" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="processor_cores" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                </ul>
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="memory">Memory</button>
+                <ul class="filter_dropdown_list" data-filter-category="memory">
+                    <li class="filter_row">
+                        <p>Ram size</p>
+                        <div id="id_ram_size">
+                            <% for (const [index, option] of laptopOptions.ram_size.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.ram_size.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="ram_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="ram_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="ram_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Ram speed</p>
+                        <div id="id_ram_speed">
+                            <% for (const [index, option] of laptopOptions.ram_speed.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.ram_speed.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="ram_speed" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="ram_speed" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="ram_speed" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Ram type</p>
+                        <div id="id_ram_type">
+                            <% for (const [index, option] of laptopOptions.ram_type.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.ram_type.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="ram_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="ram_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="ram_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                </ul>
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="hard_disk">Hard disk</button>
+                <ul class="filter_dropdown_list" data-filter-category="hard_disk">
+                    <li class="filter_row">
+                        <p>Disk type</p>
+                        <div id="id_disk_type">
+                            <% for (const [index, option] of laptopOptions.disk_type.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.disk_type.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="disk_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="disk_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="disk_type" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Disk size</p>
+                        <div id="id_disk_size">
+                            <% for (const [index, option] of laptopOptions.disk_size.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.disk_size.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="disk_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="disk_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="disk_size" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Disk slot available</p>
+                        <div>
+                            <label><input type="checkbox" name="disk_slot_available" id="id_disk_slot_available_yes" value="1">
+                                <span class="checkmark"></span> Yes</label>
+                        </div>
+                        <div>
+                            <label><input type="checkbox" name="disk_slot_available" id="id_disk_slot_available_no" value="0">
+                                <span class="checkmark"></span> No</label>
+                        </div>
+                    </li>
+                </ul>
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="graphic_card">Graphic card</button>
+                <ul class="filter_dropdown_list" data-filter-category="graphic_card">
+                    <li class="filter_row">
+                        <p>Graphic card</p>
+                        <div id="id_graphic_card">
+                            <% for (const [index, option] of laptopOptions.graphic_card.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.graphic_card.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="graphic_card" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="graphic_card" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="graphic_card" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Memory</p>
+                        <div id="id_graphic_card_memory">
+                            <% for (const [index, option] of laptopOptions.graphic_card_memory.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.graphic_card_memory.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="graphic_card_memory" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="graphic_card_memory" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="graphic_card_memory" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                </ul>
+                <button type="button" class="filter_dropdown_btn" data-filter-btn="outside">Outside</button>
+                <ul class="filter_dropdown_list" data-filter-category="outside">
+                    <li class="filter_row">
+                        <p>Case color</p>
+                        <div id="id_color">
+                            <% for (const [index, option] of laptopOptions.color.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.color.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="color" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="color" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="color" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Ports</p>
+                        <div id="id_ports">
+                            <% for (const [index, option] of laptopOptions.ports.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.ports.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="ports" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="ports" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="ports" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+                    <li class="filter_row">
+                        <p>Materials</p>
+                        <div id="id_material">
+                            <% for (const [index, option] of laptopOptions.material.entries()) { %>
+                                <% if (index === 5) { %>
+                                <button type="button" class="filter_dropdown_btn" data-options-more="">Show more(<%= laptopOptions.material.length - 5 %>)</button>
+                                <% } %>
+                                <% if (index < 5) { %>
+                                <div data-option-show="true">
+                                <% } else { %>
+                                <div data-option-show="false">
+                                <% } %>
+                                <% if (option.disabled) { %>
+                                    <label for="<%= option.value %>"><input disabled type="checkbox" name="material" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else if (option.checked) { %>
+                                    <label for="<%= option.value %>"><input checked type="checkbox" name="material" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } else { %>
+                                    <label for="<%= option.value %>"><input type="checkbox" name="material" value="<%= option.value %>" id="<%= option.value %>">
+                                    <%= option.value %><span class="checkmark"></span></label>
+                                <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </li>
+        
+                </ul>
+            </form>
+            <div class="lds_roller_wrapper">
+                <div class="lds_roller_active"></div>
+                <div class="lds-roller"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="result_col" class="result_col">
+        <div>
+            <button class="btn_arrow prev" data-logo-btn="prev">&#10094;</button>
+            <button class="btn_arrow next" data-logo-btn="next">&#10095;</button>
+            <ol class="brand_logo_cont">
+                <% laptopOptions.brand.forEach((option, index) => { %>
+                <li style="order: <%= index %>">
+                    <img data-logo-image="<%= option.checked %>" src="/static_files/logos/logo_laptops/<%= option.value %>.jpg" alt="brand_logo">
+                    <input type="hidden" name="brand" value="<%= option.value %>" alt="brand_logo">
+                </li>
+                <% }) %>
+            </ol>
+        </div>
+        <div class="filter_row">
+            <div>
+                <label for="id_sort_options"><p>Sort options:</p></label> 
+                <select name="order" class="custom_input" form="filter_form" id="id_sort_options">
+                    <% for (const [key, value] of Object.entries(queryConfig.order)) { %> 
+                    <% if (laptopOptions.order === key) { %>
+                    <option value="<%= key %>" selected><%= value.toText %></option>
+                    <% } else { %>
+                    <option value="<%= key %>"><%= value.toText %></option>
+                    <% } %>
+                    <% } %>
+                </select>
+            </div>
+            <div>
+                <label for="id_not_available"><input type="checkbox" name="active" value="1" form="filter_form" id="id_not_available">
+                <span class="checkmark"></span> Not available products</label>
+            </div>
+        </div>
+        <%- include('../partials/laptop_results') %>
+    </div>
+</div>

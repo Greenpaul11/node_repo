@@ -32,7 +32,7 @@ const validationOn = {
             group: true
         }
     },
-    subEntityRelationDepth: 2
+    subEntitiesDepth: 2
 }
 
 export const validationOff = {
@@ -53,7 +53,7 @@ export const validationOff = {
             group: false
         }
     },
-    subEntityRelationDepth: 2
+    subEntitiesDepth: 2
 }
 
 function createConvertersBuild<F extends OrmQuery>(): ConvertersBuild<F> {

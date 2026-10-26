@@ -1,0 +1,123 @@
+<header id="header" class="header-main">
+  <div class="header-wrapper">
+    <div id="header-sec1" class="header-sec1">
+      <ul id="header-list-user" class="header-list-user">
+        <li class="header-user-item">
+          <button id="header-button-show-search" class="header-user-action">search</button>
+        </li>
+        <li class="header-user-item"><a href="" class="header-user-action">contact</a></li>
+        <li class="header-user-item"><a href="" class="header-user-action">log in</a></li>
+        <li class="header-user-item"><a href="" class="header-user-action">register</a></li>
+      </ul>
+    </div>
+    <div class="header-center-logo">
+      <img class="header-logo" src="/static_files/logos/logo_main/logoLen.png" alt="logo image">
+    </div>
+    <div class="dropdown-container">
+      <div id="header-dropdown" class="dropdown">
+        <div class="header-search-wrapper">
+          <div class="header-search-cont">
+            <form action="/laptops" method="get" autocomplete="off">
+              <input type="search" name='search_start' class="header-search-input" placeholder="Search keyword">
+              <button type="submit" class="header-search-btn">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                  width="0.333333in" height="0.333333in"
+                  viewBox="0 0 30 30">
+                  <path id="Selection"
+                    fill="none" stroke="black" stroke-width="1"
+                    d="M 27.00,28.00
+                        C 21.30,25.31 20.54,22.70 17.00,20.88
+                          12.91,18.79 6.76,21.79 3.32,14.96
+                          -0.83,6.74 9.58,-1.63 16.77,4.51
+                          21.57,8.60 18.98,13.69 20.31,16.83
+                          21.68,20.08 24.94,20.54 28.00,27.00
+                          28.00,27.00 27.00,28.00 27.00,28.00 Z
+                        M 10.02,5.71
+                        C 1.07,10.36 7.23,18.43 12.94,16.38
+                          18.26,14.48 18.64,5.40 10.02,5.71 Z" />
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="header-sec2" class="header-sec2">
+      <ul id="header-list-sec2">
+        <li>
+          <a href="">find your laptop</a>
+        </li>
+        <li>
+          <a href="">laptops</a>
+        </li>
+        <li>
+          <a href="">best deals</a>
+        </li>
+        <li>
+          <a href="">articles</a>
+        </li>
+      </ul>
+    </div>
+    <div id="menu-button" class="menu-button">
+      <button><img src="/static_files/svgs/menu_small.png"></button>
+      <button><img src="/static_files/svgs/close.png"></button>
+    </div>
+    </div>
+</header>
+<script type="text/javascript">
+  let searchButtonShow
+  let headerDropdown
+  let section2Wrapper
+  let section2
+  let menuButton
+  function interactHeader() {
+    headerDropdown = document.getElementById('header-dropdown')
+    searchButtonShow = document.getElementById('header-button-show-search')
+    searchButtonShow.addEventListener('click', (event) => {
+      let active = searchButtonShow.dataset.active
+      if (!active) {
+        searchButtonShow.dataset.active = 'true'
+        searchButtonShow.parentElement.dataset.active = 'true'
+        headerDropdown.dataset.active = 'true'
+      } else {
+        delete searchButtonShow.dataset.active
+        delete searchButtonShow.parentElement.dataset.active
+        delete headerDropdown.dataset.active
+      } 
+    })
+    section2Wrapper = document.getElementById('header-sec2')
+    section2 = document.getElementById('header-list-sec2')
+    const mediaQueryHeader = window.matchMedia('(max-width: 900px)')
+    mediaQueryHeader.addEventListener('change',handleMobileChangeHeader)
+    if (window.innerWidth <= 900) header2ToMobile()
+
+    menuButton = document.getElementById('menu-button')
+    menuButton.addEventListener('click', (event) => {
+      const active = menuButton.dataset.active
+      if (!active) {
+        menuButton.dataset.active = 'true'
+        section2.dataset.active = 'true'
+      } else {
+        delete menuButton.dataset.active
+        delete section2.dataset.active
+      }
+    })
+
+  }
+  function handleMobileChangeHeader(event) {
+    if (event.matches) {
+      header2ToMobile()
+    } else {
+      header2ToDesktop()
+    }
+  }
+  function header2ToMobile() {
+    section2Wrapper.classList.add('dropdown-container')
+    section2.classList.add('dropdown')
+  }
+  function header2ToDesktop() {
+    section2Wrapper.classList.remove('dropdown-container')
+    section2.classList.remove('dropdown')
+  }
+  interactHeader()
+</script>
